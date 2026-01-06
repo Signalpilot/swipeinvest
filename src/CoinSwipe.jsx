@@ -25,6 +25,34 @@ const AFFILIATE_LINKS = {
   bybit: 'https://www.bybit.com/invite?ref=LW6W7',
 };
 
+// Stablecoins to filter out (no point swiping on $1 pegged coins)
+const STABLECOIN_IDS = [
+  'tether', 'usdc', 'dai', 'usds', 'usdd', 'usdt', 'tusd', 'usdp', 'gusd', 'busd',
+  'frax', 'lusd', 'susd', 'eurs', 'eurt', 'ustc', 'fdusd', 'pyusd', 'usdg',
+  'first-digital-usd', 'ethena-usde', 'usde', 'crvusd', 'true-usd', 'pax-dollar',
+  'gemini-dollar', 'stasis-euro', 'origin-dollar', 'liquity-usd', 'magic-internet-money',
+];
+
+const isStablecoin = (coin) => {
+  const id = coin.id?.toLowerCase() || '';
+  const symbol = coin.symbol?.toLowerCase() || '';
+  const name = coin.name?.toLowerCase() || '';
+
+  // Check against known stablecoin IDs
+  if (STABLECOIN_IDS.includes(id)) return true;
+
+  // Check for common stablecoin patterns
+  if (symbol.includes('usd') || symbol.includes('eur') || symbol.includes('gbp')) return true;
+  if (name.includes('usd coin') || name.includes('stablecoin') || name.includes('dollar')) return true;
+
+  // Check if price is pegged around $1 with very low volatility (likely a stablecoin)
+  const price = coin.current_price;
+  const change = Math.abs(coin.price_change_percentage_24h || 0);
+  if (price > 0.98 && price < 1.02 && change < 0.5) return true;
+
+  return false;
+};
+
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
@@ -902,8 +930,9 @@ export default function CoinSwipe() {
         if (!response.ok) throw new Error('CoinGecko API failed');
         const data = await response.json();
 
-        // Shuffle for variety
-        const shuffled = [...data].sort(() => Math.random() - 0.5);
+        // Filter out stablecoins and shuffle for variety
+        const filtered = data.filter(coin => !isStablecoin(coin));
+        const shuffled = [...filtered].sort(() => Math.random() - 0.5);
         setCoins(shuffled);
 
         // Build price map
