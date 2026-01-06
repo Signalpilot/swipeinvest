@@ -68,8 +68,8 @@ const TRADINGVIEW_SYMBOLS = {
   'sei-network': 'SEIUSD',
 };
 
-// Categories for filtering
-const CATEGORIES = [
+// Categories for filtering - CRYPTO
+const CRYPTO_CATEGORIES = [
   { id: 'all', label: 'All', emoji: '🔥' },
   { id: 'trending', label: 'Trending', emoji: '📈' },
   { id: 'meme', label: 'Meme', emoji: '🐸' },
@@ -79,6 +79,89 @@ const CATEGORIES = [
   { id: 'l2', label: 'L2', emoji: '🔷' },
   { id: 'bluechip', label: 'Blue Chip', emoji: '💎' },
 ];
+
+// Categories for filtering - STOCKS
+const STOCK_CATEGORIES = [
+  { id: 'all', label: 'All', emoji: '🔥' },
+  { id: 'trending', label: 'Trending', emoji: '📈' },
+  { id: 'tech', label: 'Tech', emoji: '💻' },
+  { id: 'finance', label: 'Finance', emoji: '🏦' },
+  { id: 'healthcare', label: 'Health', emoji: '🏥' },
+  { id: 'energy', label: 'Energy', emoji: '⚡' },
+  { id: 'meme', label: 'Meme', emoji: '🚀' },
+  { id: 'dividend', label: 'Dividend', emoji: '💰' },
+];
+
+// Popular stocks to track (symbol -> metadata)
+const STOCK_LIST = [
+  // Tech Giants
+  { symbol: 'AAPL', name: 'Apple', sector: 'tech', category: ['tech', 'bluechip'] },
+  { symbol: 'MSFT', name: 'Microsoft', sector: 'tech', category: ['tech', 'bluechip'] },
+  { symbol: 'GOOGL', name: 'Alphabet', sector: 'tech', category: ['tech', 'bluechip'] },
+  { symbol: 'AMZN', name: 'Amazon', sector: 'tech', category: ['tech', 'bluechip'] },
+  { symbol: 'META', name: 'Meta', sector: 'tech', category: ['tech', 'bluechip'] },
+  { symbol: 'NVDA', name: 'NVIDIA', sector: 'tech', category: ['tech', 'ai', 'bluechip'] },
+  { symbol: 'TSLA', name: 'Tesla', sector: 'tech', category: ['tech', 'meme', 'trending'] },
+  { symbol: 'AMD', name: 'AMD', sector: 'tech', category: ['tech', 'ai'] },
+  { symbol: 'INTC', name: 'Intel', sector: 'tech', category: ['tech', 'dividend'] },
+  { symbol: 'CRM', name: 'Salesforce', sector: 'tech', category: ['tech'] },
+  { symbol: 'ORCL', name: 'Oracle', sector: 'tech', category: ['tech', 'dividend'] },
+  { symbol: 'ADBE', name: 'Adobe', sector: 'tech', category: ['tech'] },
+  { symbol: 'NFLX', name: 'Netflix', sector: 'tech', category: ['tech'] },
+  { symbol: 'PYPL', name: 'PayPal', sector: 'tech', category: ['tech', 'finance'] },
+  { symbol: 'SQ', name: 'Block', sector: 'tech', category: ['tech', 'finance'] },
+  { symbol: 'SHOP', name: 'Shopify', sector: 'tech', category: ['tech'] },
+  { symbol: 'UBER', name: 'Uber', sector: 'tech', category: ['tech'] },
+  { symbol: 'ABNB', name: 'Airbnb', sector: 'tech', category: ['tech'] },
+  { symbol: 'SNAP', name: 'Snap', sector: 'tech', category: ['tech', 'meme'] },
+  { symbol: 'PLTR', name: 'Palantir', sector: 'tech', category: ['tech', 'ai', 'meme'] },
+  // AI Stocks
+  { symbol: 'AI', name: 'C3.ai', sector: 'tech', category: ['tech', 'ai', 'trending'] },
+  { symbol: 'PATH', name: 'UiPath', sector: 'tech', category: ['tech', 'ai'] },
+  { symbol: 'SNOW', name: 'Snowflake', sector: 'tech', category: ['tech', 'ai'] },
+  // Finance
+  { symbol: 'JPM', name: 'JPMorgan', sector: 'finance', category: ['finance', 'bluechip', 'dividend'] },
+  { symbol: 'BAC', name: 'Bank of America', sector: 'finance', category: ['finance', 'dividend'] },
+  { symbol: 'WFC', name: 'Wells Fargo', sector: 'finance', category: ['finance', 'dividend'] },
+  { symbol: 'GS', name: 'Goldman Sachs', sector: 'finance', category: ['finance'] },
+  { symbol: 'MS', name: 'Morgan Stanley', sector: 'finance', category: ['finance', 'dividend'] },
+  { symbol: 'V', name: 'Visa', sector: 'finance', category: ['finance', 'bluechip'] },
+  { symbol: 'MA', name: 'Mastercard', sector: 'finance', category: ['finance', 'bluechip'] },
+  { symbol: 'AXP', name: 'American Express', sector: 'finance', category: ['finance', 'dividend'] },
+  { symbol: 'BRK-B', name: 'Berkshire B', sector: 'finance', category: ['finance', 'bluechip'] },
+  { symbol: 'C', name: 'Citigroup', sector: 'finance', category: ['finance', 'dividend'] },
+  // Healthcare
+  { symbol: 'JNJ', name: 'Johnson & Johnson', sector: 'healthcare', category: ['healthcare', 'dividend', 'bluechip'] },
+  { symbol: 'UNH', name: 'UnitedHealth', sector: 'healthcare', category: ['healthcare', 'bluechip'] },
+  { symbol: 'PFE', name: 'Pfizer', sector: 'healthcare', category: ['healthcare', 'dividend'] },
+  { symbol: 'ABBV', name: 'AbbVie', sector: 'healthcare', category: ['healthcare', 'dividend'] },
+  { symbol: 'MRK', name: 'Merck', sector: 'healthcare', category: ['healthcare', 'dividend'] },
+  { symbol: 'LLY', name: 'Eli Lilly', sector: 'healthcare', category: ['healthcare', 'trending'] },
+  { symbol: 'TMO', name: 'Thermo Fisher', sector: 'healthcare', category: ['healthcare'] },
+  // Energy
+  { symbol: 'XOM', name: 'Exxon Mobil', sector: 'energy', category: ['energy', 'dividend'] },
+  { symbol: 'CVX', name: 'Chevron', sector: 'energy', category: ['energy', 'dividend'] },
+  { symbol: 'COP', name: 'ConocoPhillips', sector: 'energy', category: ['energy', 'dividend'] },
+  { symbol: 'NEE', name: 'NextEra Energy', sector: 'energy', category: ['energy'] },
+  // Meme Stocks
+  { symbol: 'GME', name: 'GameStop', sector: 'retail', category: ['meme', 'trending'] },
+  { symbol: 'AMC', name: 'AMC', sector: 'entertainment', category: ['meme', 'trending'] },
+  { symbol: 'BBBY', name: 'Bed Bath Beyond', sector: 'retail', category: ['meme'] },
+  { symbol: 'BB', name: 'BlackBerry', sector: 'tech', category: ['meme', 'tech'] },
+  // Consumer
+  { symbol: 'WMT', name: 'Walmart', sector: 'retail', category: ['dividend', 'bluechip'] },
+  { symbol: 'COST', name: 'Costco', sector: 'retail', category: ['bluechip'] },
+  { symbol: 'HD', name: 'Home Depot', sector: 'retail', category: ['dividend'] },
+  { symbol: 'NKE', name: 'Nike', sector: 'consumer', category: ['bluechip'] },
+  { symbol: 'SBUX', name: 'Starbucks', sector: 'consumer', category: ['dividend'] },
+  { symbol: 'MCD', name: 'McDonald\'s', sector: 'consumer', category: ['dividend', 'bluechip'] },
+  { symbol: 'KO', name: 'Coca-Cola', sector: 'consumer', category: ['dividend', 'bluechip'] },
+  { symbol: 'PEP', name: 'PepsiCo', sector: 'consumer', category: ['dividend'] },
+  { symbol: 'DIS', name: 'Disney', sector: 'entertainment', category: ['bluechip'] },
+];
+
+// For backwards compatibility
+const CATEGORIES = CRYPTO_CATEGORIES;
 
 // Affiliate links
 const AFFILIATE_LINKS = {
@@ -115,9 +198,127 @@ const isStablecoin = (coin) => {
   return false;
 };
 
+// Finnhub API key - Get free key at https://finnhub.io/
+// Users can set their own key in localStorage: localStorage.setItem('finnhub_key', 'YOUR_KEY')
+const FINNHUB_KEY = () => localStorage.getItem('finnhub_key') || 'demo'; // 'demo' works for basic quotes
+
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
+
+// Get stock category from our stock list metadata
+const getStockCategory = (stock) => {
+  const stockMeta = STOCK_LIST.find(s => s.symbol === stock.symbol);
+  const categories = stockMeta?.category || [];
+
+  // Add trending if big move
+  if (Math.abs(stock.price_change_percentage_24h || 0) > 5) {
+    if (!categories.includes('trending')) categories.push('trending');
+  }
+
+  return categories;
+};
+
+// Get vibes for stocks
+const getStockVibes = (stock) => {
+  const vibes = [];
+  const categories = getStockCategory(stock);
+  const stockMeta = STOCK_LIST.find(s => s.symbol === stock.symbol);
+
+  if (categories.includes('trending')) vibes.push({ text: 'Trending', emoji: '🔥', color: 'from-orange-500 to-red-500' });
+  if (categories.includes('ai')) vibes.push({ text: 'AI', emoji: '🤖', color: 'from-purple-500 to-pink-500' });
+  if (categories.includes('meme')) vibes.push({ text: 'Meme', emoji: '🚀', color: 'from-green-500 to-emerald-500' });
+  if (categories.includes('tech')) vibes.push({ text: 'Tech', emoji: '💻', color: 'from-blue-500 to-cyan-500' });
+  if (categories.includes('finance')) vibes.push({ text: 'Finance', emoji: '🏦', color: 'from-yellow-500 to-orange-500' });
+  if (categories.includes('dividend')) vibes.push({ text: 'Dividend', emoji: '💰', color: 'from-green-500 to-teal-500' });
+  if (categories.includes('healthcare')) vibes.push({ text: 'Health', emoji: '🏥', color: 'from-red-500 to-pink-500' });
+  if (categories.includes('energy')) vibes.push({ text: 'Energy', emoji: '⚡', color: 'from-amber-500 to-yellow-500' });
+
+  // Sector badge
+  if (stockMeta?.sector && vibes.length < 2) {
+    const sectorEmoji = {
+      tech: '💻', finance: '🏦', healthcare: '🏥', energy: '⚡',
+      retail: '🛒', consumer: '🛍️', entertainment: '🎬'
+    };
+    vibes.push({
+      text: stockMeta.sector.charAt(0).toUpperCase() + stockMeta.sector.slice(1),
+      emoji: sectorEmoji[stockMeta.sector] || '📊',
+      color: 'from-slate-500 to-slate-600'
+    });
+  }
+
+  if (stock.price_change_percentage_24h > 8) vibes.push({ text: 'Pumping', emoji: '🚀', color: 'from-green-400 to-emerald-400' });
+  if (stock.price_change_percentage_24h < -8) vibes.push({ text: 'Dipping', emoji: '📉', color: 'from-red-500 to-pink-500' });
+
+  return vibes.slice(0, 3);
+};
+
+// Fetch stocks from Finnhub
+const fetchStocksFromFinnhub = async () => {
+  const symbols = STOCK_LIST.map(s => s.symbol);
+  const apiKey = FINNHUB_KEY();
+
+  // Fetch quotes for all stocks (Finnhub allows 60/min so we're fine)
+  const quotes = await Promise.all(
+    symbols.map(async (symbol) => {
+      try {
+        const response = await fetch(
+          `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`
+        );
+        if (!response.ok) return null;
+        const data = await response.json();
+        return { symbol, ...data };
+      } catch (e) {
+        return null;
+      }
+    })
+  );
+
+  // Transform to our format
+  return quotes
+    .filter(q => q && q.c > 0) // Filter out failed/invalid quotes
+    .map((quote, index) => {
+      const stockMeta = STOCK_LIST.find(s => s.symbol === quote.symbol);
+      const price = quote.c || 0; // Current price
+      const prevClose = quote.pc || price;
+      const change = prevClose > 0 ? ((price - prevClose) / prevClose) * 100 : 0;
+      const high = quote.h || price;
+      const low = quote.l || price;
+
+      // Estimate market cap (rough, based on known large caps)
+      const marketCapEstimates = {
+        'AAPL': 3000000000000, 'MSFT': 2800000000000, 'GOOGL': 1800000000000,
+        'AMZN': 1500000000000, 'NVDA': 1200000000000, 'META': 900000000000,
+        'TSLA': 700000000000, 'BRK-B': 800000000000, 'V': 500000000000,
+        'JPM': 450000000000, 'JNJ': 400000000000, 'WMT': 400000000000,
+      };
+      const marketCap = marketCapEstimates[quote.symbol] || (price * 1000000000); // Default estimate
+
+      // Generate sparkline from daily movement
+      const sparklineData = Array.from({ length: 24 }, (_, i) => {
+        const progress = i / 23;
+        return prevClose + (price - prevClose) * progress + (Math.random() - 0.5) * price * 0.01;
+      });
+
+      return {
+        id: quote.symbol.toLowerCase(),
+        symbol: quote.symbol.toLowerCase(),
+        name: stockMeta?.name || quote.symbol,
+        image: `https://logo.clearbit.com/${stockMeta?.name?.toLowerCase().replace(/[^a-z]/g, '')}.com`,
+        current_price: price,
+        market_cap: marketCap,
+        market_cap_rank: index + 1,
+        total_volume: (quote.v || 0) * price, // Volume * price = dollar volume
+        price_change_percentage_24h: change,
+        high_24h: high,
+        low_24h: low,
+        sparkline_in_7d: { price: sparklineData },
+        isStock: true,
+        sector: stockMeta?.sector,
+        categories: stockMeta?.category || [],
+      };
+    });
+};
 
 const getRiskLevel = (marketCap) => {
   if (marketCap > 100000000000) return { emoji: '💎', label: 'Blue Chip', color: 'text-cyan-400', bg: 'bg-cyan-500/20' };
@@ -176,9 +377,14 @@ const getCoinCategory = (coin) => {
   return categories;
 };
 
-const getVibes = (coin) => {
+const getVibes = (asset) => {
+  // Handle both crypto and stocks
+  if (asset.isStock) {
+    return getStockVibes(asset);
+  }
+
   const vibes = [];
-  const categories = getCoinCategory(coin);
+  const categories = getCoinCategory(asset);
 
   if (categories.includes('trending')) vibes.push({ text: 'Trending', emoji: '🔥', color: 'from-orange-500 to-red-500' });
   if (categories.includes('ai')) vibes.push({ text: 'AI', emoji: '🤖', color: 'from-purple-500 to-pink-500' });
@@ -187,8 +393,8 @@ const getVibes = (coin) => {
   if (categories.includes('l1')) vibes.push({ text: 'L1', emoji: '⛓️', color: 'from-yellow-500 to-orange-500' });
   if (categories.includes('l2')) vibes.push({ text: 'L2', emoji: '🔷', color: 'from-indigo-500 to-purple-500' });
 
-  if (coin.price_change_percentage_24h > 20) vibes.push({ text: 'Pumping', emoji: '🚀', color: 'from-green-400 to-emerald-400' });
-  if (coin.price_change_percentage_24h < -15) vibes.push({ text: 'Dipping', emoji: '📉', color: 'from-red-500 to-pink-500' });
+  if (asset.price_change_percentage_24h > 20) vibes.push({ text: 'Pumping', emoji: '🚀', color: 'from-green-400 to-emerald-400' });
+  if (asset.price_change_percentage_24h < -15) vibes.push({ text: 'Dipping', emoji: '📉', color: 'from-red-500 to-pink-500' });
 
   return vibes.slice(0, 3);
 };
@@ -1146,7 +1352,9 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
 export default function CoinSwipe() {
   // Views: 'landing', 'swipe', 'portfolio'
   const [view, setView] = useState('landing');
+  const [assetType, setAssetType] = useState('crypto'); // 'crypto' or 'stocks'
   const [coins, setCoins] = useState([]);
+  const [stocks, setStocks] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [portfolio, setPortfolio] = useState([]);
   const [currentPrices, setCurrentPrices] = useState({});
@@ -1156,8 +1364,15 @@ export default function CoinSwipe() {
   const [loading, setLoading] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [matchModal, setMatchModal] = useState(null);
-  const [detailModal, setDetailModal] = useState(null); // For coin detail with TradingView
+  const [detailModal, setDetailModal] = useState(null); // For coin/stock detail with TradingView
   const [fearGreed, setFearGreed] = useState({ value: null, label: '' }); // Fear & Greed index
+  const [marketStatus, setMarketStatus] = useState('open'); // 'open', 'closed', 'premarket'
+
+  // Get current categories based on asset type
+  const currentCategories = assetType === 'crypto' ? CRYPTO_CATEGORIES : STOCK_CATEGORIES;
+
+  // Get current assets based on asset type
+  const currentAssets = assetType === 'crypto' ? coins : stocks;
 
   // Load from localStorage
   useEffect(() => {
@@ -1329,13 +1544,85 @@ export default function CoinSwipe() {
     fetchFearGreed();
   }, []);
 
-  // Filter coins by category (must be before keyboard shortcuts)
+  // Fetch stocks from Finnhub when switching to stocks mode
+  useEffect(() => {
+    if (assetType !== 'stocks') return;
+    if (stocks.length > 0) return; // Already loaded
+
+    const fetchStocks = async () => {
+      setLoading(true);
+      try {
+        const stockData = await fetchStocksFromFinnhub();
+        if (stockData.length > 0) {
+          // Shuffle for variety
+          const shuffled = [...stockData].sort(() => Math.random() - 0.5);
+          setStocks(shuffled);
+
+          // Build price map
+          const prices = { ...currentPrices };
+          stockData.forEach(stock => {
+            prices[stock.id] = stock.current_price;
+          });
+          setCurrentPrices(prices);
+        }
+      } catch (error) {
+        console.error('Stock fetch error:', error);
+        // Use mock stocks as fallback
+        setStocks(getMockStocks());
+      }
+      setLoading(false);
+    };
+
+    fetchStocks();
+  }, [assetType]);
+
+  // Check US market hours
+  useEffect(() => {
+    const checkMarketHours = () => {
+      const now = new Date();
+      const nyTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      const hours = nyTime.getHours();
+      const minutes = nyTime.getMinutes();
+      const day = nyTime.getDay();
+
+      // Weekend
+      if (day === 0 || day === 6) {
+        setMarketStatus('closed');
+        return;
+      }
+
+      const timeInMinutes = hours * 60 + minutes;
+      const marketOpen = 9 * 60 + 30; // 9:30 AM
+      const marketClose = 16 * 60; // 4:00 PM
+
+      if (timeInMinutes < marketOpen - 30) {
+        setMarketStatus('closed');
+      } else if (timeInMinutes < marketOpen) {
+        setMarketStatus('premarket');
+      } else if (timeInMinutes < marketClose) {
+        setMarketStatus('open');
+      } else {
+        setMarketStatus('closed');
+      }
+    };
+
+    checkMarketHours();
+    const interval = setInterval(checkMarketHours, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Filter assets by category (must be before keyboard shortcuts)
   const filteredCoins = useMemo(() => {
-    return coins.filter(coin => {
+    const assets = assetType === 'crypto' ? coins : stocks;
+    return assets.filter(asset => {
       if (selectedCategory === 'all') return true;
-      return getCoinCategory(coin).includes(selectedCategory);
+      if (assetType === 'crypto') {
+        return getCoinCategory(asset).includes(selectedCategory);
+      } else {
+        return getStockCategory(asset).includes(selectedCategory);
+      }
     });
-  }, [coins, selectedCategory]);
+  }, [coins, stocks, selectedCategory, assetType]);
 
   // Check for match alerts
   const checkForMatches = useCallback((prices) => {
@@ -1563,13 +1850,52 @@ export default function CoinSwipe() {
       <header className="flex justify-between items-center p-4 border-b border-white/10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
-            <span className="text-xl">🪙</span>
+            <span className="text-xl">{assetType === 'crypto' ? '🪙' : '📈'}</span>
           </div>
           <span className="text-xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent hidden sm:inline">
-            CoinSwipe
+            SwipeInvest
           </span>
-          {/* Fear & Greed Index */}
-          <FearGreedIndex value={fearGreed.value} label={fearGreed.label} />
+          {/* Asset Type Toggle */}
+          <div className="flex bg-slate-800 rounded-lg p-1">
+            <button
+              onClick={() => { setAssetType('crypto'); setSelectedCategory('all'); setCurrentIndex(0); }}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition ${
+                assetType === 'crypto'
+                  ? 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              🪙 Crypto
+            </button>
+            <button
+              onClick={() => { setAssetType('stocks'); setSelectedCategory('all'); setCurrentIndex(0); }}
+              className={`px-3 py-1 rounded-md text-sm font-medium transition ${
+                assetType === 'stocks'
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              📈 Stocks
+            </button>
+          </div>
+          {/* Fear & Greed Index (crypto) or Market Status (stocks) */}
+          {assetType === 'crypto' ? (
+            <FearGreedIndex value={fearGreed.value} label={fearGreed.label} />
+          ) : (
+            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
+              marketStatus === 'open' ? 'bg-green-500/20 text-green-400' :
+              marketStatus === 'premarket' ? 'bg-yellow-500/20 text-yellow-400' :
+              'bg-red-500/20 text-red-400'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${
+                marketStatus === 'open' ? 'bg-green-400 animate-pulse' :
+                marketStatus === 'premarket' ? 'bg-yellow-400' :
+                'bg-red-400'
+              }`} />
+              {marketStatus === 'open' ? 'Market Open' :
+               marketStatus === 'premarket' ? 'Pre-Market' : 'Market Closed'}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -1591,7 +1917,7 @@ export default function CoinSwipe() {
 
       {/* Category Pills */}
       <div className="flex gap-2 p-3 overflow-x-auto scrollbar-hide border-b border-white/5">
-        {CATEGORIES.map(cat => (
+        {currentCategories.map(cat => (
           <button
             key={cat.id}
             onClick={() => { setSelectedCategory(cat.id); setCurrentIndex(0); setHistory([]); }}
@@ -1757,5 +2083,24 @@ function getMockCoins() {
     { id: 'arbitrum', symbol: 'arb', name: 'Arbitrum', image: 'https://assets.coingecko.com/coins/images/16547/large/photo_2023-03-29_21.47.00.jpeg', current_price: 0.78, market_cap: 3100000000, market_cap_rank: 38, total_volume: 290000000, price_change_percentage_24h: 3.45, sparkline_in_7d: { price: Array.from({length: 168}, () => 0.72 + Math.random() * 0.1) } },
     { id: 'sui', symbol: 'sui', name: 'Sui', image: 'https://assets.coingecko.com/coins/images/26375/large/sui_asset.jpeg', current_price: 4.23, market_cap: 13400000000, market_cap_rank: 14, total_volume: 1200000000, price_change_percentage_24h: 8.90, sparkline_in_7d: { price: Array.from({length: 168}, () => 3.8 + Math.random() * 0.6) } },
     { id: 'cardano', symbol: 'ada', name: 'Cardano', image: 'https://assets.coingecko.com/coins/images/975/large/cardano.png', current_price: 0.98, market_cap: 34000000000, market_cap_rank: 9, total_volume: 890000000, price_change_percentage_24h: -3.21, sparkline_in_7d: { price: Array.from({length: 168}, () => 0.92 + Math.random() * 0.12) } },
+  ];
+}
+
+function getMockStocks() {
+  return [
+    { id: 'aapl', symbol: 'aapl', name: 'Apple', image: 'https://logo.clearbit.com/apple.com', current_price: 198.50, market_cap: 3000000000000, market_cap_rank: 1, total_volume: 45000000000, price_change_percentage_24h: 1.23, high_24h: 200, low_24h: 196, isStock: true, sector: 'tech', categories: ['tech', 'bluechip'], sparkline_in_7d: { price: Array.from({length: 24}, () => 195 + Math.random() * 6) } },
+    { id: 'msft', symbol: 'msft', name: 'Microsoft', image: 'https://logo.clearbit.com/microsoft.com', current_price: 425.80, market_cap: 2800000000000, market_cap_rank: 2, total_volume: 28000000000, price_change_percentage_24h: 0.85, high_24h: 428, low_24h: 422, isStock: true, sector: 'tech', categories: ['tech', 'bluechip'], sparkline_in_7d: { price: Array.from({length: 24}, () => 420 + Math.random() * 10) } },
+    { id: 'nvda', symbol: 'nvda', name: 'NVIDIA', image: 'https://logo.clearbit.com/nvidia.com', current_price: 145.20, market_cap: 1200000000000, market_cap_rank: 3, total_volume: 52000000000, price_change_percentage_24h: 3.45, high_24h: 148, low_24h: 141, isStock: true, sector: 'tech', categories: ['tech', 'ai', 'bluechip', 'trending'], sparkline_in_7d: { price: Array.from({length: 24}, () => 140 + Math.random() * 10) } },
+    { id: 'googl', symbol: 'googl', name: 'Alphabet', image: 'https://logo.clearbit.com/google.com', current_price: 175.30, market_cap: 1800000000000, market_cap_rank: 4, total_volume: 22000000000, price_change_percentage_24h: -0.45, high_24h: 177, low_24h: 174, isStock: true, sector: 'tech', categories: ['tech', 'bluechip'], sparkline_in_7d: { price: Array.from({length: 24}, () => 173 + Math.random() * 4) } },
+    { id: 'amzn', symbol: 'amzn', name: 'Amazon', image: 'https://logo.clearbit.com/amazon.com', current_price: 186.40, market_cap: 1500000000000, market_cap_rank: 5, total_volume: 35000000000, price_change_percentage_24h: 1.89, high_24h: 188, low_24h: 183, isStock: true, sector: 'tech', categories: ['tech', 'bluechip'], sparkline_in_7d: { price: Array.from({length: 24}, () => 182 + Math.random() * 7) } },
+    { id: 'tsla', symbol: 'tsla', name: 'Tesla', image: 'https://logo.clearbit.com/tesla.com', current_price: 248.90, market_cap: 700000000000, market_cap_rank: 6, total_volume: 85000000000, price_change_percentage_24h: 5.67, high_24h: 255, low_24h: 240, isStock: true, sector: 'tech', categories: ['tech', 'meme', 'trending'], sparkline_in_7d: { price: Array.from({length: 24}, () => 235 + Math.random() * 20) } },
+    { id: 'meta', symbol: 'meta', name: 'Meta', image: 'https://logo.clearbit.com/meta.com', current_price: 512.60, market_cap: 900000000000, market_cap_rank: 7, total_volume: 18000000000, price_change_percentage_24h: 2.12, high_24h: 518, low_24h: 505, isStock: true, sector: 'tech', categories: ['tech', 'bluechip'], sparkline_in_7d: { price: Array.from({length: 24}, () => 500 + Math.random() * 20) } },
+    { id: 'jpm', symbol: 'jpm', name: 'JPMorgan', image: 'https://logo.clearbit.com/jpmorganchase.com', current_price: 198.75, market_cap: 450000000000, market_cap_rank: 8, total_volume: 8000000000, price_change_percentage_24h: 0.34, high_24h: 200, low_24h: 197, isStock: true, sector: 'finance', categories: ['finance', 'bluechip', 'dividend'], sparkline_in_7d: { price: Array.from({length: 24}, () => 196 + Math.random() * 4) } },
+    { id: 'gme', symbol: 'gme', name: 'GameStop', image: 'https://logo.clearbit.com/gamestop.com', current_price: 28.45, market_cap: 8500000000, market_cap_rank: 50, total_volume: 15000000000, price_change_percentage_24h: 12.34, high_24h: 30, low_24h: 25, isStock: true, sector: 'retail', categories: ['meme', 'trending'], sparkline_in_7d: { price: Array.from({length: 24}, () => 24 + Math.random() * 6) } },
+    { id: 'amc', symbol: 'amc', name: 'AMC', image: 'https://logo.clearbit.com/amctheatres.com', current_price: 4.85, market_cap: 2200000000, market_cap_rank: 80, total_volume: 8000000000, price_change_percentage_24h: 8.76, high_24h: 5.20, low_24h: 4.50, isStock: true, sector: 'entertainment', categories: ['meme', 'trending'], sparkline_in_7d: { price: Array.from({length: 24}, () => 4.3 + Math.random() * 0.8) } },
+    { id: 'pltr', symbol: 'pltr', name: 'Palantir', image: 'https://logo.clearbit.com/palantir.com', current_price: 23.80, market_cap: 52000000000, market_cap_rank: 20, total_volume: 45000000000, price_change_percentage_24h: 4.56, high_24h: 24.50, low_24h: 22.80, isStock: true, sector: 'tech', categories: ['tech', 'ai', 'meme'], sparkline_in_7d: { price: Array.from({length: 24}, () => 22 + Math.random() * 3) } },
+    { id: 'ko', symbol: 'ko', name: 'Coca-Cola', image: 'https://logo.clearbit.com/coca-cola.com', current_price: 62.40, market_cap: 270000000000, market_cap_rank: 12, total_volume: 8000000000, price_change_percentage_24h: 0.12, high_24h: 62.80, low_24h: 62.00, isStock: true, sector: 'consumer', categories: ['dividend', 'bluechip'], sparkline_in_7d: { price: Array.from({length: 24}, () => 61.5 + Math.random() * 1.5) } },
+    { id: 'lly', symbol: 'lly', name: 'Eli Lilly', image: 'https://logo.clearbit.com/lilly.com', current_price: 785.30, market_cap: 680000000000, market_cap_rank: 9, total_volume: 4500000000, price_change_percentage_24h: 2.89, high_24h: 792, low_24h: 770, isStock: true, sector: 'healthcare', categories: ['healthcare', 'trending'], sparkline_in_7d: { price: Array.from({length: 24}, () => 765 + Math.random() * 30) } },
+    { id: 'xom', symbol: 'xom', name: 'Exxon Mobil', image: 'https://logo.clearbit.com/exxonmobil.com', current_price: 108.90, market_cap: 420000000000, market_cap_rank: 11, total_volume: 12000000000, price_change_percentage_24h: -1.23, high_24h: 111, low_24h: 107, isStock: true, sector: 'energy', categories: ['energy', 'dividend'], sparkline_in_7d: { price: Array.from({length: 24}, () => 106 + Math.random() * 5) } },
   ];
 }
