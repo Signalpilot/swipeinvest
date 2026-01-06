@@ -83,6 +83,7 @@ const TRADINGVIEW_SYMBOLS = {
   'mantra-dao': 'BINANCE:OMUSDT',
   'crypto-com-chain': 'COINBASE:CROUSD',
   'okb': 'OKX:OKBUSDT',
+  'whitebit': 'MEXC:WBTUSDT',
   'injective-protocol': 'BINANCE:INJUSDT',
   'vechain': 'BINANCE:VETUSDT',
   'immutable-x': 'BINANCE:IMXUSDT',
@@ -1176,12 +1177,15 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
   const handleDragEnd = (event, info) => {
     const threshold = 100;
     const velocity = info.velocity.x;
+    const minDistanceForVelocity = 30; // Must move at least 30px before velocity counts
 
-    // Only process actual swipes, not taps
-    // (we have a dedicated View Chart button for opening charts)
-    if (info.offset.x > threshold || velocity > 500) {
+    // Only process actual swipes, not taps or accidental micro-movements
+    // Require EITHER sufficient distance OR (velocity + minimum distance)
+    const absOffset = Math.abs(info.offset.x);
+
+    if (info.offset.x > threshold || (velocity > 500 && absOffset > minDistanceForVelocity)) {
       onSwipe('right');
-    } else if (info.offset.x < -threshold || velocity < -500) {
+    } else if (info.offset.x < -threshold || (velocity < -500 && absOffset > minDistanceForVelocity)) {
       onSwipe('left');
     }
   };
@@ -1349,11 +1353,16 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
                   onPointerDown={(e) => e.stopPropagation()}
                   onPointerMove={(e) => e.stopPropagation()}
                   onPointerUp={(e) => e.stopPropagation()}
-                  style={{ touchAction: 'none' }}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchMove={(e) => e.stopPropagation()}
+                  onTouchEnd={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  style={{ touchAction: 'manipulation' }}
                 >
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      e.preventDefault();
                       onTap(coin);
                     }}
                     className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/30 active:scale-95 transition-transform touch-manipulation"
