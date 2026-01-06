@@ -3,8 +3,70 @@ import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-mo
 import { createChart } from 'lightweight-charts';
 
 // ============================================================================
-// COINSWIPE v2.0 - Tinder for Crypto (Degen Edition)
+// COINSWIPE v2.1 - Tinder for Crypto (Degen Edition)
+// Now with TradingView charts, keyboard shortcuts & Fear/Greed index!
 // ============================================================================
+
+// TradingView symbol mapping (CoinGecko ID -> TradingView symbol)
+const TRADINGVIEW_SYMBOLS = {
+  'bitcoin': 'BTCUSD',
+  'ethereum': 'ETHUSD',
+  'solana': 'SOLUSD',
+  'cardano': 'ADAUSD',
+  'dogecoin': 'DOGEUSD',
+  'ripple': 'XRPUSD',
+  'polkadot': 'DOTUSD',
+  'avalanche-2': 'AVAXUSD',
+  'chainlink': 'LINKUSD',
+  'polygon': 'MATICUSD',
+  'uniswap': 'UNIUSD',
+  'litecoin': 'LTCUSD',
+  'cosmos': 'ATOMUSD',
+  'stellar': 'XLMUSD',
+  'monero': 'XMRUSD',
+  'ethereum-classic': 'ETCUSD',
+  'filecoin': 'FILUSD',
+  'hedera': 'HBARUSD',
+  'internet-computer': 'ICPUSD',
+  'vechain': 'VETUSD',
+  'aave': 'AAVEUSD',
+  'the-sandbox': 'SANDUSD',
+  'decentraland': 'MANAUSD',
+  'axie-infinity': 'AXSUSD',
+  'eos': 'EOSUSD',
+  'tezos': 'XTZUSD',
+  'theta-token': 'THETAUSD',
+  'maker': 'MKRUSD',
+  'fantom': 'FTMUSD',
+  'neo': 'NEOUSD',
+  'kucoin-shares': 'KCSUSD',
+  'flow': 'FLOWUSD',
+  'chiliz': 'CHZUSD',
+  'enjincoin': 'ENJUSD',
+  'basic-attention-token': 'BATUSD',
+  'curve-dao-token': 'CRVUSD',
+  'loopring': 'LRCUSD',
+  'compound': 'COMPUSD',
+  'yearn-finance': 'YFIUSD',
+  'sushi': 'SUSHIUSD',
+  '1inch': '1INCHUSD',
+  'render-token': 'RNDRUSD',
+  'injective-protocol': 'INJUSD',
+  'gala': 'GALAUSD',
+  'immutable-x': 'IMXUSD',
+  'apecoin': 'APEUSD',
+  'arbitrum': 'ARBUSD',
+  'optimism': 'OPUSD',
+  'sui': 'SUIUSD',
+  'pepe': 'PEPEUSD',
+  'bonk': 'BONKUSD',
+  'floki': 'FLOKIUSD',
+  'shiba-inu': 'SHIBUSD',
+  'fetch-ai': 'FETUSD',
+  'near': 'NEARUSD',
+  'aptos': 'APTUSD',
+  'sei-network': 'SEIUSD',
+};
 
 // Categories for filtering
 const CATEGORIES = [
@@ -337,20 +399,34 @@ const SparklineSVG = ({ data, positive }) => {
 // SWIPEABLE CARD COMPONENT (Framer Motion Physics)
 // ============================================================================
 
-const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex }) => {
+const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
   const apeOpacity = useTransform(x, [0, 100], [0, 1]);
   const rugOpacity = useTransform(x, [-100, 0], [1, 0]);
+  const dragStartRef = useRef({ x: 0, y: 0 });
 
   const risk = getRiskLevel(coin.market_cap);
   const vibes = getVibes(coin);
   const sparklineData = coin.sparkline_in_7d?.price || [];
   const isPositive = coin.price_change_percentage_24h >= 0;
 
+  const handleDragStart = (event, info) => {
+    dragStartRef.current = { x: info.point.x, y: info.point.y };
+  };
+
   const handleDragEnd = (event, info) => {
     const threshold = 100;
     const velocity = info.velocity.x;
+    const dragDistance = Math.sqrt(
+      Math.pow(info.offset.x, 2) + Math.pow(info.offset.y, 2)
+    );
+
+    // If minimal drag, treat as tap
+    if (dragDistance < 10 && isTop && onTap) {
+      onTap(coin);
+      return;
+    }
 
     if (info.offset.x > threshold || velocity > 500) {
       onSwipe('right');
@@ -371,6 +447,7 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex }) => {
       drag={isTop ? 'x' : false}
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.9}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       whileTap={{ cursor: 'grabbing' }}
       initial={{ scale: 0.95, opacity: 0 }}
@@ -511,7 +588,7 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex }) => {
         {/* Swipe hint for top card */}
         {isTop && (
           <div className="absolute bottom-2 left-0 right-0 flex justify-center">
-            <p className="text-slate-600 text-xs font-medium">Swipe or use buttons below</p>
+            <p className="text-slate-600 text-xs font-medium">Tap for chart • Swipe to decide</p>
           </div>
         )}
       </div>
@@ -578,6 +655,181 @@ const MatchModal = ({ coin, pnl, onClose }) => {
         </div>
       </motion.div>
     </motion.div>
+  );
+};
+
+// ============================================================================
+// COIN DETAIL MODAL WITH TRADINGVIEW CHART
+// ============================================================================
+
+const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
+  const tvSymbol = TRADINGVIEW_SYMBOLS[coin.id] || `${coin.symbol?.toUpperCase()}USD`;
+  const risk = getRiskLevel(coin.market_cap);
+  const vibes = getVibes(coin);
+  const isPositive = coin.price_change_percentage_24h >= 0;
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/90 backdrop-blur-md"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className="bg-slate-900 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-hidden border border-white/10 shadow-2xl flex flex-col"
+        initial={{ scale: 0.9, y: 50 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 50 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-slate-800 overflow-hidden">
+              <img src={coin.image} alt={coin.name} className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold">{coin.name}</h2>
+              <p className="text-slate-400 text-sm">${coin.symbol?.toUpperCase()} • #{coin.market_cap_rank}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-slate-800 rounded-xl transition text-2xl"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* TradingView Chart */}
+        <div className="h-[300px] bg-slate-950">
+          <iframe
+            src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE:${tvSymbol}&interval=60&hidesidetoolbar=1&symboledit=0&saveimage=0&toolbarbg=0f172a&studies=[]&theme=dark&style=1&timezone=exchange&withdateranges=1&showpopupbutton=0&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&showwatermark=0&locale=en&utm_source=coinswipe&utm_medium=widget&utm_campaign=chart`}
+            style={{ width: '100%', height: '100%' }}
+            frameBorder="0"
+            allowTransparency="true"
+            scrolling="no"
+            allowFullScreen
+          />
+        </div>
+
+        {/* Price & Stats */}
+        <div className="p-4 space-y-4 overflow-auto flex-1">
+          {/* Current Price */}
+          <div className="flex items-end justify-between">
+            <div>
+              <p className="text-3xl font-black">{formatPrice(coin.current_price)}</p>
+              <p className={`text-lg font-bold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                {isPositive ? '▲' : '▼'} {Math.abs(coin.price_change_percentage_24h || 0).toFixed(2)}% (24h)
+              </p>
+            </div>
+            <div className={`px-3 py-1.5 rounded-lg ${risk.bg}`}>
+              <span className={`font-bold ${risk.color}`}>{risk.emoji} {risk.label}</span>
+            </div>
+          </div>
+
+          {/* Vibes */}
+          {vibes.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {vibes.map((vibe, i) => (
+                <span key={i} className={`bg-gradient-to-r ${vibe.color} px-3 py-1.5 rounded-full text-xs font-bold`}>
+                  {vibe.emoji} {vibe.text}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-slate-800/60 p-3 rounded-xl">
+              <p className="text-slate-500 text-xs">Market Cap</p>
+              <p className="font-bold text-lg">{formatNumber(coin.market_cap)}</p>
+            </div>
+            <div className="bg-slate-800/60 p-3 rounded-xl">
+              <p className="text-slate-500 text-xs">24h Volume</p>
+              <p className="font-bold text-lg">{formatNumber(coin.total_volume)}</p>
+            </div>
+            <div className="bg-slate-800/60 p-3 rounded-xl">
+              <p className="text-slate-500 text-xs">24h High</p>
+              <p className="font-bold text-lg">{formatPrice(coin.high_24h || coin.current_price * 1.02)}</p>
+            </div>
+            <div className="bg-slate-800/60 p-3 rounded-xl">
+              <p className="text-slate-500 text-xs">24h Low</p>
+              <p className="font-bold text-lg">{formatPrice(coin.low_24h || coin.current_price * 0.98)}</p>
+            </div>
+          </div>
+
+          {/* External Links */}
+          <div className="flex gap-2">
+            <a
+              href={`https://www.coingecko.com/en/coins/${coin.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 bg-slate-800 py-2 rounded-lg text-center text-sm font-medium hover:bg-slate-700 transition"
+            >
+              CoinGecko ↗
+            </a>
+            <a
+              href={`https://www.tradingview.com/chart/?symbol=BINANCE:${tvSymbol}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 bg-slate-800 py-2 rounded-lg text-center text-sm font-medium hover:bg-slate-700 transition"
+            >
+              TradingView ↗
+            </a>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="p-4 border-t border-white/10 flex gap-3">
+          <button
+            onClick={() => { onRug(); onClose(); }}
+            className="flex-1 bg-red-500/20 hover:bg-red-500/30 border-2 border-red-500 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2"
+          >
+            <span className="text-xl">🚫</span> RUG
+          </button>
+          <button
+            onClick={() => { onApe(); onClose(); }}
+            className="flex-1 bg-green-500/20 hover:bg-green-500/30 border-2 border-green-500 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2"
+          >
+            <span className="text-xl">🦍</span> APE
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// ============================================================================
+// FEAR & GREED INDEX COMPONENT
+// ============================================================================
+
+const FearGreedIndex = ({ value, label }) => {
+  const getColor = (val) => {
+    if (val <= 25) return 'text-red-500';
+    if (val <= 45) return 'text-orange-500';
+    if (val <= 55) return 'text-yellow-500';
+    if (val <= 75) return 'text-lime-500';
+    return 'text-green-500';
+  };
+
+  const getEmoji = (val) => {
+    if (val <= 25) return '😱';
+    if (val <= 45) return '😰';
+    if (val <= 55) return '😐';
+    if (val <= 75) return '😊';
+    return '🤑';
+  };
+
+  if (!value) return null;
+
+  return (
+    <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-full text-sm">
+      <span>{getEmoji(value)}</span>
+      <span className={`font-bold ${getColor(value)}`}>{value}</span>
+      <span className="text-slate-400 hidden sm:inline">{label}</span>
+    </div>
   );
 };
 
@@ -904,6 +1156,8 @@ export default function CoinSwipe() {
   const [loading, setLoading] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [matchModal, setMatchModal] = useState(null);
+  const [detailModal, setDetailModal] = useState(null); // For coin detail with TradingView
+  const [fearGreed, setFearGreed] = useState({ value: null, label: '' }); // Fear & Greed index
 
   // Load from localStorage
   useEffect(() => {
@@ -982,6 +1236,65 @@ export default function CoinSwipe() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Fetch Fear & Greed Index
+  useEffect(() => {
+    const fetchFearGreed = async () => {
+      try {
+        const response = await fetch('https://api.alternative.me/fng/?limit=1');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.data && data.data[0]) {
+            setFearGreed({
+              value: parseInt(data.data[0].value),
+              label: data.data[0].value_classification
+            });
+          }
+        }
+      } catch (e) {
+        // Silently fail
+      }
+    };
+    fetchFearGreed();
+  }, []);
+
+  // Keyboard shortcuts for power users
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Only in swipe view and when no modal is open
+      if (view !== 'swipe' || matchModal || detailModal) return;
+      if (currentIndex >= filteredCoins.length) return;
+
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault();
+          handleSwipe('left');
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          handleSwipe('right');
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          handleSwipe('right', true); // Super ape
+          break;
+        case 'ArrowDown':
+        case ' ':
+          e.preventDefault();
+          setDetailModal(filteredCoins[currentIndex]); // Open detail modal
+          break;
+        case 'z':
+          if (e.metaKey || e.ctrlKey) {
+            e.preventDefault();
+            handleUndo();
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [view, matchModal, detailModal, currentIndex, filteredCoins]);
 
   // Check for match alerts
   const checkForMatches = useCallback((prices) => {
@@ -1163,15 +1476,29 @@ export default function CoinSwipe() {
         )}
       </AnimatePresence>
 
+      {/* Coin Detail Modal with TradingView */}
+      <AnimatePresence>
+        {detailModal && (
+          <CoinDetailModal
+            coin={detailModal}
+            onClose={() => setDetailModal(null)}
+            onApe={() => handleSwipe('right')}
+            onRug={() => handleSwipe('left')}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <header className="flex justify-between items-center p-4 border-b border-white/10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
             <span className="text-xl">🪙</span>
           </div>
-          <span className="text-xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <span className="text-xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent hidden sm:inline">
             CoinSwipe
           </span>
+          {/* Fear & Greed Index */}
+          <FearGreedIndex value={fearGreed.value} label={fearGreed.label} />
         </div>
 
         <div className="flex items-center gap-2">
@@ -1248,6 +1575,7 @@ export default function CoinSwipe() {
                   coin={coin}
                   isTop={i === 0}
                   onSwipe={handleSwipe}
+                  onTap={(coin) => setDetailModal(coin)}
                   zIndex={3 - i}
                   style={{
                     scale: 1 - i * 0.05,
