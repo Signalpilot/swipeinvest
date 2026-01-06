@@ -1284,8 +1284,10 @@ const MatchModal = ({ coin, pnl, onClose }) => {
 // ============================================================================
 
 const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
-  // Get full TradingView symbol (includes exchange) or fallback to Binance USDT pair
-  const tvSymbol = TRADINGVIEW_SYMBOLS[coin.id] || `BINANCE:${coin.symbol?.toUpperCase()}USDT`;
+  // Get full TradingView symbol - use NASDAQ for stocks, Binance for crypto
+  const tvSymbol = coin.isStock
+    ? `NASDAQ:${coin.symbol?.toUpperCase()}`
+    : (TRADINGVIEW_SYMBOLS[coin.id] || `BINANCE:${coin.symbol?.toUpperCase()}USDT`);
   const risk = getRiskLevel(coin.market_cap);
   const vibes = getVibes(coin);
   const isPositive = coin.price_change_percentage_24h >= 0;
@@ -1386,15 +1388,18 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
           {/* External Links */}
           <div className="flex gap-2">
             <a
-              href={`https://www.coingecko.com/en/coins/${coin.id}`}
+              href={coin.isStock
+                ? `https://finance.yahoo.com/quote/${coin.symbol?.toUpperCase()}`
+                : `https://www.coingecko.com/en/coins/${coin.id}`
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 bg-slate-800 py-2 rounded-lg text-center text-sm font-medium hover:bg-slate-700 transition"
             >
-              CoinGecko ↗
+              {coin.isStock ? 'Yahoo Finance ↗' : 'CoinGecko ↗'}
             </a>
             <a
-              href={`https://www.tradingview.com/chart/?symbol=BINANCE:${tvSymbol}`}
+              href={`https://www.tradingview.com/chart/?symbol=${tvSymbol}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex-1 bg-slate-800 py-2 rounded-lg text-center text-sm font-medium hover:bg-slate-700 transition"
@@ -3117,10 +3122,10 @@ export default function SwipeInvest() {
         </div>
 
         {/* Community Sidebar - Desktop Only */}
-        {assetType === 'crypto' && coins.length > 0 && (
+        {currentAssets.length > 0 && (
           <div className="hidden lg:flex flex-col gap-4 w-72 pl-4">
             <DailyPrediction
-              coins={coins}
+              coins={currentAssets}
               onVote={handlePredictionVote}
               userVote={predictionVote}
             />
