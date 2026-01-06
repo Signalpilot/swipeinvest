@@ -22,7 +22,11 @@ import {
   getTrendingCoins,
   getCoinStatsBatch,
   getLeaderboard,
-  getUserRank
+  getUserRank,
+  savePortfolioToCloud,
+  loadPortfolioFromCloud,
+  saveStatsToCloud,
+  loadStatsFromCloud
 } from './firebase';
 
 // ============================================================================
@@ -3451,6 +3455,30 @@ export default function Swipefolio() {
           photoURL: currentUser.photoURL,
           createdAt: currentUser.metadata?.creationTime
         });
+
+        // Load portfolio and stats from cloud
+        const [portfolioResult, statsResult] = await Promise.all([
+          loadPortfolioFromCloud(currentUser.uid),
+          loadStatsFromCloud(currentUser.uid)
+        ]);
+
+        // Merge cloud portfolio with local (cloud takes priority, but keep unique local items)
+        if (portfolioResult.data && portfolioResult.data.length > 0) {
+          const localPortfolio = JSON.parse(localStorage.getItem('swipefolio_portfolio') || '[]');
+          const cloudIds = new Set(portfolioResult.data.map(p => p.id));
+          const uniqueLocal = localPortfolio.filter(p => !cloudIds.has(p.id));
+          const merged = [...portfolioResult.data, ...uniqueLocal];
+          setPortfolio(merged);
+          localStorage.setItem('swipefolio_portfolio', JSON.stringify(merged));
+          console.log('📦 Portfolio synced from cloud:', merged.length, 'positions');
+        }
+
+        // Load stats from cloud (use cloud if available, otherwise keep local)
+        if (statsResult.data) {
+          setStats(statsResult.data);
+          localStorage.setItem('swipefolio_stats', JSON.stringify(statsResult.data));
+          console.log('📊 Stats synced from cloud');
+        }
       }
     });
     return () => unsubscribe();
@@ -3497,14 +3525,38 @@ export default function Swipefolio() {
     }
   }, []);
 
-  // Save to localStorage
+  // Save to localStorage and cloud (debounced)
+  const cloudSyncTimeoutRef = useRef(null);
+
   useEffect(() => {
     localStorage.setItem('swipefolio_portfolio', JSON.stringify(portfolio));
-  }, [portfolio]);
+
+    // Sync to cloud if user is logged in (debounced to avoid too many writes)
+    if (user && portfolio.length > 0) {
+      if (cloudSyncTimeoutRef.current) {
+        clearTimeout(cloudSyncTimeoutRef.current);
+      }
+      cloudSyncTimeoutRef.current = setTimeout(() => {
+        savePortfolioToCloud(user.uid, portfolio);
+        console.log('☁️ Portfolio synced to cloud');
+      }, 2000); // Wait 2 seconds before syncing to avoid rapid writes
+    }
+  }, [portfolio, user]);
 
   useEffect(() => {
     localStorage.setItem('swipefolio_stats', JSON.stringify(stats));
-  }, [stats]);
+
+    // Sync stats to cloud if user is logged in (debounced)
+    if (user) {
+      if (cloudSyncTimeoutRef.current) {
+        clearTimeout(cloudSyncTimeoutRef.current);
+      }
+      cloudSyncTimeoutRef.current = setTimeout(() => {
+        saveStatsToCloud(user.uid, stats);
+        console.log('☁️ Stats synced to cloud');
+      }, 2000);
+    }
+  }, [stats, user]);
 
   // Data source tracking
   const [dataSource, setDataSource] = useState('loading'); // 'live', 'cached', 'mock'

@@ -508,3 +508,75 @@ export const getUserRank = async (userId) => {
     return { rank: null, error: error.message };
   }
 };
+
+// ============================================================================
+// PORTFOLIO CLOUD SYNC
+// ============================================================================
+
+// --- Save Portfolio to Cloud ---
+export const savePortfolioToCloud = async (userId, portfolio) => {
+  try {
+    const portfolioRef = doc(db, 'users', userId, 'data', 'portfolio');
+    await setDoc(portfolioRef, {
+      positions: portfolio,
+      lastSyncedAt: serverTimestamp(),
+      positionCount: portfolio.length
+    });
+    return { error: null };
+  } catch (error) {
+    console.error('Save portfolio error:', error);
+    return { error: error.message };
+  }
+};
+
+// --- Load Portfolio from Cloud ---
+export const loadPortfolioFromCloud = async (userId) => {
+  try {
+    const portfolioRef = doc(db, 'users', userId, 'data', 'portfolio');
+    const docSnap = await getDoc(portfolioRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return {
+        data: data.positions || [],
+        lastSyncedAt: data.lastSyncedAt,
+        error: null
+      };
+    }
+    return { data: [], lastSyncedAt: null, error: null };
+  } catch (error) {
+    console.error('Load portfolio error:', error);
+    return { data: [], error: error.message };
+  }
+};
+
+// --- Save User Stats to Cloud ---
+export const saveStatsToCloud = async (userId, stats) => {
+  try {
+    const statsRef = doc(db, 'users', userId, 'data', 'stats');
+    await setDoc(statsRef, {
+      ...stats,
+      lastSyncedAt: serverTimestamp()
+    });
+    return { error: null };
+  } catch (error) {
+    console.error('Save stats error:', error);
+    return { error: error.message };
+  }
+};
+
+// --- Load User Stats from Cloud ---
+export const loadStatsFromCloud = async (userId) => {
+  try {
+    const statsRef = doc(db, 'users', userId, 'data', 'stats');
+    const docSnap = await getDoc(statsRef);
+
+    if (docSnap.exists()) {
+      return { data: docSnap.data(), error: null };
+    }
+    return { data: null, error: null };
+  } catch (error) {
+    console.error('Load stats error:', error);
+    return { data: null, error: error.message };
+  }
+};
