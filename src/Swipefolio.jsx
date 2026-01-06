@@ -19,7 +19,8 @@ import {
   getUserConnections,
   sendDirectMessage,
   subscribeToDirectMessages,
-  getTrendingCoins
+  getTrendingCoins,
+  getCoinStatsBatch
 } from './firebase';
 
 // ============================================================================
@@ -593,11 +594,51 @@ const formatPnL = (pnl) => {
 };
 
 // ============================================================================
-// COMMUNITY SENTIMENT (Phase 1 - Simulated, feels real)
+// COMMUNITY SENTIMENT (Real Firestore data with simulated fallback)
 // ============================================================================
 
-const getCommunitySentiment = (coin) => {
-  // Generate realistic-looking sentiment based on coin properties
+const getCommunitySentiment = (coin, coinStats = null) => {
+  // Use REAL Firestore data if available
+  if (coinStats && coinStats.totalSwipes > 0) {
+    const apeRate = coinStats.apeRatio;
+    const userCount = coinStats.totalSwipes;
+
+    // Generate comment based on real sentiment
+    const bullishComments = [
+      "Diamond hands only 💎",
+      "This is the way 🚀",
+      "Accumulating more",
+      "Bullish AF",
+      "Still early",
+      "LFG 🔥",
+      "Moon soon",
+      "Buy the dip",
+    ];
+
+    const bearishComments = [
+      "Be careful here",
+      "Taking profits",
+      "Waiting for lower",
+      "Risky at this level",
+      "Overextended imo",
+      "Not financial advice",
+    ];
+
+    const hash = coin.id.split('').reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0);
+    const seed = Math.abs(hash);
+    const commentPool = apeRate > 60 ? bullishComments : bearishComments;
+    const topComment = commentPool[seed % commentPool.length];
+
+    return {
+      apeRate: Math.round(apeRate),
+      userCount,
+      topComment,
+      sentiment: apeRate > 70 ? 'bullish' : apeRate > 45 ? 'neutral' : 'bearish',
+      isReal: true, // Flag to show this is real community data
+    };
+  }
+
+  // FALLBACK: Generate simulated sentiment based on coin properties
   // This creates consistent sentiment per coin (seeded by coin id hash)
   const hash = coin.id.split('').reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0);
   const seed = Math.abs(hash);
@@ -660,6 +701,7 @@ const getCommunitySentiment = (coin) => {
     userCount,
     topComment,
     sentiment: apeRate > 70 ? 'bullish' : apeRate > 45 ? 'neutral' : 'bearish',
+    isReal: false, // Flag to show this is simulated data
   };
 };
 
@@ -1100,7 +1142,7 @@ const GlowText = ({ children, color = 'blue', className = '' }) => {
 // SWIPEABLE CARD COMPONENT (Framer Motion Physics)
 // ============================================================================
 
-const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
+const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) => {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
   const apeOpacity = useTransform(x, [0, 100], [0, 1]);
@@ -1345,14 +1387,18 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
 
         {/* Community & Risk - Combined Ultra Compact Row */}
         {(() => {
-          const sentiment = getCommunitySentiment(coin);
+          const sentiment = getCommunitySentiment(coin, coinStats);
           return (
             <div className="px-4 pb-1.5">
               <div className="flex gap-1.5">
-                {/* Community Mini */}
-                <div className="flex-1 bg-slate-800/40 p-1.5 rounded-lg border border-white/5">
+                {/* Community Mini - Shows real data when available */}
+                <div className={`flex-1 p-1.5 rounded-lg border ${
+                  sentiment.isReal
+                    ? 'bg-blue-500/10 border-blue-500/20'
+                    : 'bg-slate-800/40 border-white/5'
+                }`}>
                   <div className="flex items-center gap-1 mb-0.5">
-                    <span className="text-slate-400 text-[10px]">👥</span>
+                    <span className="text-[10px]">{sentiment.isReal ? '🦍' : '👥'}</span>
                     <div className="flex-1 h-1 bg-slate-700 rounded-full overflow-hidden">
                       <div
                         className={`h-full ${
@@ -1368,6 +1414,9 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
                     }`}>
                       {sentiment.apeRate}%
                     </span>
+                    {sentiment.isReal && (
+                      <span className="text-[8px] text-blue-400 font-semibold">LIVE</span>
+                    )}
                   </div>
                 </div>
                 {/* Risk Mini */}
@@ -3338,6 +3387,7 @@ export default function Swipefolio() {
   const [predictionVote, setPredictionVote] = useState(null); // 'ape' or 'rug'
   const [showCommunity, setShowCommunity] = useState(false); // Mobile collapsible
   const [user, setUser] = useState(null); // Firebase auth user
+  const [coinStats, setCoinStats] = useState({}); // Real community swipe stats from Firestore
 
   // Listen for auth state changes
   useEffect(() => {
@@ -3638,6 +3688,26 @@ export default function Swipefolio() {
     fetchFearGreed();
   }, []);
 
+  // Fetch community coin stats (real APE/RUG ratios) when coins load
+  useEffect(() => {
+    if (coins.length === 0) return;
+
+    const fetchCoinStats = async () => {
+      // Get stats for visible coins (current + next few in stack)
+      const visibleCoins = coins.slice(currentIndex, currentIndex + 5);
+      const coinIds = visibleCoins.map(c => c.id);
+
+      if (coinIds.length === 0) return;
+
+      const { data, error } = await getCoinStatsBatch(coinIds);
+      if (!error && data) {
+        setCoinStats(prev => ({ ...prev, ...data }));
+      }
+    };
+
+    fetchCoinStats();
+  }, [coins, currentIndex]);
+
   // Fetch stocks from Finnhub when switching to stocks mode
   useEffect(() => {
     if (assetType !== 'stocks') return;
@@ -3862,7 +3932,26 @@ export default function Swipefolio() {
 
     // Save swipe to Firestore for community features (if user is logged in)
     if (user) {
-      saveSwipe(user.uid, coin.id, coin, direction === 'right' ? 'ape' : 'rug');
+      const swipeDirection = direction === 'right' ? 'ape' : 'rug';
+      saveSwipe(user.uid, coin.id, coin, swipeDirection);
+
+      // Update local coinStats immediately for responsive UI
+      setCoinStats(prev => {
+        const existing = prev[coin.id] || { apeCount: 0, rugCount: 0, totalSwipes: 0 };
+        const newApeCount = existing.apeCount + (swipeDirection === 'ape' ? 1 : 0);
+        const newRugCount = existing.rugCount + (swipeDirection === 'rug' ? 1 : 0);
+        const newTotal = newApeCount + newRugCount;
+        return {
+          ...prev,
+          [coin.id]: {
+            ...existing,
+            apeCount: newApeCount,
+            rugCount: newRugCount,
+            totalSwipes: newTotal,
+            apeRatio: newTotal > 0 ? Math.round((newApeCount / newTotal) * 100) : null
+          }
+        };
+      });
     }
 
     setCurrentIndex(prev => prev + 1);
@@ -4193,6 +4282,7 @@ export default function Swipefolio() {
                     onSwipe={handleSwipe}
                     onTap={(coin) => setDetailModal(coin)}
                     zIndex={3 - i}
+                    coinStats={coinStats[coin.id]}
                     style={{
                       scale: 1 - i * 0.05,
                       y: i * 8,

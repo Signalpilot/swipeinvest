@@ -141,7 +141,7 @@ export const saveSwipe = async (userId, coinId, coinData, direction) => {
       swipedAt: serverTimestamp()
     });
 
-    // Also update coin's APE/RUG count for matching
+    // Update coin's APE/RUG count for social proof & matching
     const coinStatsRef = doc(db, 'coinStats', coinId);
     if (direction === 'ape') {
       await setDoc(coinStatsRef, {
@@ -149,7 +149,16 @@ export const saveSwipe = async (userId, coinId, coinData, direction) => {
         apers: arrayUnion(userId),
         symbol: coinData.symbol,
         name: coinData.name,
-        image: coinData.image
+        image: coinData.image,
+        lastUpdated: serverTimestamp()
+      }, { merge: true });
+    } else if (direction === 'rug') {
+      await setDoc(coinStatsRef, {
+        rugCount: increment(1),
+        symbol: coinData.symbol,
+        name: coinData.name,
+        image: coinData.image,
+        lastUpdated: serverTimestamp()
       }, { merge: true });
     }
 
@@ -378,6 +387,51 @@ export const subscribeToDirectMessages = (userId1, userId2, callback) => {
     })).reverse();
     callback(messages);
   });
+};
+
+// --- Get Coin Stats (for social proof) ---
+export const getCoinStats = async (coinId) => {
+  try {
+    const coinStatsRef = doc(db, 'coinStats', coinId);
+    const docSnap = await getDoc(coinStatsRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const apeCount = data.apeCount || 0;
+      const rugCount = data.rugCount || 0;
+      const totalSwipes = apeCount + rugCount;
+      const apeRatio = totalSwipes > 0 ? Math.round((apeCount / totalSwipes) * 100) : null;
+      return {
+        data: {
+          ...data,
+          apeCount,
+          rugCount,
+          totalSwipes,
+          apeRatio
+        },
+        error: null
+      };
+    }
+    return { data: null, error: null };
+  } catch (error) {
+    return { data: null, error: error.message };
+  }
+};
+
+export const getCoinStatsBatch = async (coinIds) => {
+  try {
+    const stats = {};
+    // Fetch in parallel for better performance
+    const promises = coinIds.map(async (coinId) => {
+      const result = await getCoinStats(coinId);
+      if (result.data) {
+        stats[coinId] = result.data;
+      }
+    });
+    await Promise.all(promises);
+    return { data: stats, error: null };
+  } catch (error) {
+    return { data: {}, error: error.message };
+  }
 };
 
 // --- Trending Coins (by APE count) ---
