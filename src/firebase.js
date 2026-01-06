@@ -580,3 +580,115 @@ export const loadStatsFromCloud = async (userId) => {
     return { data: null, error: error.message };
   }
 };
+
+// ============================================================================
+// STREAK TRACKING
+// ============================================================================
+
+// Helper to get today's date key (YYYY-MM-DD)
+const getTodayKey = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+};
+
+// Helper to get yesterday's date key
+const getYesterdayKey = () => {
+  const now = new Date();
+  now.setDate(now.getDate() - 1);
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+};
+
+// --- Update Streak on Swipe ---
+export const updateStreak = async (userId) => {
+  try {
+    const streakRef = doc(db, 'users', userId, 'data', 'streak');
+    const streakDoc = await getDoc(streakRef);
+    const today = getTodayKey();
+    const yesterday = getYesterdayKey();
+
+    let streakData = {
+      currentStreak: 1,
+      longestStreak: 1,
+      lastActiveDate: today,
+      totalActiveDays: 1,
+      streakStartDate: today
+    };
+
+    if (streakDoc.exists()) {
+      const existing = streakDoc.data();
+
+      if (existing.lastActiveDate === today) {
+        // Already active today, no update needed
+        return { data: existing, error: null };
+      } else if (existing.lastActiveDate === yesterday) {
+        // Continue streak!
+        streakData = {
+          currentStreak: (existing.currentStreak || 0) + 1,
+          longestStreak: Math.max(existing.longestStreak || 0, (existing.currentStreak || 0) + 1),
+          lastActiveDate: today,
+          totalActiveDays: (existing.totalActiveDays || 0) + 1,
+          streakStartDate: existing.streakStartDate || today
+        };
+      } else {
+        // Streak broken, start new
+        streakData = {
+          currentStreak: 1,
+          longestStreak: existing.longestStreak || 1,
+          lastActiveDate: today,
+          totalActiveDays: (existing.totalActiveDays || 0) + 1,
+          streakStartDate: today
+        };
+      }
+    }
+
+    await setDoc(streakRef, {
+      ...streakData,
+      updatedAt: serverTimestamp()
+    });
+
+    return { data: streakData, error: null };
+  } catch (error) {
+    console.error('Update streak error:', error);
+    return { data: null, error: error.message };
+  }
+};
+
+// --- Get User Streak ---
+export const getUserStreak = async (userId) => {
+  try {
+    const streakRef = doc(db, 'users', userId, 'data', 'streak');
+    const streakDoc = await getDoc(streakRef);
+
+    if (streakDoc.exists()) {
+      const data = streakDoc.data();
+      const today = getTodayKey();
+      const yesterday = getYesterdayKey();
+
+      // Check if streak is still valid
+      if (data.lastActiveDate !== today && data.lastActiveDate !== yesterday) {
+        // Streak is broken
+        return {
+          data: {
+            ...data,
+            currentStreak: 0,
+            isActive: false
+          },
+          error: null
+        };
+      }
+
+      return {
+        data: {
+          ...data,
+          isActive: data.lastActiveDate === today
+        },
+        error: null
+      };
+    }
+
+    return { data: null, error: null };
+  } catch (error) {
+    console.error('Get streak error:', error);
+    return { data: null, error: error.message };
+  }
+};

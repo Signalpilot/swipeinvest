@@ -27,7 +27,9 @@ import {
   savePortfolioToCloud,
   loadPortfolioFromCloud,
   saveStatsToCloud,
-  loadStatsFromCloud
+  loadStatsFromCloud,
+  updateStreak,
+  getUserStreak
 } from './firebase';
 
 // ============================================================================
@@ -1843,6 +1845,99 @@ const DailyPrediction = ({ coins, onVote, userVote }) => {
 };
 
 // ============================================================================
+// STREAK BADGE COMPONENT
+// ============================================================================
+
+const StreakBadge = ({ streak, compact = false }) => {
+  if (!streak || streak.currentStreak === 0) {
+    if (compact) return null;
+    return (
+      <div className="bg-slate-800/50 rounded-xl p-3 border border-white/5 text-center">
+        <p className="text-slate-500 text-xs">Swipe daily to build your streak!</p>
+      </div>
+    );
+  }
+
+  const getStreakEmoji = (days) => {
+    if (days >= 30) return '👑';
+    if (days >= 14) return '💎';
+    if (days >= 7) return '🔥';
+    if (days >= 3) return '⚡';
+    return '✨';
+  };
+
+  const getStreakColor = (days) => {
+    if (days >= 30) return 'from-yellow-500 to-orange-500';
+    if (days >= 14) return 'from-cyan-500 to-blue-500';
+    if (days >= 7) return 'from-orange-500 to-red-500';
+    if (days >= 3) return 'from-blue-500 to-cyan-500';
+    return 'from-slate-500 to-slate-400';
+  };
+
+  const getStreakLabel = (days) => {
+    if (days >= 30) return 'Legend';
+    if (days >= 14) return 'Diamond';
+    if (days >= 7) return 'On Fire';
+    if (days >= 3) return 'Rising';
+    return 'Starting';
+  };
+
+  if (compact) {
+    return (
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r ${getStreakColor(streak.currentStreak)}`}
+      >
+        <span className="text-sm">{getStreakEmoji(streak.currentStreak)}</span>
+        <span className="font-bold text-sm">{streak.currentStreak}</span>
+        <span className="text-[10px] opacity-80">day{streak.currentStreak !== 1 ? 's' : ''}</span>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-slate-800/50 rounded-xl p-4 border border-white/5"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-bold text-sm flex items-center gap-2">
+          {getStreakEmoji(streak.currentStreak)} Daily Streak
+        </h3>
+        {streak.isActive && (
+          <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
+            Active today
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-center flex-1">
+          <p className={`text-3xl font-black bg-gradient-to-r ${getStreakColor(streak.currentStreak)} bg-clip-text text-transparent`}>
+            {streak.currentStreak}
+          </p>
+          <p className="text-slate-500 text-[10px]">Current</p>
+        </div>
+        <div className="text-center flex-1 border-l border-white/10">
+          <p className="text-xl font-bold text-slate-300">{streak.longestStreak || 0}</p>
+          <p className="text-slate-500 text-[10px]">Best</p>
+        </div>
+        <div className="text-center flex-1 border-l border-white/10">
+          <p className="text-xl font-bold text-slate-300">{streak.totalActiveDays || 0}</p>
+          <p className="text-slate-500 text-[10px]">Total Days</p>
+        </div>
+      </div>
+
+      <div className={`text-center py-2 rounded-lg bg-gradient-to-r ${getStreakColor(streak.currentStreak)} bg-opacity-20`}>
+        <span className="text-sm font-bold">{getStreakLabel(streak.currentStreak)} Status</span>
+      </div>
+    </motion.div>
+  );
+};
+
+// ============================================================================
 // LEADERBOARD COMPONENT
 // ============================================================================
 
@@ -2573,7 +2668,7 @@ const INVESTMENT_STYLES = [
   { id: 'meme', emoji: '🚀', label: 'Meme Lord', desc: 'DOGE, PEPE, BONK life' },
 ];
 
-const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChange, userProfile, onProfileUpdate }) => {
+const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChange, userProfile, onProfileUpdate, userStreak }) => {
   const [showSignUp, setShowSignUp] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState('');
@@ -2744,6 +2839,13 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
           </div>
         </div>
       </div>
+
+      {/* Daily Streak */}
+      {user && (
+        <div className="mb-4">
+          <StreakBadge streak={userStreak} />
+        </div>
+      )}
 
       {/* Investment Style */}
       {user && (
@@ -3557,6 +3659,7 @@ export default function Swipefolio() {
   const [leaderboardData, setLeaderboardData] = useState([]); // Real leaderboard from Firestore
   const [userRankData, setUserRankData] = useState(null); // User's rank data
   const [userProfile, setUserProfile] = useState(null); // User's profile data (bio, investment style)
+  const [userStreak, setUserStreak] = useState(null); // User's streak data
 
   // Listen for auth state changes
   useEffect(() => {
@@ -3602,8 +3705,16 @@ export default function Swipefolio() {
           setUserProfile(profileData);
           console.log('👤 Profile loaded:', profileData.investmentStyle || 'no style set');
         }
+
+        // Load user streak
+        const { data: streakData } = await getUserStreak(currentUser.uid);
+        if (streakData) {
+          setUserStreak(streakData);
+          console.log('🔥 Streak loaded:', streakData.currentStreak || 0, 'days');
+        }
       } else {
         setUserProfile(null);
+        setUserStreak(null);
       }
     });
     return () => unsubscribe();
@@ -4220,6 +4331,13 @@ export default function Swipefolio() {
           }
         };
       });
+
+      // Update streak
+      updateStreak(user.uid).then(({ data }) => {
+        if (data) {
+          setUserStreak(data);
+        }
+      });
     }
 
     setCurrentIndex(prev => prev + 1);
@@ -4703,6 +4821,7 @@ export default function Swipefolio() {
           onUserChange={setUser}
           userProfile={userProfile}
           onProfileUpdate={handleProfileUpdate}
+          userStreak={userStreak}
         />
       )}
 
