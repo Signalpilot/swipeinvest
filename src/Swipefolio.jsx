@@ -998,10 +998,10 @@ const VideoBackground = () => {
           playsInline
           onLoadedData={() => setVideoLoaded(true)}
           onError={() => setVideoError(true)}
-          className={`fixed inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ${
+          className={`fixed inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
             videoLoaded ? 'opacity-100' : 'opacity-0'
           }`}
-          style={{ pointerEvents: 'none' }}
+          style={{ pointerEvents: 'none', zIndex: -2 }}
         >
           <source src="/videos/starfield-bg.mp4" type="video/mp4" />
         </video>
@@ -1009,7 +1009,7 @@ const VideoBackground = () => {
 
       {/* Fallback CSS starfield (shows while video loads or if it fails) */}
       {(!videoLoaded || videoError) && (
-        <div className="starfield">
+        <div className="starfield" style={{ zIndex: -2 }}>
           {Array.from({ length: 50 }).map((_, i) => (
             <div
               key={i}
@@ -1029,8 +1029,8 @@ const VideoBackground = () => {
 
       {/* Subtle overlay to darken video slightly */}
       <div
-        className="fixed inset-0 z-[1] pointer-events-none"
-        style={{ background: 'rgba(5,7,13,0.3)' }}
+        className="fixed inset-0 pointer-events-none"
+        style={{ background: 'rgba(5,7,13,0.3)', zIndex: -1 }}
       />
     </>
   );
