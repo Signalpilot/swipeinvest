@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { createChart } from 'lightweight-charts';
+import { auth, signInWithGoogle, signInWithApple, signInWithEmail, logOut, onAuthStateChanged } from './firebase';
 
 // ============================================================================
 // SWIPEFOLIO - Swipe. Match. Invest.
@@ -2359,30 +2360,102 @@ const BottomNav = ({ activeTab, onTabChange, portfolioCount, isPremium }) => {
 // ACCOUNT TAB COMPONENT
 // ============================================================================
 
-const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, onSignUp }) => {
+const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChange }) => {
   const [showSignUp, setShowSignUp] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError('');
+    const { user: newUser, error: authError } = await signInWithGoogle();
+    setLoading(false);
+    if (authError) {
+      setError(authError);
+    } else if (newUser) {
+      setShowSignUp(false);
+      onUserChange(newUser);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setLoading(true);
+    setError('');
+    const { user: newUser, error: authError } = await signInWithApple();
+    setLoading(false);
+    if (authError) {
+      setError(authError);
+    } else if (newUser) {
+      setShowSignUp(false);
+      onUserChange(newUser);
+    }
+  };
+
+  const handleEmailSignIn = async (e) => {
+    e.preventDefault();
+    if (!email || !password) {
+      setError('Please enter email and password');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    const { user: newUser, error: authError } = await signInWithEmail(email, password);
+    setLoading(false);
+    if (authError) {
+      setError(authError);
+    } else if (newUser) {
+      setShowSignUp(false);
+      setShowEmailForm(false);
+      onUserChange(newUser);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await logOut();
+    onUserChange(null);
+  };
 
   return (
     <div className="flex-1 overflow-y-auto p-4">
       {/* Profile Section */}
       <div className="bg-slate-800/50 rounded-2xl p-4 mb-4 border border-white/5">
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-3xl">
-            👤
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-3xl overflow-hidden">
+            {user?.photoURL ? (
+              <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              '👤'
+            )}
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-bold">Guest User</h2>
-            <p className="text-slate-400 text-sm">Sign up to sync across devices</p>
+            <h2 className="text-xl font-bold">{user?.displayName || 'Guest User'}</h2>
+            <p className="text-slate-400 text-sm">
+              {user?.email || 'Sign up to sync across devices'}
+            </p>
           </div>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setShowSignUp(true)}
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-3 rounded-xl font-bold"
-        >
-          Create Account
-        </motion.button>
+        {user ? (
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleSignOut}
+            className="w-full bg-slate-700 py-3 rounded-xl font-bold hover:bg-slate-600 transition"
+          >
+            Sign Out
+          </motion.button>
+        ) : (
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowSignUp(true)}
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-3 rounded-xl font-bold"
+          >
+            Create Account
+          </motion.button>
+        )}
       </div>
 
       {/* Premium Status */}
@@ -2467,7 +2540,7 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, onSignUp }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
-            onClick={() => setShowSignUp(false)}
+            onClick={() => { setShowSignUp(false); setShowEmailForm(false); setError(''); }}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -2479,17 +2552,68 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, onSignUp }) => {
               <h2 className="text-2xl font-bold mb-4 text-center">Join Swipefolio</h2>
               <p className="text-slate-400 text-center mb-6">Sign up to sync your portfolio and match with other investors!</p>
 
-              <div className="space-y-3">
-                <button className="w-full flex items-center justify-center gap-3 bg-white text-black py-3 rounded-xl font-medium hover:bg-slate-100 transition">
-                  <span>🍎</span> Continue with Apple
-                </button>
-                <button className="w-full flex items-center justify-center gap-3 bg-blue-600 py-3 rounded-xl font-medium hover:bg-blue-500 transition">
-                  <span>G</span> Continue with Google
-                </button>
-                <button className="w-full flex items-center justify-center gap-3 bg-slate-800 py-3 rounded-xl font-medium hover:bg-slate-700 transition border border-white/10">
-                  <span>✉️</span> Continue with Email
-                </button>
-              </div>
+              {error && (
+                <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-sm text-center">
+                  {error}
+                </div>
+              )}
+
+              {showEmailForm ? (
+                <form onSubmit={handleEmailSignIn} className="space-y-3">
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-800 rounded-xl border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-800 rounded-xl border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-3 rounded-xl font-medium disabled:opacity-50"
+                  >
+                    {loading ? 'Signing in...' : 'Continue'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailForm(false)}
+                    className="w-full text-slate-400 text-sm hover:text-white"
+                  >
+                    ← Back to options
+                  </button>
+                </form>
+              ) : (
+                <div className="space-y-3">
+                  <button
+                    onClick={handleAppleSignIn}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-3 bg-white text-black py-3 rounded-xl font-medium hover:bg-slate-100 transition disabled:opacity-50"
+                  >
+                    <span>🍎</span> Continue with Apple
+                  </button>
+                  <button
+                    onClick={handleGoogleSignIn}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-3 bg-blue-600 py-3 rounded-xl font-medium hover:bg-blue-500 transition disabled:opacity-50"
+                  >
+                    <span>G</span> Continue with Google
+                  </button>
+                  <button
+                    onClick={() => setShowEmailForm(true)}
+                    disabled={loading}
+                    className="w-full flex items-center justify-center gap-3 bg-slate-800 py-3 rounded-xl font-medium hover:bg-slate-700 transition border border-white/10 disabled:opacity-50"
+                  >
+                    <span>✉️</span> Continue with Email
+                  </button>
+                </div>
+              )}
 
               <p className="text-slate-600 text-xs text-center mt-4">
                 By signing up, you agree to our Terms & Privacy Policy
@@ -2577,6 +2701,18 @@ export default function SwipeInvest() {
   // Community features state
   const [predictionVote, setPredictionVote] = useState(null); // 'ape' or 'rug'
   const [showCommunity, setShowCommunity] = useState(false); // Mobile collapsible
+  const [user, setUser] = useState(null); // Firebase auth user
+
+  // Listen for auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        console.log('User signed in:', currentUser.email);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Get current categories based on asset type
   const currentCategories = assetType === 'crypto' ? CRYPTO_CATEGORIES : STOCK_CATEGORIES;
@@ -3644,6 +3780,8 @@ export default function SwipeInvest() {
           onUpgrade={() => setShowPremiumModal(true)}
           swipesToday={swipesToday}
           stats={stats}
+          user={user}
+          onUserChange={setUser}
         />
       )}
 
