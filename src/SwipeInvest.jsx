@@ -1389,19 +1389,48 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
             </a>
           </div>
 
-          {/* BUY NOW - Affiliate Button */}
-          <a
-            href={coin.isStock ? AFFILIATE_LINKS.robinhood : AFFILIATE_LINKS.coinbase}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`w-full py-3 rounded-xl text-center font-bold text-lg shadow-lg transition hover:opacity-90 ${
-              coin.isStock
-                ? 'bg-gradient-to-r from-green-500 to-emerald-500 shadow-green-500/30'
-                : 'bg-gradient-to-r from-blue-500 to-cyan-500 shadow-blue-500/30'
-            }`}
-          >
-            💰 Buy {coin.symbol?.toUpperCase()} on {coin.isStock ? 'Robinhood' : 'Coinbase'}
-          </a>
+          {/* BUY NOW - Deep links to specific coin/stock buy pages */}
+          <div className="flex gap-2">
+            {coin.isStock ? (
+              <>
+                <a
+                  href={`https://robinhood.com/stocks/${coin.symbol?.toUpperCase()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-green-500 to-emerald-500 shadow-green-500/30"
+                >
+                  💰 Robinhood
+                </a>
+                <a
+                  href={`https://www.webull.com/quote/nasdaq-${coin.symbol?.toLowerCase()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-orange-500 to-red-500 shadow-orange-500/30"
+                >
+                  📈 Webull
+                </a>
+              </>
+            ) : (
+              <>
+                <a
+                  href={`https://www.coinbase.com/price/${coin.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-blue-500 to-cyan-500 shadow-blue-500/30"
+                >
+                  💰 Coinbase
+                </a>
+                <a
+                  href={`https://www.binance.com/en/trade/${coin.symbol?.toUpperCase()}_USDT`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-yellow-500 to-orange-500 shadow-yellow-500/30 text-black"
+                >
+                  📊 Binance
+                </a>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Action Buttons */}
