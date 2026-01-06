@@ -1920,6 +1920,47 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
   const risk = getRiskLevel(coin.market_cap);
   const vibes = getVibes(coin);
   const isPositive = coin.price_change_percentage_24h >= 0;
+  const [shareStatus, setShareStatus] = useState(null); // 'copied' or 'shared'
+
+  // Share card functionality
+  const handleShare = async () => {
+    const shareText = `🦍 I'm watching $${coin.symbol?.toUpperCase()} on Swipefolio!\n\n` +
+      `💰 ${formatPrice(coin.current_price)}\n` +
+      `${isPositive ? '📈' : '📉'} ${isPositive ? '+' : ''}${coin.price_change_percentage_24h?.toFixed(2)}% (24h)\n` +
+      `🏆 Rank #${coin.market_cap_rank}\n\n` +
+      `Swipe to discover crypto & stocks! 🚀`;
+
+    const shareUrl = coin.isStock
+      ? `https://finance.yahoo.com/quote/${coin.symbol?.toUpperCase()}`
+      : `https://www.coingecko.com/en/coins/${coin.id}`;
+
+    // Try native Web Share API first (mobile)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${coin.name} ($${coin.symbol?.toUpperCase()})`,
+          text: shareText,
+          url: shareUrl
+        });
+        setShareStatus('shared');
+        setTimeout(() => setShareStatus(null), 2000);
+        return;
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.log('Share failed, falling back to clipboard');
+        }
+      }
+    }
+
+    // Fallback: copy to clipboard
+    try {
+      await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+      setShareStatus('copied');
+      setTimeout(() => setShareStatus(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   return (
     <motion.div
@@ -2088,6 +2129,18 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
             className="flex-1 bg-red-500/20 hover:bg-red-500/30 border-2 border-red-500 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2"
           >
             <span className="text-xl">🚫</span> RUG
+          </button>
+          <button
+            onClick={handleShare}
+            className="bg-blue-500/20 hover:bg-blue-500/30 border-2 border-blue-500 px-4 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2"
+          >
+            {shareStatus === 'copied' ? (
+              <><span className="text-xl">✓</span> Copied!</>
+            ) : shareStatus === 'shared' ? (
+              <><span className="text-xl">✓</span> Shared!</>
+            ) : (
+              <><span className="text-xl">📤</span> Share</>
+            )}
           </button>
           <button
             onClick={() => { onApe(); onClose(); }}
@@ -3531,7 +3584,7 @@ const recordMessageSent = (userId) => {
   lastMessageTimes.set(userId, Date.now());
 };
 
-const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user }) => {
+const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user, leaderboardData, userRankData }) => {
   const [activeSection, setActiveSection] = useState('matches');
   const [investorMatches, setInvestorMatches] = useState([]);
   const [connections, setConnections] = useState([]);
@@ -5292,6 +5345,8 @@ export default function Swipefolio() {
           predictionVote={predictionVote}
           onPredictionVote={handlePredictionVote}
           user={user}
+          leaderboardData={leaderboardData}
+          userRankData={userRankData}
         />
       )}
 
