@@ -1183,13 +1183,28 @@ export default function CoinSwipe() {
   useEffect(() => {
     const fetchCoins = async () => {
       setLoading(true);
+
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+
       try {
         // Fetch top 100 coins with sparkline
         const response = await fetch(
-          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h'
+          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=true&price_change_percentage=24h',
+          { signal: controller.signal }
         );
-        if (!response.ok) throw new Error('CoinGecko API failed');
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`CoinGecko API failed: ${response.status}`);
+        }
+
         const data = await response.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          throw new Error('Invalid API response');
+        }
 
         // Filter out stablecoins and shuffle for variety
         const filtered = data.filter(coin => !isStablecoin(coin));
@@ -1203,9 +1218,17 @@ export default function CoinSwipe() {
         });
         setCurrentPrices(prices);
       } catch (error) {
-        console.error('API Error:', error);
+        clearTimeout(timeoutId);
+        console.error('API Error:', error.message);
         // Use mock data as fallback
-        setCoins(getMockCoins());
+        const mockData = getMockCoins();
+        setCoins(mockData);
+        // Also set mock prices
+        const mockPrices = {};
+        mockData.forEach(coin => {
+          mockPrices[coin.id] = coin.current_price;
+        });
+        setCurrentPrices(mockPrices);
       }
       setLoading(false);
     };
@@ -1214,22 +1237,31 @@ export default function CoinSwipe() {
 
     // Refresh prices every 60 seconds
     const interval = setInterval(async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
       try {
         const response = await fetch(
-          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false'
+          'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false',
+          { signal: controller.signal }
         );
+        clearTimeout(timeoutId);
+
         if (response.ok) {
           const data = await response.json();
-          const prices = {};
-          data.forEach(coin => {
-            prices[coin.id] = coin.current_price;
-          });
-          setCurrentPrices(prices);
+          if (Array.isArray(data)) {
+            const prices = {};
+            data.forEach(coin => {
+              prices[coin.id] = coin.current_price;
+            });
+            setCurrentPrices(prices);
 
-          // Check for matches (>5% gain)
-          checkForMatches(prices);
+            // Check for matches (>5% gain)
+            checkForMatches(prices);
+          }
         }
       } catch (e) {
+        clearTimeout(timeoutId);
         // Silently fail price refresh
       }
     }, 60000);
@@ -1240,8 +1272,15 @@ export default function CoinSwipe() {
   // Fetch Fear & Greed Index
   useEffect(() => {
     const fetchFearGreed = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
       try {
-        const response = await fetch('https://api.alternative.me/fng/?limit=1');
+        const response = await fetch('https://api.alternative.me/fng/?limit=1', {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
         if (response.ok) {
           const data = await response.json();
           if (data.data && data.data[0]) {
@@ -1252,6 +1291,7 @@ export default function CoinSwipe() {
           }
         }
       } catch (e) {
+        clearTimeout(timeoutId);
         // Silently fail
       }
     };
