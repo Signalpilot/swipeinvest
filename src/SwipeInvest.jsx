@@ -1194,7 +1194,7 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
         })()}
 
         {/* Risk Level - Compact */}
-        <div className="px-5 pb-3">
+        <div className="px-5 pb-2">
           <div className={`flex items-center justify-between ${risk.bg} backdrop-blur-sm p-2 rounded-lg border border-white/5`}>
             <span className="text-slate-400 text-xs font-medium">Risk</span>
             <span className={`font-bold text-sm ${risk.color} flex items-center gap-1`}>
@@ -1206,7 +1206,7 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
 
         {/* Swipe hint for top card */}
         {isTop && (
-          <div className="absolute bottom-2 left-0 right-0 flex justify-center">
+          <div className="pb-3 flex justify-center">
             <p className="text-slate-600 text-xs font-medium">← Rug • Swipe • Ape →</p>
           </div>
         )}
@@ -2277,6 +2277,7 @@ export default function SwipeInvest() {
 
   // Community features state
   const [predictionVote, setPredictionVote] = useState(null); // 'ape' or 'rug'
+  const [showCommunity, setShowCommunity] = useState(false); // Mobile collapsible
 
   // Get current categories based on asset type
   const currentCategories = assetType === 'crypto' ? CRYPTO_CATEGORIES : STOCK_CATEGORIES;
@@ -3064,19 +3065,46 @@ export default function SwipeInvest() {
         ))}
       </div>
 
-      {/* Community Features - Mobile Only (horizontal scroll) */}
+      {/* Community Features - Mobile Only (collapsible) */}
       {currentAssets.length > 0 && (
-        <div className="lg:hidden flex gap-3 px-3 pb-2 overflow-x-auto scrollbar-hide">
-          <div className="flex-shrink-0 w-64">
-            <DailyPrediction
-              coins={currentAssets}
-              onVote={handlePredictionVote}
-              userVote={predictionVote}
-            />
-          </div>
-          <div className="flex-shrink-0 w-64">
-            <Leaderboard portfolio={portfolio} />
-          </div>
+        <div className="lg:hidden px-3 pb-2">
+          {/* Toggle Button */}
+          <button
+            onClick={() => setShowCommunity(!showCommunity)}
+            className="w-full flex items-center justify-center gap-3 py-2 bg-slate-800/60 rounded-xl border border-white/5 mb-2"
+          >
+            <span className="text-sm">🎲 Prediction</span>
+            <span className="text-slate-600">•</span>
+            <span className="text-sm">🏆 Leaderboard</span>
+            <motion.span
+              animate={{ rotate: showCommunity ? 180 : 0 }}
+              className="text-slate-400"
+            >
+              ▼
+            </motion.span>
+          </button>
+
+          {/* Collapsible Content */}
+          <AnimatePresence>
+            {showCommunity && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="grid grid-cols-2 gap-2">
+                  <DailyPrediction
+                    coins={currentAssets}
+                    onVote={handlePredictionVote}
+                    userVote={predictionVote}
+                  />
+                  <Leaderboard portfolio={portfolio} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
