@@ -41,7 +41,14 @@ import {
   isFollowing,
   getFollowing,
   getFollowers,
-  getActivityFeed
+  getActivityFeed,
+  getWeeklyChallenges,
+  joinChallenge,
+  hasJoinedChallenge,
+  getChallengeLeaderboard,
+  getUserChallengeStats,
+  getUserBadges,
+  CHALLENGE_TYPES
 } from './firebase';
 
 // ============================================================================
@@ -3614,6 +3621,13 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
   const [activityFeed, setActivityFeed] = useState([]);
   const [followingStatus, setFollowingStatus] = useState({}); // { [userId]: true/false }
 
+  // Weekly Challenges state
+  const [challenges, setChallenges] = useState([]);
+  const [joinedChallenges, setJoinedChallenges] = useState({});
+  const [challengeLeaderboards, setChallengeLeaderboards] = useState({});
+  const [selectedChallenge, setSelectedChallenge] = useState(null);
+  const [userBadges, setUserBadges] = useState([]);
+
   // Load investor matches
   useEffect(() => {
     if (user && activeSection === 'matches') {
@@ -3670,6 +3684,48 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
       checkStatus();
     }
   }, [user, investorMatches]);
+
+  // Load weekly challenges
+  useEffect(() => {
+    if (activeSection === 'challenges') {
+      setLoading(true);
+      getWeeklyChallenges().then(({ data }) => {
+        setChallenges(data || []);
+        setLoading(false);
+      });
+
+      // Load user badges
+      if (user) {
+        getUserBadges(user.uid).then(({ data }) => setUserBadges(data || []));
+      }
+    }
+  }, [activeSection, user]);
+
+  // Check which challenges user has joined
+  useEffect(() => {
+    if (user && challenges.length > 0) {
+      const checkJoined = async () => {
+        const joined = {};
+        for (const challenge of challenges) {
+          joined[challenge.id] = await hasJoinedChallenge(user.uid, challenge.id);
+        }
+        setJoinedChallenges(joined);
+      };
+      checkJoined();
+    }
+  }, [user, challenges]);
+
+  // Load leaderboard for selected challenge
+  useEffect(() => {
+    if (selectedChallenge) {
+      getChallengeLeaderboard(selectedChallenge.id).then(({ data }) => {
+        setChallengeLeaderboards(prev => ({
+          ...prev,
+          [selectedChallenge.id]: data || []
+        }));
+      });
+    }
+  }, [selectedChallenge]);
 
   // Subscribe to chat room
   useEffect(() => {
@@ -3783,6 +3839,16 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
       const following = await getFollowing(user.uid);
       setFollowingList(following);
     }
+  };
+
+  // Join challenge handler
+  const handleJoinChallenge = async (challengeId) => {
+    if (!user) return;
+    await joinChallenge(user.uid, challengeId);
+    setJoinedChallenges(prev => ({ ...prev, [challengeId]: true }));
+    // Refresh challenges to update participant count
+    const { data } = await getWeeklyChallenges();
+    setChallenges(data || []);
   };
 
   // Not logged in
@@ -3965,6 +4031,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
         {[
           { id: 'matches', label: 'Matches', emoji: '💙' },
           { id: 'following', label: 'Following', emoji: '👥' },
+          { id: 'challenges', label: 'Challenges', emoji: '🏆' },
           { id: 'chatrooms', label: 'Chat Rooms', emoji: '💬' },
           { id: 'connections', label: 'Connections', emoji: '🤝' },
           { id: 'trending', label: 'Trending', emoji: '🔥' },
@@ -4167,6 +4234,176 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
               ))
             )}
           </div>
+        </div>
+      )}
+
+      {/* Weekly Challenges Section */}
+      {activeSection === 'challenges' && (
+        <div className="space-y-4">
+          {/* Week indicator */}
+          <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl p-4 border border-yellow-500/30">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  <span>🏆</span> Weekly Challenges
+                </h3>
+                <p className="text-sm text-slate-400">Compete with the community!</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-slate-400">Resets in</p>
+                <p className="font-mono text-yellow-400">
+                  {(() => {
+                    const now = new Date();
+                    const dayOfWeek = now.getDay();
+                    const daysUntilMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+                    return `${daysUntilMonday}d`;
+                  })()}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* User Badges */}
+          {userBadges.length > 0 && (
+            <div className="bg-slate-800/50 rounded-xl p-4 border border-white/5">
+              <h4 className="text-sm font-medium text-slate-400 mb-3">Your Badges</h4>
+              <div className="flex flex-wrap gap-2">
+                {userBadges.map((badge) => (
+                  <div
+                    key={badge.id}
+                    className="px-3 py-1.5 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full text-sm border border-purple-500/30"
+                    title={badge.description}
+                  >
+                    {badge.emoji} {badge.title}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Challenge Cards */}
+          {loading ? (
+            <div className="text-center py-8 text-slate-400">Loading challenges...</div>
+          ) : selectedChallenge ? (
+            // Challenge Detail View with Leaderboard
+            <div className="space-y-4">
+              <button
+                onClick={() => setSelectedChallenge(null)}
+                className="flex items-center gap-2 text-slate-400 hover:text-white"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Challenges
+              </button>
+
+              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-6 border border-purple-500/30">
+                <div className="text-center">
+                  <span className="text-5xl">{selectedChallenge.emoji}</span>
+                  <h3 className="font-bold text-xl mt-3">{selectedChallenge.title}</h3>
+                  <p className="text-slate-400 text-sm mt-1">{selectedChallenge.description}</p>
+                  <div className="mt-3 inline-block px-3 py-1 bg-yellow-500/20 rounded-full text-yellow-400 text-sm">
+                    Prize: {selectedChallenge.reward}
+                  </div>
+                </div>
+              </div>
+
+              {/* Leaderboard */}
+              <div className="bg-slate-800/50 rounded-xl p-4 border border-white/5">
+                <h4 className="font-medium mb-4 flex items-center gap-2">
+                  <span>📊</span> Leaderboard
+                </h4>
+                {(challengeLeaderboards[selectedChallenge.id] || []).length === 0 ? (
+                  <p className="text-center text-slate-500 py-4">No participants yet. Be the first!</p>
+                ) : (
+                  <div className="space-y-2">
+                    {(challengeLeaderboards[selectedChallenge.id] || []).map((entry) => (
+                      <div
+                        key={entry.id}
+                        className={`flex items-center gap-3 p-3 rounded-lg ${
+                          entry.rank === 1 ? 'bg-yellow-500/20 border border-yellow-500/30' :
+                          entry.rank === 2 ? 'bg-slate-400/20 border border-slate-400/30' :
+                          entry.rank === 3 ? 'bg-orange-600/20 border border-orange-600/30' :
+                          'bg-slate-700/50'
+                        }`}
+                      >
+                        <span className="text-lg font-bold w-8">
+                          {entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : `#${entry.rank}`}
+                        </span>
+                        <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden">
+                          {entry.photoURL ? (
+                            <img src={entry.photoURL} className="w-full h-full object-cover" alt="" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-sm">
+                              {entry.displayName?.[0] || '?'}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium truncate">{entry.displayName}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-lg">{entry.score}</p>
+                          <p className="text-xs text-slate-400">points</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            // Challenge List
+            <div className="space-y-3">
+              {challenges.map((challenge) => (
+                <div
+                  key={challenge.id}
+                  className="bg-slate-800/50 rounded-xl p-4 border border-white/5 hover:border-purple-500/30 transition-colors"
+                >
+                  <div className="flex items-start gap-4">
+                    <span className="text-4xl">{challenge.emoji}</span>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-lg">{challenge.title}</h4>
+                      <p className="text-sm text-slate-400">{challenge.description}</p>
+                      <div className="flex items-center gap-4 mt-2">
+                        <span className="text-xs text-slate-500">
+                          👥 {challenge.participants || 0} joined
+                        </span>
+                        <span className="text-xs text-yellow-400">
+                          🎁 {challenge.reward}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {joinedChallenges[challenge.id] ? (
+                        <button
+                          onClick={() => setSelectedChallenge(challenge)}
+                          className="px-4 py-2 bg-green-600 rounded-lg text-sm font-medium hover:bg-green-500 transition-colors"
+                        >
+                          View
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleJoinChallenge(challenge.id)}
+                          className="px-4 py-2 bg-purple-600 rounded-lg text-sm font-medium hover:bg-purple-500 transition-colors"
+                        >
+                          Join
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {challenges.length === 0 && (
+                <div className="bg-slate-800/50 rounded-2xl p-6 text-center border border-white/5">
+                  <div className="text-4xl mb-3">🏆</div>
+                  <p className="text-slate-400">No active challenges</p>
+                  <p className="text-xs text-slate-500 mt-2">Check back soon!</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
