@@ -2305,62 +2305,108 @@ export default function SwipeInvest() {
   return (
     <div className="min-h-screen text-white flex flex-col relative overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
+        background: 'linear-gradient(180deg, #0a0f1a 0%, #1a1040 40%, #0f172a 100%)',
       }}
     >
-      {/* Aurora Background */}
+      {/* Subtle Grid Pattern */}
+      <div
+        className="fixed inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '50px 50px',
+        }}
+      />
+
+      {/* Aurora Background - More Dramatic */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        {/* Radial glow spots */}
+        {/* Main aurora glow from top */}
         <div
-          className="absolute top-0 left-1/4 w-[500px] h-[400px] opacity-30"
+          className="absolute -top-20 left-1/2 -translate-x-1/2 w-[800px] h-[600px]"
           style={{
-            background: 'radial-gradient(ellipse at center, rgba(139,92,246,0.4) 0%, transparent 70%)',
+            background: 'radial-gradient(ellipse 100% 60% at 50% 0%, rgba(139,92,246,0.4) 0%, rgba(168,85,247,0.2) 40%, transparent 70%)',
             filter: 'blur(40px)',
           }}
         />
-        <div
-          className="absolute top-1/3 right-1/4 w-[400px] h-[300px] opacity-25"
+
+        {/* Center card glow */}
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[600px]"
           style={{
-            background: 'radial-gradient(ellipse at center, rgba(168,85,247,0.3) 0%, transparent 70%)',
-            filter: 'blur(50px)',
+            background: 'radial-gradient(ellipse at center, rgba(139,92,246,0.15) 0%, transparent 60%)',
+            filter: 'blur(60px)',
+          }}
+          animate={{ opacity: [0.5, 0.8, 0.5], scale: [0.95, 1.05, 0.95] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        />
+
+        {/* Side glows */}
+        <div
+          className="absolute top-1/4 -left-20 w-[400px] h-[500px] opacity-40"
+          style={{
+            background: 'radial-gradient(ellipse at center, rgba(99,102,241,0.4) 0%, transparent 70%)',
+            filter: 'blur(80px)',
           }}
         />
         <div
-          className="absolute bottom-1/4 left-1/3 w-[350px] h-[350px] opacity-20"
+          className="absolute top-1/3 -right-20 w-[400px] h-[500px] opacity-40"
           style={{
-            background: 'radial-gradient(ellipse at center, rgba(99,102,241,0.35) 0%, transparent 70%)',
-            filter: 'blur(60px)',
+            background: 'radial-gradient(ellipse at center, rgba(168,85,247,0.35) 0%, transparent 70%)',
+            filter: 'blur(80px)',
           }}
         />
 
-        {/* Vertical aurora streaks */}
-        {[20, 40, 60, 80].map((left, i) => (
+        {/* Vertical aurora beams - More visible */}
+        {[15, 35, 50, 65, 85].map((left, i) => (
           <motion.div
             key={i}
             className="absolute top-0"
             style={{
               left: `${left}%`,
-              width: '100px',
-              height: '60%',
+              width: i === 2 ? '150px' : '80px',
+              height: '80%',
               background: `linear-gradient(180deg,
-                rgba(139,92,246,0.15) 0%,
-                rgba(168,85,247,0.08) 50%,
+                rgba(139,92,246,${i === 2 ? 0.3 : 0.2}) 0%,
+                rgba(168,85,247,${i === 2 ? 0.15 : 0.1}) 40%,
                 transparent 100%)`,
-              filter: 'blur(25px)',
+              filter: 'blur(20px)',
               transform: 'translateX(-50%)',
             }}
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            animate={{
+              opacity: [0.4, 0.8, 0.4],
+              height: ['75%', '85%', '75%'],
+            }}
             transition={{
-              duration: 4 + i,
+              duration: 3 + i * 0.5,
               repeat: Infinity,
               ease: 'easeInOut',
+              delay: i * 0.2,
             }}
+          />
+        ))}
+
+        {/* Accent beam lines */}
+        {[25, 50, 75].map((left, i) => (
+          <motion.div
+            key={`line-${i}`}
+            className="absolute top-0"
+            style={{
+              left: `${left}%`,
+              width: '2px',
+              height: '60%',
+              background: 'linear-gradient(180deg, rgba(168,85,247,0.6) 0%, rgba(139,92,246,0.2) 50%, transparent 100%)',
+              transform: 'translateX(-50%)',
+            }}
+            animate={{ opacity: [0.2, 0.5, 0.2] }}
+            transition={{ duration: 2 + i, repeat: Infinity, ease: 'easeInOut' }}
           />
         ))}
       </div>
 
-      {/* Floating Sparkles */}
-      <FloatingSparkles count={20} />
+      {/* Floating Sparkles - More of them */}
+      <FloatingSparkles count={35} />
 
       {/* Confetti Explosion on APE! */}
       <Confetti trigger={confettiTrigger} type="ape" />
