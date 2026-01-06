@@ -1017,23 +1017,25 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
             </div>
           </div>
 
-          {/* Tap for Chart hint */}
-          {isTop && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center justify-center gap-1.5 mt-2"
+          {/* View Chart Button - DEDICATED TAP TARGET */}
+          {isTop && onTap && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onPointerUp={(e) => {
+                e.stopPropagation();
+                onTap(coin);
+              }}
+              className="w-full mt-3 py-3 px-4 rounded-xl bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 flex items-center justify-center gap-2 active:scale-95 transition-transform touch-manipulation"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
-              <motion.span
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className="text-slate-500 text-xs"
-              >
-                👆
-              </motion.span>
-              <span className="text-slate-500 text-xs font-medium">Tap for full chart</span>
-            </motion.div>
+              <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+              </svg>
+              <span className="text-purple-300 font-semibold text-sm">View Full Chart</span>
+            </motion.button>
           )}
         </div>
 
@@ -1081,7 +1083,7 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
         {/* Swipe hint for top card */}
         {isTop && (
           <div className="absolute bottom-2 left-0 right-0 flex justify-center">
-            <p className="text-slate-600 text-xs font-medium">Tap for chart • Swipe to decide</p>
+            <p className="text-slate-600 text-xs font-medium">← Rug • Swipe • Ape →</p>
           </div>
         )}
       </div>
