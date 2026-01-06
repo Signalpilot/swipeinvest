@@ -833,30 +833,68 @@ const getStockVibes = (stock) => {
   return vibes.slice(0, 3);
 };
 
-// Fetch stocks from Finnhub
+// Fetch stocks from Yahoo Finance (batch API - all stocks in one call)
 const fetchStocksFromFinnhub = async () => {
-  const symbols = STOCK_LIST.map(s => s.symbol);
-  const apiKey = FINNHUB_KEY();
+  const allSymbols = STOCK_LIST.map(s => s.symbol);
 
-  // Fetch quotes for all stocks (Finnhub allows 60/min so we're fine)
-  const quotes = await Promise.all(
-    symbols.map(async (symbol) => {
-      try {
-        const response = await fetch(
-          `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`
-        );
-        if (!response.ok) return null;
-        const data = await response.json();
-        return { symbol, ...data };
-      } catch (e) {
-        return null;
+  // Yahoo Finance batch API - gets ALL stocks in one request!
+  try {
+    const symbolsParam = allSymbols.join(',');
+    const response = await fetch(
+      `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbolsParam}`,
+      { headers: { 'Accept': 'application/json' } }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      const results = data.quoteResponse?.result || [];
+
+      if (results.length > 0) {
+        console.log(`Yahoo Finance: ${results.length} stocks loaded`);
+        const quotes = results.map(quote => ({
+          symbol: quote.symbol,
+          c: quote.regularMarketPrice || 0,
+          pc: quote.regularMarketPreviousClose || quote.regularMarketPrice,
+          h: quote.regularMarketDayHigh || quote.regularMarketPrice,
+          l: quote.regularMarketDayLow || quote.regularMarketPrice
+        }));
+        return transformQuotes(quotes);
       }
-    })
-  );
+    }
+  } catch (e) {
+    console.log('Yahoo Finance error:', e.message);
+  }
 
-  // Transform to our format
+  // Fallback: use mock data with realistic prices
+  console.log('Using mock stock data');
+  const quotes = STOCK_LIST.map(stock => {
+    // Realistic base prices for major stocks
+    const knownPrices = {
+      'AAPL': 195, 'MSFT': 420, 'NVDA': 145, 'GOOGL': 175, 'AMZN': 185,
+      'TSLA': 250, 'META': 510, 'JPM': 200, 'V': 280, 'MA': 470,
+      'UNH': 520, 'JNJ': 155, 'WMT': 165, 'PG': 160, 'HD': 380,
+      'XOM': 110, 'CVX': 155, 'BAC': 38, 'PFE': 28, 'ABBV': 175,
+      'KO': 62, 'PEP': 175, 'COST': 740, 'MCD': 295, 'NKE': 105,
+      'DIS': 95, 'NFLX': 485, 'AMD': 155, 'INTC': 45, 'CRM': 265,
+      'GS': 450, 'MS': 95, 'WFC': 55, 'C': 58, 'AXP': 220
+    };
+    const basePrice = knownPrices[stock.symbol] || (30 + Math.random() * 200);
+    const variation = basePrice * 0.03 * (Math.random() - 0.5);
+    return {
+      symbol: stock.symbol,
+      c: basePrice + variation,
+      pc: basePrice,
+      h: basePrice * 1.02,
+      l: basePrice * 0.98
+    };
+  });
+  return transformQuotes(quotes);
+};
+
+// Transform quotes to our stock format
+const transformQuotes = (quotes) => {
   return quotes
-    .filter(q => q && q.c > 0) // Filter out failed/invalid quotes
+    .filter(q => q && q.c > 0)
     .map((quote, index) => {
       const stockMeta = STOCK_LIST.find(s => s.symbol === quote.symbol);
       const price = quote.c || 0; // Current price
@@ -3662,10 +3700,13 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
         getFollowing(user.uid),
         getFollowers(user.uid),
         getActivityFeed(user.uid)
-      ]).then(([following, followers, feed]) => {
-        setFollowingList(following);
-        setFollowersList(followers);
-        setActivityFeed(feed);
+      ]).then(([followingRes, followersRes, feedRes]) => {
+        setFollowingList(followingRes.data || []);
+        setFollowersList(followersRes.data || []);
+        setActivityFeed(feedRes.data || []);
+        setLoading(false);
+      }).catch(err => {
+        console.error('Error loading follow data:', err);
         setLoading(false);
       });
     }
@@ -4808,7 +4849,7 @@ export default function Swipefolio() {
       const apis = [
         {
           name: 'CoinGecko',
-          url: 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&sparkline=true&price_change_percentage=24h',
+          url: 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&sparkline=true&price_change_percentage=24h',
           transform: (data) => data.map(coin => ({
             id: coin.id,
             symbol: coin.symbol?.toLowerCase() || '',
@@ -4826,7 +4867,7 @@ export default function Swipefolio() {
         },
         {
           name: 'CoinCap',
-          url: 'https://api.coincap.io/v2/assets?limit=100',
+          url: 'https://api.coincap.io/v2/assets?limit=250',
           transform: (json) => {
             const data = json.data || json;
             return data.map((coin, index) => {
@@ -5857,20 +5898,44 @@ function getMockCoins() {
 }
 
 function getMockStocks() {
-  return [
-    { id: 'aapl', symbol: 'aapl', name: 'Apple', image: 'https://logo.clearbit.com/apple.com', current_price: 198.50, market_cap: 3000000000000, market_cap_rank: 1, total_volume: 45000000000, price_change_percentage_24h: 1.23, high_24h: 200, low_24h: 196, isStock: true, sector: 'tech', categories: ['tech', 'bluechip'], sparkline_in_7d: { price: Array.from({length: 24}, () => 195 + Math.random() * 6) } },
-    { id: 'msft', symbol: 'msft', name: 'Microsoft', image: 'https://logo.clearbit.com/microsoft.com', current_price: 425.80, market_cap: 2800000000000, market_cap_rank: 2, total_volume: 28000000000, price_change_percentage_24h: 0.85, high_24h: 428, low_24h: 422, isStock: true, sector: 'tech', categories: ['tech', 'bluechip'], sparkline_in_7d: { price: Array.from({length: 24}, () => 420 + Math.random() * 10) } },
-    { id: 'nvda', symbol: 'nvda', name: 'NVIDIA', image: 'https://logo.clearbit.com/nvidia.com', current_price: 145.20, market_cap: 1200000000000, market_cap_rank: 3, total_volume: 52000000000, price_change_percentage_24h: 3.45, high_24h: 148, low_24h: 141, isStock: true, sector: 'tech', categories: ['tech', 'ai', 'bluechip', 'trending'], sparkline_in_7d: { price: Array.from({length: 24}, () => 140 + Math.random() * 10) } },
-    { id: 'googl', symbol: 'googl', name: 'Alphabet', image: 'https://logo.clearbit.com/google.com', current_price: 175.30, market_cap: 1800000000000, market_cap_rank: 4, total_volume: 22000000000, price_change_percentage_24h: -0.45, high_24h: 177, low_24h: 174, isStock: true, sector: 'tech', categories: ['tech', 'bluechip'], sparkline_in_7d: { price: Array.from({length: 24}, () => 173 + Math.random() * 4) } },
-    { id: 'amzn', symbol: 'amzn', name: 'Amazon', image: 'https://logo.clearbit.com/amazon.com', current_price: 186.40, market_cap: 1500000000000, market_cap_rank: 5, total_volume: 35000000000, price_change_percentage_24h: 1.89, high_24h: 188, low_24h: 183, isStock: true, sector: 'tech', categories: ['tech', 'bluechip'], sparkline_in_7d: { price: Array.from({length: 24}, () => 182 + Math.random() * 7) } },
-    { id: 'tsla', symbol: 'tsla', name: 'Tesla', image: 'https://logo.clearbit.com/tesla.com', current_price: 248.90, market_cap: 700000000000, market_cap_rank: 6, total_volume: 85000000000, price_change_percentage_24h: 5.67, high_24h: 255, low_24h: 240, isStock: true, sector: 'tech', categories: ['tech', 'meme', 'trending'], sparkline_in_7d: { price: Array.from({length: 24}, () => 235 + Math.random() * 20) } },
-    { id: 'meta', symbol: 'meta', name: 'Meta', image: 'https://logo.clearbit.com/meta.com', current_price: 512.60, market_cap: 900000000000, market_cap_rank: 7, total_volume: 18000000000, price_change_percentage_24h: 2.12, high_24h: 518, low_24h: 505, isStock: true, sector: 'tech', categories: ['tech', 'bluechip'], sparkline_in_7d: { price: Array.from({length: 24}, () => 500 + Math.random() * 20) } },
-    { id: 'jpm', symbol: 'jpm', name: 'JPMorgan', image: 'https://logo.clearbit.com/jpmorganchase.com', current_price: 198.75, market_cap: 450000000000, market_cap_rank: 8, total_volume: 8000000000, price_change_percentage_24h: 0.34, high_24h: 200, low_24h: 197, isStock: true, sector: 'finance', categories: ['finance', 'bluechip', 'dividend'], sparkline_in_7d: { price: Array.from({length: 24}, () => 196 + Math.random() * 4) } },
-    { id: 'gme', symbol: 'gme', name: 'GameStop', image: 'https://logo.clearbit.com/gamestop.com', current_price: 28.45, market_cap: 8500000000, market_cap_rank: 50, total_volume: 15000000000, price_change_percentage_24h: 12.34, high_24h: 30, low_24h: 25, isStock: true, sector: 'retail', categories: ['meme', 'trending'], sparkline_in_7d: { price: Array.from({length: 24}, () => 24 + Math.random() * 6) } },
-    { id: 'amc', symbol: 'amc', name: 'AMC', image: 'https://logo.clearbit.com/amctheatres.com', current_price: 4.85, market_cap: 2200000000, market_cap_rank: 80, total_volume: 8000000000, price_change_percentage_24h: 8.76, high_24h: 5.20, low_24h: 4.50, isStock: true, sector: 'entertainment', categories: ['meme', 'trending'], sparkline_in_7d: { price: Array.from({length: 24}, () => 4.3 + Math.random() * 0.8) } },
-    { id: 'pltr', symbol: 'pltr', name: 'Palantir', image: 'https://logo.clearbit.com/palantir.com', current_price: 23.80, market_cap: 52000000000, market_cap_rank: 20, total_volume: 45000000000, price_change_percentage_24h: 4.56, high_24h: 24.50, low_24h: 22.80, isStock: true, sector: 'tech', categories: ['tech', 'ai', 'meme'], sparkline_in_7d: { price: Array.from({length: 24}, () => 22 + Math.random() * 3) } },
-    { id: 'ko', symbol: 'ko', name: 'Coca-Cola', image: 'https://logo.clearbit.com/coca-cola.com', current_price: 62.40, market_cap: 270000000000, market_cap_rank: 12, total_volume: 8000000000, price_change_percentage_24h: 0.12, high_24h: 62.80, low_24h: 62.00, isStock: true, sector: 'consumer', categories: ['dividend', 'bluechip'], sparkline_in_7d: { price: Array.from({length: 24}, () => 61.5 + Math.random() * 1.5) } },
-    { id: 'lly', symbol: 'lly', name: 'Eli Lilly', image: 'https://logo.clearbit.com/lilly.com', current_price: 785.30, market_cap: 680000000000, market_cap_rank: 9, total_volume: 4500000000, price_change_percentage_24h: 2.89, high_24h: 792, low_24h: 770, isStock: true, sector: 'healthcare', categories: ['healthcare', 'trending'], sparkline_in_7d: { price: Array.from({length: 24}, () => 765 + Math.random() * 30) } },
-    { id: 'xom', symbol: 'xom', name: 'Exxon Mobil', image: 'https://logo.clearbit.com/exxonmobil.com', current_price: 108.90, market_cap: 420000000000, market_cap_rank: 11, total_volume: 12000000000, price_change_percentage_24h: -1.23, high_24h: 111, low_24h: 107, isStock: true, sector: 'energy', categories: ['energy', 'dividend'], sparkline_in_7d: { price: Array.from({length: 24}, () => 106 + Math.random() * 5) } },
-  ];
+  // Generate mock data from the full STOCK_LIST
+  return STOCK_LIST.map((stock, index) => {
+    // Generate realistic mock prices based on typical ranges
+    const basePrices = {
+      'AAPL': 195, 'MSFT': 420, 'NVDA': 145, 'GOOGL': 175, 'AMZN': 185,
+      'TSLA': 250, 'META': 510, 'JPM': 200, 'V': 280, 'MA': 470,
+      'UNH': 520, 'JNJ': 155, 'WMT': 165, 'PG': 160, 'HD': 380,
+      'XOM': 110, 'CVX': 155, 'PFE': 28, 'ABBV': 175, 'MRK': 125,
+      'KO': 62, 'PEP': 175, 'COST': 740, 'MCD': 295, 'NKE': 105,
+      'DIS': 95, 'NFLX': 485, 'AMD': 155, 'INTC': 45, 'CRM': 265,
+      'ORCL': 125, 'ADBE': 530, 'CSCO': 52, 'TXN': 175, 'QCOM': 170,
+      'BA': 195, 'CAT': 345, 'GE': 165, 'MMM': 105, 'HON': 215,
+      'RTX': 95, 'LMT': 455, 'NOC': 475, 'GD': 285, 'DE': 380
+    };
+
+    const basePrice = basePrices[stock.symbol] || (50 + Math.random() * 300);
+    const priceVariation = basePrice * 0.02;
+    const currentPrice = basePrice + (Math.random() - 0.5) * priceVariation * 2;
+    const priceChange = (Math.random() - 0.5) * 6;
+
+    return {
+      id: stock.symbol.toLowerCase(),
+      symbol: stock.symbol.toLowerCase(),
+      name: stock.name,
+      image: `https://logo.clearbit.com/${stock.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+      current_price: Math.round(currentPrice * 100) / 100,
+      market_cap: Math.floor(Math.random() * 2000000000000) + 10000000000,
+      market_cap_rank: index + 1,
+      total_volume: Math.floor(Math.random() * 50000000000) + 1000000000,
+      price_change_percentage_24h: Math.round(priceChange * 100) / 100,
+      high_24h: Math.round((currentPrice * 1.02) * 100) / 100,
+      low_24h: Math.round((currentPrice * 0.98) * 100) / 100,
+      isStock: true,
+      sector: stock.sector,
+      categories: stock.category || [],
+      sparkline_in_7d: {
+        price: Array.from({length: 24}, () => currentPrice * (0.97 + Math.random() * 0.06))
+      }
+    };
+  });
 }
