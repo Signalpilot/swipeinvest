@@ -1012,8 +1012,8 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
           </motion.div>
         </motion.div>
 
-        {/* Coin Header */}
-        <div className="relative p-6 pb-4">
+        {/* Coin Header - Compact */}
+        <div className="relative p-4 pb-3">
           {/* Rank badge - refined glassmorphism */}
           <div
             className="absolute top-4 right-4 px-3 py-1.5 rounded-full text-sm font-semibold"
@@ -1055,7 +1055,7 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
                 }}
               />
               <div
-                className="w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden"
+                className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden"
                 style={{
                   background: 'linear-gradient(145deg, rgba(51,65,85,0.8) 0%, rgba(30,41,59,0.9) 100%)',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.08) inset',
@@ -1064,7 +1064,7 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
                 <img
                   src={coin.image}
                   alt={coin.name}
-                  className="w-16 h-16 object-contain transition-transform duration-300 group-hover:scale-110"
+                  className="w-12 h-12 object-contain transition-transform duration-300 group-hover:scale-110"
                   draggable={false}
                   onError={(e) => {
                     e.target.style.display = 'none';
@@ -1075,61 +1075,59 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
             </div>
 
             <div className="flex-1 min-w-0">
-              <h2 className="text-2xl font-extrabold truncate tracking-tight">{coin.name}</h2>
-              <p className="text-slate-400 font-semibold uppercase tracking-widest text-sm">${coin.symbol}</p>
+              <h2 className="text-xl font-extrabold truncate tracking-tight">{coin.name}</h2>
+              <p className="text-slate-400 font-semibold uppercase tracking-widest text-xs">${coin.symbol}</p>
             </div>
           </div>
         </div>
 
         {/* Price Section - Compact */}
-        <div className="px-5 pb-2">
+        <div className="px-4 pb-1.5">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-3xl font-black tracking-tight">{formatPrice(coin.current_price)}</p>
+              <p className="text-2xl font-black tracking-tight">{formatPrice(coin.current_price)}</p>
               <div className={`flex items-center gap-1 ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                <span className="text-sm font-bold">
+                <span className="text-xs font-bold">
                   {isPositive ? '▲' : '▼'} {Math.abs(coin.price_change_percentage_24h || 0).toFixed(2)}%
                 </span>
-                <span className="text-slate-500 text-xs">24h</span>
+                <span className="text-slate-500 text-[10px]">24h</span>
               </div>
             </div>
 
-            {/* Mini Chart */}
-            <div className="w-24">
-              <SparklineSVG data={sparklineData.slice(-24)} positive={isPositive} />
+            {/* Mini Chart + View Chart Button Combined */}
+            <div className="flex items-center gap-2">
+              <div className="w-20">
+                <SparklineSVG data={sparklineData.slice(-24)} positive={isPositive} />
+              </div>
+              {isTop && onTap && (
+                <motion.button
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onPointerUp={(e) => {
+                    e.stopPropagation();
+                    onTap(coin);
+                  }}
+                  className="p-2 rounded-lg bg-purple-500/20 border border-purple-500/30 active:scale-95 transition-transform touch-manipulation"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                  </svg>
+                </motion.button>
+              )}
             </div>
           </div>
-
-          {/* View Chart Button - Compact */}
-          {isTop && onTap && (
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              onPointerDown={(e) => e.stopPropagation()}
-              onPointerUp={(e) => {
-                e.stopPropagation();
-                onTap(coin);
-              }}
-              className="w-full mt-2 py-2 px-3 rounded-lg bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 flex items-center justify-center gap-2 active:scale-95 transition-transform touch-manipulation"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-              </svg>
-              <span className="text-purple-300 font-semibold text-xs">View Full Chart</span>
-            </motion.button>
-          )}
         </div>
 
-        {/* Vibes/Tags - Compact */}
+        {/* Vibes/Tags - Ultra Compact */}
         {vibes.length > 0 && (
-          <div className="px-5 pb-2">
-            <div className="flex flex-wrap gap-1.5">
-              {vibes.map((vibe, i) => (
+          <div className="px-4 pb-1.5">
+            <div className="flex flex-wrap gap-1">
+              {vibes.slice(0, 3).map((vibe, i) => (
                 <span
                   key={i}
-                  className={`bg-gradient-to-r ${vibe.color} px-2 py-1 rounded-full text-[10px] font-bold shadow-lg`}
+                  className={`bg-gradient-to-r ${vibe.color} px-1.5 py-0.5 rounded-full text-[9px] font-bold`}
                 >
                   {vibe.emoji} {vibe.text}
                 </span>
@@ -1138,71 +1136,56 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
           </div>
         )}
 
-        {/* Stats Grid - Compact */}
-        <div className="px-5 pb-2">
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-slate-800/60 backdrop-blur-sm p-2 rounded-lg border border-white/5">
-              <p className="text-slate-500 text-xs font-medium">Market Cap</p>
-              <p className="font-bold text-sm">{formatNumber(coin.market_cap)}</p>
+        {/* Stats Grid - Ultra Compact */}
+        <div className="px-4 pb-1.5">
+          <div className="grid grid-cols-2 gap-1.5">
+            <div className="bg-slate-800/60 p-1.5 rounded-lg border border-white/5">
+              <p className="text-slate-500 text-[10px]">Market Cap</p>
+              <p className="font-bold text-xs">{formatNumber(coin.market_cap)}</p>
             </div>
-            <div className="bg-slate-800/60 backdrop-blur-sm p-2 rounded-lg border border-white/5">
-              <p className="text-slate-500 text-xs font-medium">24h Volume</p>
-              <p className="font-bold text-sm">{formatNumber(coin.total_volume)}</p>
+            <div className="bg-slate-800/60 p-1.5 rounded-lg border border-white/5">
+              <p className="text-slate-500 text-[10px]">24h Volume</p>
+              <p className="font-bold text-xs">{formatNumber(coin.total_volume)}</p>
             </div>
           </div>
         </div>
 
-        {/* Community Sentiment - Compact */}
+        {/* Community & Risk - Combined Ultra Compact Row */}
         {(() => {
           const sentiment = getCommunitySentiment(coin);
           return (
-            <div className="px-5 pb-2">
-              <div className="bg-slate-800/40 backdrop-blur-sm p-2 rounded-lg border border-white/5">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-slate-400 text-xs font-medium">👥 Community</span>
-                  <span className="text-slate-500 text-xs">
-                    {sentiment.userCount.toLocaleString()} today
-                  </span>
-                </div>
-                {/* APE Rate Bar */}
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-500 ${
-                        sentiment.apeRate > 70 ? 'bg-gradient-to-r from-green-500 to-emerald-400' :
-                        sentiment.apeRate > 45 ? 'bg-gradient-to-r from-yellow-500 to-orange-400' :
-                        'bg-gradient-to-r from-red-500 to-pink-400'
-                      }`}
-                      style={{ width: `${sentiment.apeRate}%` }}
-                    />
+            <div className="px-4 pb-1.5">
+              <div className="flex gap-1.5">
+                {/* Community Mini */}
+                <div className="flex-1 bg-slate-800/40 p-1.5 rounded-lg border border-white/5">
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <span className="text-slate-400 text-[10px]">👥</span>
+                    <div className="flex-1 h-1 bg-slate-700 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${
+                          sentiment.apeRate > 70 ? 'bg-green-500' :
+                          sentiment.apeRate > 45 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${sentiment.apeRate}%` }}
+                      />
+                    </div>
+                    <span className={`text-[10px] font-bold ${
+                      sentiment.apeRate > 70 ? 'text-green-400' :
+                      sentiment.apeRate > 45 ? 'text-yellow-400' : 'text-red-400'
+                    }`}>
+                      {sentiment.apeRate}%
+                    </span>
                   </div>
-                  <span className={`text-xs font-bold ${
-                    sentiment.apeRate > 70 ? 'text-green-400' :
-                    sentiment.apeRate > 45 ? 'text-yellow-400' :
-                    'text-red-400'
-                  }`}>
-                    🦍 {sentiment.apeRate}%
-                  </span>
                 </div>
-                {/* Top Comment */}
-                <p className="text-slate-500 text-[10px] mt-1 italic truncate">
-                  "{sentiment.topComment}" - @trader_{Math.abs(coin.id.charCodeAt(0) % 999)}
-                </p>
+                {/* Risk Mini */}
+                <div className={`${risk.bg} p-1.5 rounded-lg border border-white/5 flex items-center gap-1`}>
+                  <span className="text-[10px]">{risk.emoji}</span>
+                  <span className={`font-bold text-[10px] ${risk.color}`}>{risk.label}</span>
+                </div>
               </div>
             </div>
           );
         })()}
-
-        {/* Risk Level - Compact */}
-        <div className="px-5 pb-2">
-          <div className={`flex items-center justify-between ${risk.bg} backdrop-blur-sm p-2 rounded-lg border border-white/5`}>
-            <span className="text-slate-400 text-xs font-medium">Risk</span>
-            <span className={`font-bold text-sm ${risk.color} flex items-center gap-1`}>
-              <span>{risk.emoji}</span>
-              {risk.label}
-            </span>
-          </div>
-        </div>
 
         {/* Swipe hint for top card */}
         {isTop && (
@@ -1977,6 +1960,15 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
             <p className="text-slate-500 text-xs">Losers</p>
           </div>
         </div>
+
+        {/* How PnL Works - Info Banner */}
+        {positions.length > 0 && (
+          <div className="mx-4 mb-2 px-3 py-2 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+            <p className="text-purple-300 text-xs text-center">
+              📊 <span className="font-medium">Paper Trading:</span> Swipe right = Entry price saved • PnL updates every 30 sec
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Positions List */}
@@ -2040,12 +2032,18 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
               {/* Action Buttons */}
               <div className="flex gap-2 mt-3">
                 <a
-                  href={`${AFFILIATE_LINKS.coinbase}?entry=portfolio_${pos.symbol}`}
+                  href={pos.isStock
+                    ? AFFILIATE_LINKS.robinhood
+                    : `${AFFILIATE_LINKS.coinbase}?entry=portfolio_${pos.symbol}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 py-2 rounded-lg font-medium text-center text-sm hover:opacity-90 transition"
+                  className={`flex-1 py-2 rounded-lg font-medium text-center text-sm hover:opacity-90 transition ${
+                    pos.isStock
+                      ? 'bg-gradient-to-r from-green-600 to-green-500'
+                      : 'bg-gradient-to-r from-green-500 to-emerald-500'
+                  }`}
                 >
-                  Buy Real
+                  {pos.isStock ? 'Buy on Robinhood' : 'Buy Real'}
                 </a>
                 <button
                   onClick={() => onShare(pos)}
@@ -2065,40 +2063,56 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
         )}
       </div>
 
-      {/* Exchange CTAs */}
-      {positions.length > 0 && (
-        <div className="sticky bottom-0 p-4 bg-slate-900/95 backdrop-blur-sm border-t border-white/10">
-          <p className="text-center text-slate-500 text-sm mb-3">
-            Ready to ape for real? 💰
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            <a
-              href={AFFILIATE_LINKS.coinbase}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-blue-600 py-3 rounded-xl text-center font-bold hover:bg-blue-700 transition text-sm"
-            >
-              Coinbase
-            </a>
-            <a
-              href={AFFILIATE_LINKS.binance}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-yellow-500 text-black py-3 rounded-xl text-center font-bold hover:bg-yellow-400 transition text-sm"
-            >
-              Binance
-            </a>
-            <a
-              href={AFFILIATE_LINKS.bybit}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-orange-500 py-3 rounded-xl text-center font-bold hover:bg-orange-600 transition text-sm"
-            >
-              Bybit
-            </a>
+      {/* Exchange CTAs - Dynamic based on portfolio content */}
+      {positions.length > 0 && (() => {
+        const hasStocks = positions.some(p => p.isStock);
+        const hasCrypto = positions.some(p => !p.isStock);
+        return (
+          <div className="sticky bottom-0 p-4 bg-slate-900/95 backdrop-blur-sm border-t border-white/10">
+            <p className="text-center text-slate-500 text-sm mb-3">
+              Ready to ape for real? 💰
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {hasCrypto ? (
+                <>
+                  <a href={AFFILIATE_LINKS.coinbase} target="_blank" rel="noopener noreferrer"
+                    className="bg-blue-600 py-3 rounded-xl text-center font-bold hover:bg-blue-700 transition text-sm">
+                    Coinbase
+                  </a>
+                  <a href={AFFILIATE_LINKS.binance} target="_blank" rel="noopener noreferrer"
+                    className="bg-yellow-500 text-black py-3 rounded-xl text-center font-bold hover:bg-yellow-400 transition text-sm">
+                    Binance
+                  </a>
+                  <a href={AFFILIATE_LINKS.bybit} target="_blank" rel="noopener noreferrer"
+                    className="bg-orange-500 py-3 rounded-xl text-center font-bold hover:bg-orange-600 transition text-sm">
+                    Bybit
+                  </a>
+                </>
+              ) : (
+                <>
+                  <a href={AFFILIATE_LINKS.robinhood} target="_blank" rel="noopener noreferrer"
+                    className="bg-green-500 py-3 rounded-xl text-center font-bold hover:bg-green-400 transition text-sm">
+                    Robinhood
+                  </a>
+                  <a href={AFFILIATE_LINKS.webull} target="_blank" rel="noopener noreferrer"
+                    className="bg-orange-500 py-3 rounded-xl text-center font-bold hover:bg-orange-400 transition text-sm">
+                    Webull
+                  </a>
+                  <a href={AFFILIATE_LINKS.etoro} target="_blank" rel="noopener noreferrer"
+                    className="bg-emerald-600 py-3 rounded-xl text-center font-bold hover:bg-emerald-500 transition text-sm">
+                    eToro
+                  </a>
+                </>
+              )}
+            </div>
+            {hasStocks && hasCrypto && (
+              <p className="text-center text-slate-600 text-xs mt-2">
+                You have both stocks & crypto - browse more options above!
+              </p>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
@@ -2340,13 +2354,18 @@ export default function SwipeInvest() {
 
       try {
         // Use CoinCap API - more reliable, no aggressive rate limits
-        // Add cache-busting timestamp to prevent stale prices
+        // Aggressive cache-busting to ensure fresh prices
+        const cacheBuster = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
         const response = await fetch(
-          `https://api.coincap.io/v2/assets?limit=100&_t=${Date.now()}`,
+          `https://api.coincap.io/v2/assets?limit=100&_nocache=${cacheBuster}`,
           {
             signal: controller.signal,
             cache: 'no-store',
-            headers: { 'Cache-Control': 'no-cache' }
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
           }
         );
         clearTimeout(timeoutId);
@@ -2427,12 +2446,17 @@ export default function SwipeInvest() {
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       try {
+        const cacheBuster = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
         const response = await fetch(
-          `https://api.coincap.io/v2/assets?limit=100&_t=${Date.now()}`,
+          `https://api.coincap.io/v2/assets?limit=100&_nocache=${cacheBuster}`,
           {
             signal: controller.signal,
             cache: 'no-store',
-            headers: { 'Cache-Control': 'no-cache' }
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
           }
         );
         clearTimeout(timeoutId);
@@ -2680,6 +2704,7 @@ export default function SwipeInvest() {
         timestamp: Date.now(),
         isSuperApe: isSuper,
         matchShown: false,
+        isStock: coin.isStock || false, // Track if this is a stock for proper affiliate links
       };
 
       // Don't add duplicates
@@ -2807,7 +2832,7 @@ export default function SwipeInvest() {
 
   // Main Swipe View
   return (
-    <div className="min-h-screen text-white flex flex-col relative overflow-hidden"
+    <div className="h-[100dvh] text-white flex flex-col relative overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #0a0f1a 0%, #1a1040 40%, #0f172a 100%)',
       }}
@@ -2954,9 +2979,9 @@ export default function SwipeInvest() {
         )}
       </AnimatePresence>
 
-      {/* Header - Glassmorphism */}
+      {/* Header - Glassmorphism - Compact */}
       <header
-        className="relative z-10 flex justify-between items-center p-4 border-b border-white/[0.08]"
+        className="relative z-10 flex justify-between items-center px-3 py-2 border-b border-white/[0.08] shrink-0"
         style={{
           background: 'rgba(15,23,42,0.7)',
           backdropFilter: 'blur(20px)',
@@ -3035,9 +3060,9 @@ export default function SwipeInvest() {
         </div>
       </header>
 
-      {/* Category Pills - Glassmorphism */}
+      {/* Category Pills - Glassmorphism - Compact */}
       <div
-        className="relative z-10 flex gap-2 p-3 overflow-x-auto scrollbar-hide"
+        className="relative z-10 flex gap-1.5 px-2 py-1.5 overflow-x-auto scrollbar-hide shrink-0"
         style={{
           background: 'rgba(15,23,42,0.5)',
           backdropFilter: 'blur(10px)',
@@ -3050,7 +3075,7 @@ export default function SwipeInvest() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => { setSelectedCategory(cat.id); setCurrentIndex(0); setHistory([]); }}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-all"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full whitespace-nowrap text-xs font-medium transition-all"
             style={selectedCategory === cat.id ? {
               background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)',
               boxShadow: '0 4px 15px rgba(139,92,246,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset',
@@ -3065,51 +3090,10 @@ export default function SwipeInvest() {
         ))}
       </div>
 
-      {/* Community Features - Mobile Only (collapsible) */}
-      {currentAssets.length > 0 && (
-        <div className="lg:hidden px-3 pb-2">
-          {/* Toggle Button */}
-          <button
-            onClick={() => setShowCommunity(!showCommunity)}
-            className="w-full flex items-center justify-center gap-3 py-2 bg-slate-800/60 rounded-xl border border-white/5 mb-2"
-          >
-            <span className="text-sm">🎲 Prediction</span>
-            <span className="text-slate-600">•</span>
-            <span className="text-sm">🏆 Leaderboard</span>
-            <motion.span
-              animate={{ rotate: showCommunity ? 180 : 0 }}
-              className="text-slate-400"
-            >
-              ▼
-            </motion.span>
-          </button>
-
-          {/* Collapsible Content */}
-          <AnimatePresence>
-            {showCommunity && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="grid grid-cols-2 gap-2">
-                  <DailyPrediction
-                    coins={currentAssets}
-                    onVote={handlePredictionVote}
-                    userVote={predictionVote}
-                  />
-                  <Leaderboard portfolio={portfolio} />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
+      {/* Community Features - Hidden on mobile for clean Tinder-like view */}
 
       {/* Card Stack Area with Community Sidebar on Desktop */}
-      <div className="flex-1 flex items-stretch p-4 relative overflow-hidden">
+      <div className="flex-1 min-h-0 flex items-stretch p-2 sm:p-4 relative overflow-hidden">
         {/* Main Card Area */}
         <div className="flex-1 flex items-center justify-center relative">
           {currentIndex >= filteredCoins.length ? (
@@ -3140,8 +3124,8 @@ export default function SwipeInvest() {
               </div>
             </motion.div>
           ) : (
-            // Card stack
-            <div className="relative w-full max-w-[340px] h-[560px] flex items-center justify-center">
+            // Card stack - uses available height
+            <div className="relative w-full max-w-[340px] h-full max-h-[520px] flex items-center justify-center">
               <AnimatePresence mode="popLayout">
                 {filteredCoins.slice(currentIndex, currentIndex + 3).map((coin, i) => (
                   <SwipeCard
@@ -3176,14 +3160,14 @@ export default function SwipeInvest() {
         )}
       </div>
 
-      {/* Swipes Counter (for free users) */}
+      {/* Swipes Counter (for free users) - Compact */}
       {!isPremium && currentIndex < filteredCoins.length && (
-        <div className="relative z-10 flex justify-center">
-          <div className="bg-slate-800/60 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
+        <div className="relative z-10 flex justify-center shrink-0">
+          <div className="bg-slate-800/60 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 flex items-center gap-2">
             <span className="text-xs text-slate-400">
-              {swipesToday}/{FREE_DAILY_SWIPES} swipes
+              {swipesToday}/{FREE_DAILY_SWIPES}
             </span>
-            <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+            <div className="w-12 h-1 bg-slate-700 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
                   swipesToday >= FREE_DAILY_SWIPES - 5 ? 'bg-orange-500' : 'bg-purple-500'
@@ -3191,17 +3175,14 @@ export default function SwipeInvest() {
                 style={{ width: `${Math.min(100, (swipesToday / FREE_DAILY_SWIPES) * 100)}%` }}
               />
             </div>
-            {swipesToday >= FREE_DAILY_SWIPES - 5 && swipesToday < FREE_DAILY_SWIPES && (
-              <span className="text-orange-400 text-xs">⚡ {FREE_DAILY_SWIPES - swipesToday} left</span>
-            )}
           </div>
         </div>
       )}
 
-      {/* Action Buttons - Glassmorphism Bar */}
+      {/* Action Buttons - Compact Bar */}
       {currentIndex < filteredCoins.length && (
         <div
-          className="relative z-10 flex justify-center items-center gap-4 p-4 pb-6"
+          className="relative z-10 flex justify-center items-center gap-3 px-4 py-2 pb-4 shrink-0"
           style={{
             background: 'linear-gradient(180deg, transparent 0%, rgba(15,23,42,0.8) 30%)',
           }}
@@ -3211,7 +3192,7 @@ export default function SwipeInvest() {
             whileTap={{ scale: 0.9 }}
             onClick={handleUndo}
             disabled={history.length === 0}
-            className={`w-14 h-14 rounded-full flex items-center justify-center transition text-2xl ${
+            className={`w-11 h-11 rounded-full flex items-center justify-center transition text-xl ${
               history.length === 0
                 ? 'bg-slate-800/50 text-slate-700 cursor-not-allowed'
                 : 'bg-slate-800 hover:bg-yellow-500/20 border-2 border-slate-700 hover:border-yellow-500'
@@ -3222,71 +3203,50 @@ export default function SwipeInvest() {
 
           {/* RUG (Pass) */}
           <motion.button
-            whileHover={{ scale: 1.15, rotate: -5 }}
-            whileTap={{ scale: 0.85, rotate: 0 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.85 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={() => handleSwipe('left')}
-            className="relative w-18 h-18 bg-gradient-to-br from-slate-800 to-slate-900 rounded-full flex items-center justify-center border-2 border-red-500/50 hover:border-red-500 shadow-lg hover:shadow-red-500/30 text-4xl p-5 group"
+            className="relative w-14 h-14 bg-gradient-to-br from-slate-800 to-slate-900 rounded-full flex items-center justify-center border-2 border-red-500/50 hover:border-red-500 shadow-lg text-3xl group"
           >
-            <span className="group-hover:animate-bounce">🚫</span>
-            <div className="absolute inset-0 rounded-full bg-red-500/0 group-hover:bg-red-500/10 transition-all duration-300" />
+            <span>🚫</span>
           </motion.button>
 
           {/* Super APE */}
           <motion.button
-            whileHover={{ scale: 1.2, y: -5 }}
+            whileHover={{ scale: 1.15, y: -3 }}
             whileTap={{ scale: 0.85 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={() => handleSwipe('right', true)}
-            className="relative w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center border-2 border-blue-400 shadow-lg hover:shadow-blue-500/50 text-3xl group"
+            className="relative w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center border-2 border-blue-400 shadow-lg text-2xl"
           >
-            <motion.span
-              animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              ⭐
-            </motion.span>
-            <div className="absolute inset-0 rounded-full bg-gradient-to-t from-white/0 to-white/20" />
+            ⭐
           </motion.button>
 
           {/* APE (Like) */}
           <motion.button
-            whileHover={{ scale: 1.15, rotate: 5 }}
-            whileTap={{ scale: 0.85, rotate: 0 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.85 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={() => handleSwipe('right')}
-            className="relative w-18 h-18 bg-gradient-to-br from-green-600 to-emerald-700 rounded-full flex items-center justify-center border-2 border-green-400 shadow-lg hover:shadow-green-500/50 text-4xl p-5 group"
+            className="relative w-14 h-14 bg-gradient-to-br from-green-600 to-emerald-700 rounded-full flex items-center justify-center border-2 border-green-400 shadow-lg text-3xl"
           >
-            <span className="group-hover:animate-bounce">🦍</span>
-            <div className="absolute inset-0 rounded-full bg-gradient-to-t from-white/0 to-white/20" />
+            🦍
           </motion.button>
 
           {/* Shuffle */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleReset}
-            className="w-14 h-14 bg-slate-800 rounded-full flex items-center justify-center hover:bg-purple-500/20 border-2 border-slate-700 hover:border-purple-500 transition text-2xl"
+            className="w-11 h-11 bg-slate-800 rounded-full flex items-center justify-center hover:bg-purple-500/20 border-2 border-slate-700 hover:border-purple-500 transition text-xl"
           >
             🔀
           </motion.button>
-        </div>
-      )}
 
-      {/* Progress Bar */}
-      {filteredCoins.length > 0 && currentIndex < filteredCoins.length && (
-        <div className="px-6 pb-4">
-          <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
-              initial={{ width: 0 }}
-              animate={{ width: `${(currentIndex / filteredCoins.length) * 100}%` }}
-              transition={{ type: 'spring', stiffness: 100 }}
-            />
-          </div>
-          <p className="text-center text-slate-600 text-xs mt-2">
-            {currentIndex + 1} / {filteredCoins.length}
-            {selectedCategory !== 'all' && ` (${CATEGORIES.find(c => c.id === selectedCategory)?.label})`}
-          </p>
+          {/* Progress indicator integrated */}
+          <span className="text-slate-500 text-xs ml-1">
+            {currentIndex + 1}/{filteredCoins.length}
+          </span>
         </div>
       )}
     </div>
