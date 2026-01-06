@@ -1083,7 +1083,7 @@ const LandingPage = ({ onStart, stats }) => {
           className="text-5xl md:text-7xl font-black text-center mb-4"
         >
           <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-            CoinSwipe
+            SwipeInvest
           </span>
         </motion.h1>
 
@@ -1093,7 +1093,7 @@ const LandingPage = ({ onStart, stats }) => {
           transition={{ delay: 0.3 }}
           className="text-xl md:text-2xl text-slate-400 text-center mb-8 max-w-md"
         >
-          Tinder for Crypto. Swipe right to ape. Swipe left to avoid the rug.
+          Tinder for Investments. Swipe crypto & stocks. Build your portfolio.
         </motion.p>
 
         {/* Features */}
@@ -1787,7 +1787,7 @@ export default function CoinSwipe() {
   const shareToTwitter = (pos) => {
     const pnl = ((currentPrices[pos.id] || pos.priceAtSwipe) - pos.priceAtSwipe) / pos.priceAtSwipe * 100;
     const emoji = pnl >= 0 ? '🟢' : '🔴';
-    const text = `${emoji} My $${pos.symbol?.toUpperCase()} paper trade on CoinSwipe:\n\nEntry: ${formatPrice(pos.priceAtSwipe)}\nNow: ${formatPrice(currentPrices[pos.id] || pos.priceAtSwipe)}\nPnL: ${formatPnL(pnl)}\n\nSwipe to ape! 🦍\n\n#CoinSwipe #Crypto #PaperTrading`;
+    const text = `${emoji} My $${pos.symbol?.toUpperCase()} paper trade on SwipeInvest:\n\nEntry: ${formatPrice(pos.priceAtSwipe)}\nNow: ${formatPrice(currentPrices[pos.id] || pos.priceAtSwipe)}\nPnL: ${formatPnL(pnl)}\n\nSwipe to invest! 📈\n\n#SwipeInvest #Crypto #Stocks #PaperTrading`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
   };
