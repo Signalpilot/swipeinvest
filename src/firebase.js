@@ -264,7 +264,7 @@ export const sendChatMessage = async (coinId, userId, userDisplayName, userPhoto
 
 export const subscribeToChatRoom = (coinId, callback) => {
   const messagesRef = collection(db, 'chatRooms', coinId, 'messages');
-  const q = query(messagesRef, orderBy('createdAt', 'desc'), limit(50));
+  const q = query(messagesRef, orderBy('createdAt', 'desc'), limit(100));
 
   return onSnapshot(q, (snapshot) => {
     const messages = snapshot.docs.map(doc => ({
@@ -273,6 +273,28 @@ export const subscribeToChatRoom = (coinId, callback) => {
     })).reverse();
     callback(messages);
   });
+};
+
+// Load older messages for pagination
+export const loadOlderMessages = async (coinId, oldestMessageTimestamp, limitCount = 50) => {
+  try {
+    const messagesRef = collection(db, 'chatRooms', coinId, 'messages');
+    const q = query(
+      messagesRef,
+      orderBy('createdAt', 'desc'),
+      where('createdAt', '<', oldestMessageTimestamp),
+      limit(limitCount)
+    );
+    const snapshot = await getDocs(q);
+    const messages = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })).reverse();
+    return { data: messages, error: null };
+  } catch (error) {
+    console.error('Load older messages error:', error);
+    return { data: [], error: error.message };
+  }
 };
 
 export const getChatRoomStats = async (coinId) => {

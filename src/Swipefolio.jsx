@@ -14,6 +14,7 @@ import {
   getInvestorMatches,
   sendChatMessage,
   subscribeToChatRoom,
+  loadOlderMessages,
   sendMatchRequest,
   acceptMatchRequest,
   getMatchRequests,
@@ -294,13 +295,10 @@ const TRADINGVIEW_SYMBOLS = {
   'maple': 'COINBASE:MPLUSD',
   'clearpool': 'KUCOIN:CPOOLUSDT',
   // Privacy coins
-  'zcash': 'BINANCE:ZECUSDT',
   'secret': 'BINANCE:SCRTUSDT',
-  'oasis-network': 'BINANCE:ROSEUSDT',
   'dusk-network': 'BINANCE:DUSKUSDT',
   // Infrastructure
   'helium': 'COINBASE:HNTUSD',
-  'iotex': 'BINANCE:IOTXUSDT',
   'deeper-network': 'KUCOIN:DPRUSDT',
   'flux': 'KUCOIN:FLUXUSDT',
   'dvpn': 'KUCOIN:DVPNUSDT',
@@ -337,14 +335,10 @@ const TRADINGVIEW_SYMBOLS = {
   // More DeFi & Infrastructure
   'frax-share': 'BINANCE:FXSUSDT',
   'frax-ether': 'COINBASE:FRXETHUSD',
-  'ribbon-finance': 'BINANCE:RBNUSDT',
   'amp-token': 'COINBASE:AMPUSD',
   'threshold': 'COINBASE:TUSD',
   'keep-network': 'COINBASE:KEEPUSD',
   'nucypher': 'COINBASE:NUUSD',
-  'fetch-ai': 'BINANCE:FETUSDT',
-  'ocean-protocol': 'BINANCE:OCEANUSDT',
-  'singularitynet': 'BINANCE:AGIXUSDT',
   // Gaming & Metaverse
   'enjin-coin': 'BINANCE:ENJUSDT',
   'ultra': 'KUCOIN:UOSUSDT',
@@ -392,7 +386,6 @@ const TRADINGVIEW_SYMBOLS = {
   'mirror-protocol': 'BINANCE:MIRUSDT',
   'perpetual-protocol': 'BINANCE:PERPUSDT',
   'api3': 'BINANCE:API3USDT',
-  'dodo': 'BINANCE:DODOUSDT',
   // More tokens 250-300
   'woo-network': 'BINANCE:WOOUSDT',
   'ssv-network': 'BINANCE:SSVUSDT',
@@ -414,7 +407,6 @@ const TRADINGVIEW_SYMBOLS = {
   'omni-network': 'BINANCE:OMNIUSDT',
   'saga': 'BINANCE:SAGAUSDT',
   'tnsr': 'BINANCE:TNSRUSDT',
-  'wormhole': 'BINANCE:WUSDT',
   'wen-token': 'BYBIT:WENUSDT',
   'parcl': 'BYBIT:PRCLUSDT',
   'kamino': 'BYBIT:KMNOUSDT',
@@ -442,7 +434,6 @@ const TRADINGVIEW_SYMBOLS = {
   'beam-coin': 'BINANCE:BEAMUSDT',
   'grin': 'KUCOIN:GRINUSDT',
   'pivx': 'BINANCE:PIVXUSDT',
-  'syscoin': 'BINANCE:SYSUSDT',
   // Recent listings
   'usual-usd': 'BINANCE:USD0USDT',
   'solv-protocol': 'BINANCE:SOLVUSDT',
@@ -571,10 +562,10 @@ const STOCK_LIST = [
   { symbol: 'BBBY', name: 'Bed Bath Beyond', sector: 'retail', category: ['meme'] },
   { symbol: 'BB', name: 'BlackBerry', sector: 'tech', category: ['meme', 'tech'] },
   // Consumer
-  { symbol: 'WMT', name: 'Walmart', sector: 'retail', category: ['dividend', 'bluechip'] },
-  { symbol: 'COST', name: 'Costco', sector: 'retail', category: ['bluechip'] },
-  { symbol: 'HD', name: 'Home Depot', sector: 'retail', category: ['dividend'] },
-  { symbol: 'NKE', name: 'Nike', sector: 'consumer', category: ['bluechip'] },
+  { symbol: 'WMT', name: 'Walmart', sector: 'retail', category: ['retail', 'dividend', 'bluechip'] },
+  { symbol: 'COST', name: 'Costco', sector: 'retail', category: ['retail', 'bluechip'] },
+  { symbol: 'HD', name: 'Home Depot', sector: 'retail', category: ['retail', 'dividend', 'bluechip'] },
+  { symbol: 'NKE', name: 'Nike', sector: 'consumer', category: ['retail', 'bluechip'] },
   { symbol: 'SBUX', name: 'Starbucks', sector: 'consumer', category: ['dividend'] },
   { symbol: 'MCD', name: 'McDonald\'s', sector: 'consumer', category: ['dividend', 'bluechip'] },
   { symbol: 'KO', name: 'Coca-Cola', sector: 'consumer', category: ['dividend', 'bluechip'] },
@@ -653,22 +644,22 @@ const STOCK_LIST = [
   { symbol: 'DVN', name: 'Devon Energy', sector: 'energy', category: ['energy', 'dividend'] },
   { symbol: 'FANG', name: 'Diamondback', sector: 'energy', category: ['energy', 'dividend'] },
   // Consumer & Retail expansion
-  { symbol: 'TGT', name: 'Target', sector: 'retail', category: ['dividend'] },
-  { symbol: 'LOW', name: 'Lowe\'s', sector: 'retail', category: ['dividend'] },
-  { symbol: 'TJX', name: 'TJ Maxx', sector: 'retail', category: [] },
-  { symbol: 'ROST', name: 'Ross Stores', sector: 'retail', category: [] },
-  { symbol: 'DG', name: 'Dollar General', sector: 'retail', category: [] },
-  { symbol: 'DLTR', name: 'Dollar Tree', sector: 'retail', category: [] },
-  { symbol: 'LULU', name: 'Lululemon', sector: 'retail', category: ['trending'] },
-  { symbol: 'BURL', name: 'Burlington', sector: 'retail', category: [] },
-  { symbol: 'GPS', name: 'Gap', sector: 'retail', category: [] },
-  { symbol: 'ETSY', name: 'Etsy', sector: 'retail', category: [] },
-  { symbol: 'EBAY', name: 'eBay', sector: 'retail', category: [] },
-  { symbol: 'CHWY', name: 'Chewy', sector: 'retail', category: ['meme'] },
-  { symbol: 'W', name: 'Wayfair', sector: 'retail', category: ['meme'] },
+  { symbol: 'TGT', name: 'Target', sector: 'retail', category: ['retail', 'dividend'] },
+  { symbol: 'LOW', name: 'Lowe\'s', sector: 'retail', category: ['retail', 'dividend'] },
+  { symbol: 'TJX', name: 'TJ Maxx', sector: 'retail', category: ['retail', 'dividend'] },
+  { symbol: 'ROST', name: 'Ross Stores', sector: 'retail', category: ['retail'] },
+  { symbol: 'DG', name: 'Dollar General', sector: 'retail', category: ['retail'] },
+  { symbol: 'DLTR', name: 'Dollar Tree', sector: 'retail', category: ['retail'] },
+  { symbol: 'LULU', name: 'Lululemon', sector: 'retail', category: ['retail', 'trending'] },
+  { symbol: 'BURL', name: 'Burlington', sector: 'retail', category: ['retail'] },
+  { symbol: 'GPS', name: 'Gap', sector: 'retail', category: ['retail'] },
+  { symbol: 'ETSY', name: 'Etsy', sector: 'retail', category: ['retail', 'tech'] },
+  { symbol: 'EBAY', name: 'eBay', sector: 'retail', category: ['retail', 'tech'] },
+  { symbol: 'CHWY', name: 'Chewy', sector: 'retail', category: ['retail', 'meme'] },
+  { symbol: 'W', name: 'Wayfair', sector: 'retail', category: ['retail', 'meme'] },
   { symbol: 'YUM', name: 'Yum Brands', sector: 'consumer', category: ['dividend'] },
-  { symbol: 'CMG', name: 'Chipotle', sector: 'consumer', category: [] },
-  { symbol: 'DPZ', name: 'Domino\'s', sector: 'consumer', category: [] },
+  { symbol: 'CMG', name: 'Chipotle', sector: 'consumer', category: ['retail'] },
+  { symbol: 'DPZ', name: 'Domino\'s', sector: 'consumer', category: ['retail'] },
   { symbol: 'QSR', name: 'Restaurant Brands', sector: 'consumer', category: ['dividend'] },
   { symbol: 'DKNG', name: 'DraftKings', sector: 'consumer', category: ['meme', 'trending'] },
   { symbol: 'MGM', name: 'MGM Resorts', sector: 'consumer', category: [] },
@@ -707,11 +698,11 @@ const STOCK_LIST = [
   { symbol: 'SPG', name: 'Simon Property', sector: 'realestate', category: ['dividend'] },
   { symbol: 'O', name: 'Realty Income', sector: 'realestate', category: ['dividend'] },
   // More meme stocks
-  { symbol: 'RIVN', name: 'Rivian', sector: 'auto', category: ['meme', 'trending'] },
-  { symbol: 'LCID', name: 'Lucid', sector: 'auto', category: ['meme'] },
-  { symbol: 'NIO', name: 'NIO', sector: 'auto', category: ['meme', 'trending'] },
-  { symbol: 'XPEV', name: 'XPeng', sector: 'auto', category: ['meme'] },
-  { symbol: 'LI', name: 'Li Auto', sector: 'auto', category: ['meme'] },
+  { symbol: 'RIVN', name: 'Rivian', sector: 'auto', category: ['auto', 'meme', 'trending'] },
+  { symbol: 'LCID', name: 'Lucid', sector: 'auto', category: ['auto', 'meme'] },
+  { symbol: 'NIO', name: 'NIO', sector: 'auto', category: ['auto', 'meme', 'trending'] },
+  { symbol: 'XPEV', name: 'XPeng', sector: 'auto', category: ['auto', 'meme'] },
+  { symbol: 'LI', name: 'Li Auto', sector: 'auto', category: ['auto', 'meme'] },
   { symbol: 'SPCE', name: 'Virgin Galactic', sector: 'aerospace', category: ['meme'] },
   { symbol: 'PLUG', name: 'Plug Power', sector: 'energy', category: ['meme'] },
   { symbol: 'FCEL', name: 'FuelCell', sector: 'energy', category: ['meme'] },
@@ -720,107 +711,34 @@ const STOCK_LIST = [
   { symbol: 'OPEN', name: 'Opendoor', sector: 'realestate', category: ['meme'] },
   { symbol: 'UPST', name: 'Upstart', sector: 'finance', category: ['meme', 'ai'] },
   { symbol: 'AFRM', name: 'Affirm', sector: 'finance', category: ['tech', 'meme'] },
-  // More Tech
-  { symbol: 'AVGO', name: 'Broadcom', sector: 'tech', category: ['tech', 'ai', 'bluechip', 'dividend'] },
-  { symbol: 'CSCO', name: 'Cisco', sector: 'tech', category: ['tech', 'dividend'] },
-  { symbol: 'QCOM', name: 'Qualcomm', sector: 'tech', category: ['tech', 'ai', 'dividend'] },
-  { symbol: 'TXN', name: 'Texas Instruments', sector: 'tech', category: ['tech', 'dividend'] },
-  { symbol: 'MU', name: 'Micron', sector: 'tech', category: ['tech', 'ai'] },
-  { symbol: 'LRCX', name: 'Lam Research', sector: 'tech', category: ['tech', 'ai'] },
-  { symbol: 'AMAT', name: 'Applied Materials', sector: 'tech', category: ['tech', 'ai'] },
+  // Additional Tech (unique stocks)
   { symbol: 'KLAC', name: 'KLA Corp', sector: 'tech', category: ['tech', 'ai'] },
-  { symbol: 'MRVL', name: 'Marvell', sector: 'tech', category: ['tech', 'ai'] },
-  { symbol: 'NOW', name: 'ServiceNow', sector: 'tech', category: ['tech', 'ai'] },
-  { symbol: 'PANW', name: 'Palo Alto Networks', sector: 'tech', category: ['tech'] },
-  { symbol: 'CRWD', name: 'CrowdStrike', sector: 'tech', category: ['tech'] },
-  { symbol: 'ZS', name: 'Zscaler', sector: 'tech', category: ['tech'] },
   { symbol: 'FTNT', name: 'Fortinet', sector: 'tech', category: ['tech'] },
-  { symbol: 'DDOG', name: 'Datadog', sector: 'tech', category: ['tech'] },
-  { symbol: 'NET', name: 'Cloudflare', sector: 'tech', category: ['tech', 'trending'] },
   { symbol: 'TEAM', name: 'Atlassian', sector: 'tech', category: ['tech'] },
-  { symbol: 'TWLO', name: 'Twilio', sector: 'tech', category: ['tech'] },
-  { symbol: 'TTD', name: 'Trade Desk', sector: 'tech', category: ['tech'] },
-  { symbol: 'ROKU', name: 'Roku', sector: 'tech', category: ['tech', 'meme'] },
-  { symbol: 'ZM', name: 'Zoom', sector: 'tech', category: ['tech'] },
-  { symbol: 'DOCU', name: 'DocuSign', sector: 'tech', category: ['tech'] },
-  // More AI
-  { symbol: 'SMCI', name: 'Super Micro', sector: 'tech', category: ['tech', 'ai', 'trending'] },
-  { symbol: 'ARM', name: 'ARM Holdings', sector: 'tech', category: ['tech', 'ai'] },
+  { symbol: 'TTD', name: 'Trade Desk', sector: 'tech', category: ['tech', 'ai'] },
+  // AI Stocks
   { symbol: 'IONQ', name: 'IonQ', sector: 'tech', category: ['tech', 'ai', 'meme'] },
   { symbol: 'RGTI', name: 'Rigetti', sector: 'tech', category: ['tech', 'ai', 'meme'] },
   { symbol: 'SOUN', name: 'SoundHound', sector: 'tech', category: ['tech', 'ai', 'meme'] },
   { symbol: 'BBAI', name: 'BigBear.ai', sector: 'tech', category: ['tech', 'ai', 'meme'] },
   { symbol: 'SERV', name: 'Serve Robotics', sector: 'tech', category: ['tech', 'ai', 'meme'] },
-  // Retail
-  { symbol: 'WMT', name: 'Walmart', sector: 'retail', category: ['retail', 'bluechip', 'dividend'] },
-  { symbol: 'COST', name: 'Costco', sector: 'retail', category: ['retail', 'bluechip'] },
-  { symbol: 'HD', name: 'Home Depot', sector: 'retail', category: ['retail', 'dividend', 'bluechip'] },
-  { symbol: 'LOW', name: 'Lowes', sector: 'retail', category: ['retail', 'dividend'] },
-  { symbol: 'TGT', name: 'Target', sector: 'retail', category: ['retail', 'dividend'] },
-  { symbol: 'DG', name: 'Dollar General', sector: 'retail', category: ['retail'] },
-  { symbol: 'DLTR', name: 'Dollar Tree', sector: 'retail', category: ['retail'] },
-  { symbol: 'ROSS', name: 'Ross Stores', sector: 'retail', category: ['retail'] },
-  { symbol: 'TJX', name: 'TJX Companies', sector: 'retail', category: ['retail', 'dividend'] },
-  { symbol: 'NKE', name: 'Nike', sector: 'retail', category: ['retail', 'bluechip'] },
-  { symbol: 'LULU', name: 'Lululemon', sector: 'retail', category: ['retail'] },
+  // Additional Retail
   { symbol: 'DECK', name: 'Deckers', sector: 'retail', category: ['retail'] },
   { symbol: 'CROX', name: 'Crocs', sector: 'retail', category: ['retail', 'meme'] },
-  { symbol: 'ETSY', name: 'Etsy', sector: 'retail', category: ['retail', 'tech'] },
-  { symbol: 'EBAY', name: 'eBay', sector: 'retail', category: ['retail', 'tech'] },
-  // Auto & EV
+  // Auto & EV (Major automakers)
   { symbol: 'GM', name: 'General Motors', sector: 'auto', category: ['auto', 'dividend'] },
   { symbol: 'F', name: 'Ford', sector: 'auto', category: ['auto', 'dividend'] },
   { symbol: 'TM', name: 'Toyota', sector: 'auto', category: ['auto', 'dividend', 'bluechip'] },
   { symbol: 'RACE', name: 'Ferrari', sector: 'auto', category: ['auto'] },
   { symbol: 'STLA', name: 'Stellantis', sector: 'auto', category: ['auto', 'dividend'] },
   { symbol: 'HMC', name: 'Honda', sector: 'auto', category: ['auto', 'dividend'] },
-  // Consumer & Food
-  { symbol: 'KO', name: 'Coca-Cola', sector: 'consumer', category: ['dividend', 'bluechip'] },
-  { symbol: 'PEP', name: 'PepsiCo', sector: 'consumer', category: ['dividend', 'bluechip'] },
-  { symbol: 'MCD', name: 'McDonalds', sector: 'consumer', category: ['dividend', 'bluechip'] },
-  { symbol: 'SBUX', name: 'Starbucks', sector: 'consumer', category: ['dividend'] },
-  { symbol: 'YUM', name: 'Yum Brands', sector: 'consumer', category: ['dividend'] },
-  { symbol: 'CMG', name: 'Chipotle', sector: 'consumer', category: ['retail'] },
-  { symbol: 'DPZ', name: 'Dominos', sector: 'consumer', category: ['retail'] },
+  // Consumer Goods
   { symbol: 'PG', name: 'Procter & Gamble', sector: 'consumer', category: ['dividend', 'bluechip'] },
   { symbol: 'CL', name: 'Colgate-Palmolive', sector: 'consumer', category: ['dividend'] },
   { symbol: 'KMB', name: 'Kimberly-Clark', sector: 'consumer', category: ['dividend'] },
-  // Industrials
-  { symbol: 'CAT', name: 'Caterpillar', sector: 'industrial', category: ['dividend', 'bluechip'] },
-  { symbol: 'DE', name: 'John Deere', sector: 'industrial', category: ['dividend'] },
-  { symbol: 'HON', name: 'Honeywell', sector: 'industrial', category: ['dividend', 'bluechip'] },
-  { symbol: 'UNP', name: 'Union Pacific', sector: 'industrial', category: ['dividend'] },
-  { symbol: 'UPS', name: 'UPS', sector: 'industrial', category: ['dividend'] },
-  { symbol: 'FDX', name: 'FedEx', sector: 'industrial', category: ['dividend'] },
-  { symbol: 'GE', name: 'GE Aerospace', sector: 'industrial', category: ['dividend', 'bluechip'] },
-  { symbol: 'RTX', name: 'RTX', sector: 'industrial', category: ['dividend'] },
-  { symbol: 'LMT', name: 'Lockheed Martin', sector: 'industrial', category: ['dividend'] },
-  { symbol: 'NOC', name: 'Northrop Grumman', sector: 'industrial', category: ['dividend'] },
-  { symbol: 'BA', name: 'Boeing', sector: 'industrial', category: ['bluechip'] },
-  // Telecom
-  { symbol: 'T', name: 'AT&T', sector: 'telecom', category: ['dividend'] },
-  { symbol: 'VZ', name: 'Verizon', sector: 'telecom', category: ['dividend'] },
-  { symbol: 'TMUS', name: 'T-Mobile', sector: 'telecom', category: [] },
-  // More Biotech & Pharma
-  { symbol: 'GILD', name: 'Gilead', sector: 'healthcare', category: ['healthcare', 'dividend'] },
-  { symbol: 'AMGN', name: 'Amgen', sector: 'healthcare', category: ['healthcare', 'dividend', 'bluechip'] },
-  { symbol: 'REGN', name: 'Regeneron', sector: 'healthcare', category: ['healthcare'] },
-  { symbol: 'VRTX', name: 'Vertex Pharma', sector: 'healthcare', category: ['healthcare'] },
-  { symbol: 'BIIB', name: 'Biogen', sector: 'healthcare', category: ['healthcare'] },
-  { symbol: 'MRNA', name: 'Moderna', sector: 'healthcare', category: ['healthcare', 'meme'] },
+  // Healthcare additions
   { symbol: 'BNTX', name: 'BioNTech', sector: 'healthcare', category: ['healthcare'] },
-  // More Finance
-  { symbol: 'SCHW', name: 'Charles Schwab', sector: 'finance', category: ['finance'] },
-  { symbol: 'BLK', name: 'BlackRock', sector: 'finance', category: ['finance', 'bluechip'] },
-  { symbol: 'SPGI', name: 'S&P Global', sector: 'finance', category: ['finance'] },
-  { symbol: 'ICE', name: 'Intercontinental Exchange', sector: 'finance', category: ['finance'] },
-  { symbol: 'CME', name: 'CME Group', sector: 'finance', category: ['finance', 'dividend'] },
-  { symbol: 'MCO', name: 'Moodys', sector: 'finance', category: ['finance'] },
-  { symbol: 'TFC', name: 'Truist', sector: 'finance', category: ['finance', 'dividend'] },
-  { symbol: 'PNC', name: 'PNC Financial', sector: 'finance', category: ['finance', 'dividend'] },
-  { symbol: 'USB', name: 'US Bancorp', sector: 'finance', category: ['finance', 'dividend'] },
   // Crypto-related stocks
-  { symbol: 'COIN', name: 'Coinbase', sector: 'finance', category: ['finance', 'tech', 'trending'] },
   { symbol: 'MSTR', name: 'MicroStrategy', sector: 'tech', category: ['tech', 'meme', 'trending'] },
   { symbol: 'MARA', name: 'Marathon Digital', sector: 'tech', category: ['tech', 'meme', 'trending'] },
   { symbol: 'RIOT', name: 'Riot Platforms', sector: 'tech', category: ['tech', 'meme', 'trending'] },
@@ -3793,6 +3711,8 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
   const [selectedChatRoom, setSelectedChatRoom] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [dmPartner, setDmPartner] = useState(null);
   const [dmMessages, setDmMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -3991,6 +3911,41 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
     setNewMessage('');
   };
 
+  // Load older messages for chat pagination
+  const handleLoadOlderMessages = async () => {
+    if (!selectedChatRoom || loadingOlder || chatMessages.length === 0) return;
+
+    setLoadingOlder(true);
+    try {
+      // Get the oldest message timestamp
+      const oldestMessage = chatMessages[0];
+      const oldestTimestamp = oldestMessage?.createdAt;
+
+      if (!oldestTimestamp) {
+        setHasMoreMessages(false);
+        setLoadingOlder(false);
+        return;
+      }
+
+      const { data: olderMessages } = await loadOlderMessages(
+        selectedChatRoom.id,
+        oldestTimestamp,
+        50
+      );
+
+      if (olderMessages.length === 0) {
+        setHasMoreMessages(false);
+      } else {
+        // Prepend older messages to existing messages
+        setChatMessages(prev => [...olderMessages, ...prev]);
+      }
+    } catch (error) {
+      console.error('Failed to load older messages:', error);
+    } finally {
+      setLoadingOlder(false);
+    }
+  };
+
   const handleConnect = async (targetUserId) => {
     if (!user) return;
     await sendMatchRequest(user.uid, targetUserId);
@@ -4086,6 +4041,18 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {/* Load older messages button */}
+          {hasMoreMessages && chatMessages.length >= 20 && (
+            <div className="flex justify-center pb-2">
+              <button
+                onClick={handleLoadOlderMessages}
+                disabled={loadingOlder}
+                className="text-xs text-blue-400 hover:text-blue-300 disabled:opacity-50"
+              >
+                {loadingOlder ? 'Loading...' : '↑ Load older messages'}
+              </button>
+            </div>
+          )}
           {chatMessages.map((msg) => (
             <div key={msg.id} className={`flex gap-2 ${msg.userId === user.uid ? 'flex-row-reverse' : ''}`}>
               <div className="w-8 h-8 rounded-full bg-slate-700 flex-shrink-0 overflow-hidden">
