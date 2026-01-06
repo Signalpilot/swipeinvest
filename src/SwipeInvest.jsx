@@ -1388,6 +1388,20 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
               TradingView ↗
             </a>
           </div>
+
+          {/* BUY NOW - Affiliate Button */}
+          <a
+            href={coin.isStock ? AFFILIATE_LINKS.robinhood : AFFILIATE_LINKS.coinbase}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`w-full py-3 rounded-xl text-center font-bold text-lg shadow-lg transition hover:opacity-90 ${
+              coin.isStock
+                ? 'bg-gradient-to-r from-green-500 to-emerald-500 shadow-green-500/30'
+                : 'bg-gradient-to-r from-blue-500 to-cyan-500 shadow-blue-500/30'
+            }`}
+          >
+            💰 Buy {coin.symbol?.toUpperCase()} on {coin.isStock ? 'Robinhood' : 'Coinbase'}
+          </a>
         </div>
 
         {/* Action Buttons */}
