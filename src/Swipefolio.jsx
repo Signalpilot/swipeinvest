@@ -988,7 +988,7 @@ const VideoBackground = () => {
   const [videoError, setVideoError] = useState(false);
 
   return (
-    <>
+    <div className="fixed inset-0 overflow-hidden" style={{ zIndex: 0 }}>
       {/* Video Background */}
       {!videoError && (
         <video
@@ -998,10 +998,10 @@ const VideoBackground = () => {
           playsInline
           onLoadedData={() => setVideoLoaded(true)}
           onError={() => setVideoError(true)}
-          className={`fixed inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
             videoLoaded ? 'opacity-100' : 'opacity-0'
           }`}
-          style={{ pointerEvents: 'none', zIndex: -2 }}
+          style={{ pointerEvents: 'none' }}
         >
           <source src="/videos/starfield-bg.mp4" type="video/mp4" />
         </video>
@@ -1009,11 +1009,11 @@ const VideoBackground = () => {
 
       {/* Fallback CSS starfield (shows while video loads or if it fails) */}
       {(!videoLoaded || videoError) && (
-        <div className="starfield" style={{ zIndex: -2 }}>
+        <div className="absolute inset-0 bg-[#05070d]">
           {Array.from({ length: 50 }).map((_, i) => (
             <div
               key={i}
-              className="star"
+              className="absolute rounded-full bg-white"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
@@ -1021,18 +1021,19 @@ const VideoBackground = () => {
                 height: `${Math.random() * 2 + 1}px`,
                 animationDelay: `${Math.random() * 3}s`,
                 opacity: Math.random() * 0.5 + 0.2,
+                animation: `twinkle ${2 + Math.random() * 2}s ease-in-out infinite`,
               }}
             />
           ))}
         </div>
       )}
 
-      {/* Subtle overlay to darken video slightly */}
+      {/* Subtle overlay */}
       <div
-        className="fixed inset-0 pointer-events-none"
-        style={{ background: 'rgba(5,7,13,0.3)', zIndex: -1 }}
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'rgba(5,7,13,0.15)' }}
       />
-    </>
+    </div>
   );
 };
 
@@ -1864,9 +1865,12 @@ const LandingPage = ({ onStart, stats }) => {
   ], []);
 
   return (
-    <div className="min-h-screen text-white overflow-hidden" style={{ background: '#05070d' }}>
+    <div className="min-h-screen text-white overflow-hidden relative">
       {/* Video Starfield Background */}
       <VideoBackground />
+
+      {/* Content wrapper with z-index above video */}
+      <div className="relative z-10 min-h-screen flex flex-col">
 
       {/* Floating Emojis */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -2037,6 +2041,7 @@ const LandingPage = ({ onStart, stats }) => {
         >
           Not financial advice. Paper trading only. DYOR. Don't invest more than you can afford to lose.
         </motion.p>
+      </div>
       </div>
     </div>
   );
@@ -3973,11 +3978,12 @@ export default function Swipefolio() {
 
   // Main App with Bottom Navigation
   return (
-    <div className="h-[100dvh] text-white flex flex-col relative overflow-hidden"
-      style={{ background: '#05070d' }}
-    >
+    <div className="h-[100dvh] text-white flex flex-col relative overflow-hidden">
       {/* Video Starfield Background - Signal Pilot style */}
       <VideoBackground />
+
+      {/* Content wrapper - above video */}
+      <div className="relative z-10 flex-1 flex flex-col h-full">
 
       {/* Floating Sparkles - Reduced */}
       <FloatingSparkles count={15} />
@@ -4347,6 +4353,7 @@ export default function Swipefolio() {
         portfolioCount={portfolio.length}
         isPremium={isPremium}
       />
+      </div>
     </div>
   );
 }
