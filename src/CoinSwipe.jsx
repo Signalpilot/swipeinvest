@@ -3,8 +3,8 @@ import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-mo
 import { createChart } from 'lightweight-charts';
 
 // ============================================================================
-// COINSWIPE v2.1 - Tinder for Crypto (Degen Edition)
-// Now with TradingView charts, keyboard shortcuts & Fear/Greed index!
+// SWIPEINVEST v2.0 - Tinder for Investments
+// Swipe crypto AND stocks. TradingView charts, keyboard shortcuts & more!
 // ============================================================================
 
 // TradingView symbol mapping (CoinGecko ID -> TradingView symbol)

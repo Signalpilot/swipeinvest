@@ -1,7 +1,7 @@
 {
-  "name": "coinswipe",
+  "name": "swipeinvest",
   "version": "2.0.0",
-  "description": "Tinder for Crypto - Swipe to discover your next investment",
+  "description": "SwipeInvest - Tinder for Investments. Swipe crypto and stocks.",
   "private": true,
   "scripts": {
     "dev": "vite",
