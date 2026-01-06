@@ -7,65 +7,68 @@ import { createChart } from 'lightweight-charts';
 // Swipe crypto AND stocks. TradingView charts, keyboard shortcuts & more!
 // ============================================================================
 
-// TradingView symbol mapping (CoinGecko ID -> TradingView symbol)
+// TradingView symbol mapping (CoinGecko ID -> TradingView full symbol with exchange)
+// Using USDT pairs on Binance as they have the best liquidity
 const TRADINGVIEW_SYMBOLS = {
-  'bitcoin': 'BTCUSD',
-  'ethereum': 'ETHUSD',
-  'solana': 'SOLUSD',
-  'cardano': 'ADAUSD',
-  'dogecoin': 'DOGEUSD',
-  'ripple': 'XRPUSD',
-  'polkadot': 'DOTUSD',
-  'avalanche-2': 'AVAXUSD',
-  'chainlink': 'LINKUSD',
-  'polygon': 'MATICUSD',
-  'uniswap': 'UNIUSD',
-  'litecoin': 'LTCUSD',
-  'cosmos': 'ATOMUSD',
-  'stellar': 'XLMUSD',
-  'monero': 'XMRUSD',
-  'ethereum-classic': 'ETCUSD',
-  'filecoin': 'FILUSD',
-  'hedera': 'HBARUSD',
-  'internet-computer': 'ICPUSD',
-  'vechain': 'VETUSD',
-  'aave': 'AAVEUSD',
-  'the-sandbox': 'SANDUSD',
-  'decentraland': 'MANAUSD',
-  'axie-infinity': 'AXSUSD',
-  'eos': 'EOSUSD',
-  'tezos': 'XTZUSD',
-  'theta-token': 'THETAUSD',
-  'maker': 'MKRUSD',
-  'fantom': 'FTMUSD',
-  'neo': 'NEOUSD',
-  'kucoin-shares': 'KCSUSD',
-  'flow': 'FLOWUSD',
-  'chiliz': 'CHZUSD',
-  'enjincoin': 'ENJUSD',
-  'basic-attention-token': 'BATUSD',
-  'curve-dao-token': 'CRVUSD',
-  'loopring': 'LRCUSD',
-  'compound': 'COMPUSD',
-  'yearn-finance': 'YFIUSD',
-  'sushi': 'SUSHIUSD',
-  '1inch': '1INCHUSD',
-  'render-token': 'RNDRUSD',
-  'injective-protocol': 'INJUSD',
-  'gala': 'GALAUSD',
-  'immutable-x': 'IMXUSD',
-  'apecoin': 'APEUSD',
-  'arbitrum': 'ARBUSD',
-  'optimism': 'OPUSD',
-  'sui': 'SUIUSD',
-  'pepe': 'PEPEUSD',
-  'bonk': 'BONKUSD',
-  'floki': 'FLOKIUSD',
-  'shiba-inu': 'SHIBUSD',
-  'fetch-ai': 'FETUSD',
-  'near': 'NEARUSD',
-  'aptos': 'APTUSD',
-  'sei-network': 'SEIUSD',
+  'bitcoin': 'BINANCE:BTCUSDT',
+  'ethereum': 'BINANCE:ETHUSDT',
+  'solana': 'BINANCE:SOLUSDT',
+  'cardano': 'BINANCE:ADAUSDT',
+  'dogecoin': 'BINANCE:DOGEUSDT',
+  'ripple': 'BINANCE:XRPUSDT',
+  'polkadot': 'BINANCE:DOTUSDT',
+  'avalanche-2': 'BINANCE:AVAXUSDT',
+  'chainlink': 'BINANCE:LINKUSDT',
+  'polygon': 'BINANCE:MATICUSDT',
+  'uniswap': 'BINANCE:UNIUSDT',
+  'litecoin': 'BINANCE:LTCUSDT',
+  'cosmos': 'BINANCE:ATOMUSDT',
+  'stellar': 'BINANCE:XLMUSDT',
+  'monero': 'BINANCE:XMRUSDT',
+  'ethereum-classic': 'BINANCE:ETCUSDT',
+  'filecoin': 'BINANCE:FILUSDT',
+  'hedera': 'BINANCE:HBARUSDT',
+  'internet-computer': 'BINANCE:ICPUSDT',
+  'vechain': 'BINANCE:VETUSDT',
+  'aave': 'BINANCE:AAVEUSDT',
+  'the-sandbox': 'BINANCE:SANDUSDT',
+  'decentraland': 'BINANCE:MANAUSDT',
+  'axie-infinity': 'BINANCE:AXSUSDT',
+  'eos': 'BINANCE:EOSUSDT',
+  'tezos': 'BINANCE:XTZUSDT',
+  'theta-token': 'BINANCE:THETAUSDT',
+  'maker': 'BINANCE:MKRUSDT',
+  'fantom': 'BINANCE:FTMUSDT',
+  'neo': 'BINANCE:NEOUSDT',
+  'flow': 'BINANCE:FLOWUSDT',
+  'chiliz': 'BINANCE:CHZUSDT',
+  'enjincoin': 'BINANCE:ENJUSDT',
+  'basic-attention-token': 'BINANCE:BATUSDT',
+  'curve-dao-token': 'BINANCE:CRVUSDT',
+  'loopring': 'BINANCE:LRCUSDT',
+  'compound': 'BINANCE:COMPUSDT',
+  'yearn-finance': 'BINANCE:YFIUSDT',
+  'sushi': 'BINANCE:SUSHIUSDT',
+  '1inch': 'BINANCE:1INCHUSDT',
+  'render-token': 'BINANCE:RENDERUSDT',
+  'injective-protocol': 'BINANCE:INJUSDT',
+  'gala': 'BINANCE:GALAUSDT',
+  'immutable-x': 'BINANCE:IMXUSDT',
+  'apecoin': 'BINANCE:APEUSDT',
+  'arbitrum': 'BINANCE:ARBUSDT',
+  'optimism': 'BINANCE:OPUSDT',
+  'sui': 'BINANCE:SUIUSDT',
+  'pepe': 'BINANCE:PEPEUSDT',
+  'bonk': 'BINANCE:BONKUSDT',
+  'floki': 'BINANCE:FLOKIUSDT',
+  'shiba-inu': 'BINANCE:SHIBUSDT',
+  'fetch-ai': 'BINANCE:FETUSDT',
+  'near': 'BINANCE:NEARUSDT',
+  'aptos': 'BINANCE:APTUSDT',
+  'sei-network': 'BINANCE:SEIUSDT',
+  'toncoin': 'OKX:TONUSDT',
+  'tron': 'BINANCE:TRXUSDT',
+  'bitcoin-cash': 'BINANCE:BCHUSDT',
 };
 
 // Categories for filtering - CRYPTO
@@ -1153,21 +1156,23 @@ const MatchModal = ({ coin, pnl, onClose }) => {
 // ============================================================================
 
 const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
-  const tvSymbol = TRADINGVIEW_SYMBOLS[coin.id] || `${coin.symbol?.toUpperCase()}USD`;
+  // Get full TradingView symbol (includes exchange) or fallback to Binance USDT pair
+  const tvSymbol = TRADINGVIEW_SYMBOLS[coin.id] || `BINANCE:${coin.symbol?.toUpperCase()}USDT`;
   const risk = getRiskLevel(coin.market_cap);
   const vibes = getVibes(coin);
   const isPositive = coin.price_change_percentage_24h >= 0;
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/90 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/95 backdrop-blur-lg"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
       <motion.div
-        className="bg-slate-900 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-hidden border border-white/10 shadow-2xl flex flex-col"
+        className="bg-slate-900 rounded-3xl w-full max-w-2xl max-h-[95vh] overflow-hidden border border-white/10 shadow-2xl flex flex-col"
+        style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(139,92,246,0.1)' }}
         initial={{ scale: 0.9, y: 50 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 50 }}
@@ -1192,10 +1197,10 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
           </button>
         </div>
 
-        {/* TradingView Chart */}
-        <div className="h-[300px] bg-slate-950">
+        {/* TradingView Chart - Larger */}
+        <div className="h-[400px] sm:h-[450px] bg-slate-950">
           <iframe
-            src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=BINANCE:${tvSymbol}&interval=60&hidesidetoolbar=1&symboledit=0&saveimage=0&toolbarbg=0f172a&studies=[]&theme=dark&style=1&timezone=exchange&withdateranges=1&showpopupbutton=0&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&showwatermark=0&locale=en&utm_source=coinswipe&utm_medium=widget&utm_campaign=chart`}
+            src={`https://s.tradingview.com/widgetembed/?frameElementId=tradingview_widget&symbol=${tvSymbol}&interval=60&hidesidetoolbar=1&symboledit=0&saveimage=0&toolbarbg=0f172a&studies=[]&theme=dark&style=1&timezone=exchange&withdateranges=1&showpopupbutton=0&studies_overrides={}&overrides={}&enabled_features=[]&disabled_features=[]&showwatermark=0&locale=en&utm_source=swipeinvest&utm_medium=widget&utm_campaign=chart`}
             style={{ width: '100%', height: '100%' }}
             frameBorder="0"
             allowTransparency="true"
