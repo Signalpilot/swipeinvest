@@ -1329,6 +1329,34 @@ export default function CoinSwipe() {
     fetchFearGreed();
   }, []);
 
+  // Filter coins by category (must be before keyboard shortcuts)
+  const filteredCoins = useMemo(() => {
+    return coins.filter(coin => {
+      if (selectedCategory === 'all') return true;
+      return getCoinCategory(coin).includes(selectedCategory);
+    });
+  }, [coins, selectedCategory]);
+
+  // Check for match alerts
+  const checkForMatches = useCallback((prices) => {
+    portfolio.forEach(pos => {
+      const currentPrice = prices[pos.id];
+      if (currentPrice) {
+        const pnl = ((currentPrice - pos.priceAtSwipe) / pos.priceAtSwipe) * 100;
+        if (pnl >= 5 && !pos.matchShown) {
+          // Show match modal!
+          setMatchModal({ coin: pos, pnl });
+          if (soundEnabled) playSound('match');
+
+          // Mark as shown
+          setPortfolio(prev => prev.map(p =>
+            p.id === pos.id ? { ...p, matchShown: true } : p
+          ));
+        }
+      }
+    });
+  }, [portfolio, soundEnabled]);
+
   // Keyboard shortcuts for power users
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -1366,34 +1394,6 @@ export default function CoinSwipe() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [view, matchModal, detailModal, currentIndex, filteredCoins]);
-
-  // Check for match alerts
-  const checkForMatches = useCallback((prices) => {
-    portfolio.forEach(pos => {
-      const currentPrice = prices[pos.id];
-      if (currentPrice) {
-        const pnl = ((currentPrice - pos.priceAtSwipe) / pos.priceAtSwipe) * 100;
-        if (pnl >= 5 && !pos.matchShown) {
-          // Show match modal!
-          setMatchModal({ coin: pos, pnl });
-          if (soundEnabled) playSound('match');
-
-          // Mark as shown
-          setPortfolio(prev => prev.map(p =>
-            p.id === pos.id ? { ...p, matchShown: true } : p
-          ));
-        }
-      }
-    });
-  }, [portfolio, soundEnabled]);
-
-  // Filter coins by category
-  const filteredCoins = useMemo(() => {
-    return coins.filter(coin => {
-      if (selectedCategory === 'all') return true;
-      return getCoinCategory(coin).includes(selectedCategory);
-    });
-  }, [coins, selectedCategory]);
 
   // Handle swipe
   const handleSwipe = (direction, isSuper = false) => {
