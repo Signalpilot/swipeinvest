@@ -3,8 +3,8 @@ import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-mo
 import { createChart } from 'lightweight-charts';
 
 // ============================================================================
-// SWIPEINVEST v2.0 - Tinder for Investments
-// Swipe crypto AND stocks. TradingView charts, keyboard shortcuts & more!
+// SWIPEFOLIO - Swipe. Match. Invest.
+// Discover crypto & stocks with Tinder-style swiping. Match with like-minded investors.
 // ============================================================================
 
 // TradingView symbol mapping (CoinGecko ID -> TradingView full symbol with exchange)
@@ -175,7 +175,7 @@ const AFFILIATE_LINKS = {
   kraken: 'https://www.kraken.com',
   kucoin: 'https://www.kucoin.com',
   // Stocks
-  robinhood: 'https://join.robinhood.com/swipeinvest',
+  robinhood: 'https://join.robinhood.com/swipefolio',
   webull: 'https://www.webull.com',
   etoro: 'https://www.etoro.com',
   interactivebrokers: 'https://www.interactivebrokers.com',
@@ -2226,7 +2226,7 @@ const PremiumModal = ({ onClose, swipesUsed, assetType }) => {
           onClick={() => {
             // TODO: Integrate with Google Play Billing
             alert('Premium coming soon! For now, enjoy unlimited swipes 🎉');
-            localStorage.setItem('swipeinvest_premium', 'true');
+            localStorage.setItem('swipefolio_premium', 'true');
             onClose();
           }}
           className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-3 rounded-xl font-bold text-lg mb-3 hover:opacity-90 transition"
@@ -2300,6 +2300,246 @@ const AdBanner = ({ slot = 'bottom' }) => {
 };
 
 // ============================================================================
+// BOTTOM NAVIGATION COMPONENT
+// ============================================================================
+
+const BottomNav = ({ activeTab, onTabChange, portfolioCount, isPremium }) => {
+  const tabs = [
+    { id: 'discover', icon: '🔥', label: 'Discover' },
+    { id: 'portfolio', icon: '💼', label: 'Portfolio', badge: portfolioCount },
+    { id: 'community', icon: '🏆', label: 'Community' },
+    { id: 'account', icon: '👤', label: 'Account', premium: isPremium },
+  ];
+
+  return (
+    <nav
+      className="relative z-20 flex justify-around items-center px-2 py-2 border-t border-white/10 shrink-0"
+      style={{
+        background: 'rgba(15,23,42,0.95)',
+        backdropFilter: 'blur(20px)',
+      }}
+    >
+      {tabs.map(tab => (
+        <motion.button
+          key={tab.id}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => onTabChange(tab.id)}
+          className={`flex flex-col items-center gap-0.5 px-4 py-1 rounded-xl transition-all relative ${
+            activeTab === tab.id
+              ? 'text-purple-400'
+              : 'text-slate-500 hover:text-slate-300'
+          }`}
+        >
+          {activeTab === tab.id && (
+            <motion.div
+              layoutId="activeTab"
+              className="absolute inset-0 bg-purple-500/10 rounded-xl"
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            />
+          )}
+          <span className="text-xl relative">
+            {tab.icon}
+            {tab.badge > 0 && (
+              <span className="absolute -top-1 -right-2 bg-green-500 text-white text-[10px] font-bold px-1.5 rounded-full">
+                {tab.badge}
+              </span>
+            )}
+            {tab.premium && (
+              <span className="absolute -top-1 -right-2 text-yellow-400 text-[10px]">⭐</span>
+            )}
+          </span>
+          <span className="text-[10px] font-medium relative">{tab.label}</span>
+        </motion.button>
+      ))}
+    </nav>
+  );
+};
+
+// ============================================================================
+// ACCOUNT TAB COMPONENT
+// ============================================================================
+
+const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, onSignUp }) => {
+  const [showSignUp, setShowSignUp] = useState(false);
+
+  return (
+    <div className="flex-1 overflow-y-auto p-4">
+      {/* Profile Section */}
+      <div className="bg-slate-800/50 rounded-2xl p-4 mb-4 border border-white/5">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-3xl">
+            👤
+          </div>
+          <div className="flex-1">
+            <h2 className="text-xl font-bold">Guest User</h2>
+            <p className="text-slate-400 text-sm">Sign up to sync across devices</p>
+          </div>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setShowSignUp(true)}
+          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 py-3 rounded-xl font-bold"
+        >
+          Create Account
+        </motion.button>
+      </div>
+
+      {/* Premium Status */}
+      <div className={`rounded-2xl p-4 mb-4 border ${
+        isPremium
+          ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-yellow-500/30'
+          : 'bg-slate-800/50 border-white/5'
+      }`}>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="font-bold flex items-center gap-2">
+              {isPremium ? '⭐ Premium Member' : '🆓 Free Plan'}
+            </h3>
+            <p className="text-slate-400 text-sm">
+              {isPremium ? 'Unlimited swipes, no ads' : `${FREE_DAILY_SWIPES - swipesToday} swipes left today`}
+            </p>
+          </div>
+          {!isPremium && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={onUpgrade}
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 px-4 py-2 rounded-xl text-sm font-bold"
+            >
+              Upgrade
+            </motion.button>
+          )}
+        </div>
+        {!isPremium && (
+          <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
+              style={{ width: `${(swipesToday / FREE_DAILY_SWIPES) * 100}%` }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Stats */}
+      <div className="bg-slate-800/50 rounded-2xl p-4 mb-4 border border-white/5">
+        <h3 className="font-bold mb-3">Your Stats</h3>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="text-center">
+            <p className="text-2xl font-black text-purple-400">{stats.aped + stats.rugged}</p>
+            <p className="text-slate-500 text-xs">Total Swipes</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-black text-green-400">{stats.aped}</p>
+            <p className="text-slate-500 text-xs">Apes</p>
+          </div>
+          <div className="text-center">
+            <p className="text-2xl font-black text-blue-400">{stats.superAped || 0}</p>
+            <p className="text-slate-500 text-xs">Super Apes</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Settings */}
+      <div className="bg-slate-800/50 rounded-2xl p-4 border border-white/5">
+        <h3 className="font-bold mb-3">Settings</h3>
+        <div className="space-y-3">
+          <div className="flex justify-between items-center py-2 border-b border-white/5">
+            <span className="text-slate-300">Notifications</span>
+            <span className="text-slate-500">Coming soon</span>
+          </div>
+          <div className="flex justify-between items-center py-2 border-b border-white/5">
+            <span className="text-slate-300">Dark Mode</span>
+            <span className="text-green-400">✓ Always</span>
+          </div>
+          <div className="flex justify-between items-center py-2">
+            <span className="text-slate-300">Version</span>
+            <span className="text-slate-500">1.0.0</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Sign Up Modal */}
+      <AnimatePresence>
+        {showSignUp && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+            onClick={() => setShowSignUp(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-slate-900 rounded-2xl p-6 w-full max-w-sm border border-white/10"
+            >
+              <h2 className="text-2xl font-bold mb-4 text-center">Join Swipefolio</h2>
+              <p className="text-slate-400 text-center mb-6">Sign up to sync your portfolio and match with other investors!</p>
+
+              <div className="space-y-3">
+                <button className="w-full flex items-center justify-center gap-3 bg-white text-black py-3 rounded-xl font-medium hover:bg-slate-100 transition">
+                  <span>🍎</span> Continue with Apple
+                </button>
+                <button className="w-full flex items-center justify-center gap-3 bg-blue-600 py-3 rounded-xl font-medium hover:bg-blue-500 transition">
+                  <span>G</span> Continue with Google
+                </button>
+                <button className="w-full flex items-center justify-center gap-3 bg-slate-800 py-3 rounded-xl font-medium hover:bg-slate-700 transition border border-white/10">
+                  <span>✉️</span> Continue with Email
+                </button>
+              </div>
+
+              <p className="text-slate-600 text-xs text-center mt-4">
+                By signing up, you agree to our Terms & Privacy Policy
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ============================================================================
+// COMMUNITY TAB COMPONENT
+// ============================================================================
+
+const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote }) => {
+  return (
+    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <h2 className="text-xl font-bold">Community</h2>
+
+      {/* Daily Prediction */}
+      <div className="bg-slate-800/50 rounded-2xl p-4 border border-white/5">
+        <DailyPrediction
+          coins={coins}
+          onVote={onPredictionVote}
+          userVote={predictionVote}
+        />
+      </div>
+
+      {/* Leaderboard */}
+      <div className="bg-slate-800/50 rounded-2xl p-4 border border-white/5">
+        <Leaderboard portfolio={portfolio} />
+      </div>
+
+      {/* Coming Soon: Matches */}
+      <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-4 border border-purple-500/30">
+        <h3 className="font-bold mb-2 flex items-center gap-2">
+          💬 Investor Matching
+          <span className="text-xs bg-purple-500 px-2 py-0.5 rounded-full">Coming Soon</span>
+        </h3>
+        <p className="text-slate-400 text-sm">
+          Match with investors who APE the same coins! Join chat rooms and connect 1-on-1.
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
 // MAIN APP COMPONENT
 // ============================================================================
 
@@ -2307,7 +2547,9 @@ const AdBanner = ({ slot = 'bottom' }) => {
 const getTodayKey = () => new Date().toISOString().split('T')[0];
 
 export default function SwipeInvest() {
-  // Views: 'landing', 'swipe', 'portfolio'
+  // Tab-based navigation: 'discover', 'portfolio', 'community', 'account'
+  const [activeTab, setActiveTab] = useState('discover');
+  // Legacy view state for landing page
   const [view, setView] = useState('landing');
   const [assetType, setAssetType] = useState('crypto'); // 'crypto' or 'stocks'
   const [coins, setCoins] = useState([]);
@@ -2344,11 +2586,11 @@ export default function SwipeInvest() {
 
   // Load from localStorage
   useEffect(() => {
-    const savedPortfolio = localStorage.getItem('coinswipe_portfolio');
-    const savedStats = localStorage.getItem('coinswipe_stats_v2');
-    const savedLanded = localStorage.getItem('coinswipe_landed');
-    const savedPremium = localStorage.getItem('swipeinvest_premium');
-    const savedSwipes = localStorage.getItem('swipeinvest_swipes');
+    const savedPortfolio = localStorage.getItem('swipefolio_portfolio');
+    const savedStats = localStorage.getItem('swipefolio_stats');
+    const savedLanded = localStorage.getItem('swipefolio_landed');
+    const savedPremium = localStorage.getItem('swipefolio_premium');
+    const savedSwipes = localStorage.getItem('swipefolio_swipes');
 
     if (savedPortfolio) setPortfolio(JSON.parse(savedPortfolio));
     if (savedStats) setStats(JSON.parse(savedStats));
@@ -2362,12 +2604,12 @@ export default function SwipeInvest() {
         setSwipesToday(count);
       } else {
         // New day, reset counter
-        localStorage.setItem('swipeinvest_swipes', JSON.stringify({ date: getTodayKey(), count: 0 }));
+        localStorage.setItem('swipefolio_swipes', JSON.stringify({ date: getTodayKey(), count: 0 }));
       }
     }
 
     // Load prediction vote (reset weekly)
-    const savedPrediction = localStorage.getItem('swipeinvest_prediction');
+    const savedPrediction = localStorage.getItem('swipefolio_prediction');
     if (savedPrediction) {
       const { week, vote } = JSON.parse(savedPrediction);
       const currentWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
@@ -2379,11 +2621,11 @@ export default function SwipeInvest() {
 
   // Save to localStorage
   useEffect(() => {
-    localStorage.setItem('coinswipe_portfolio', JSON.stringify(portfolio));
+    localStorage.setItem('swipefolio_portfolio', JSON.stringify(portfolio));
   }, [portfolio]);
 
   useEffect(() => {
-    localStorage.setItem('coinswipe_stats_v2', JSON.stringify(stats));
+    localStorage.setItem('swipefolio_stats', JSON.stringify(stats));
   }, [stats]);
 
   // Fetch coins from CoinCap API (more reliable than CoinGecko, no rate limits)
@@ -2722,7 +2964,7 @@ export default function SwipeInvest() {
     // Increment swipe counter
     const newCount = swipesToday + 1;
     setSwipesToday(newCount);
-    localStorage.setItem('swipeinvest_swipes', JSON.stringify({ date: getTodayKey(), count: newCount }));
+    localStorage.setItem('swipefolio_swipes', JSON.stringify({ date: getTodayKey(), count: newCount }));
 
     const coin = filteredCoins[currentIndex];
 
@@ -2817,13 +3059,13 @@ export default function SwipeInvest() {
   const handlePredictionVote = (vote) => {
     setPredictionVote(vote);
     const currentWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
-    localStorage.setItem('swipeinvest_prediction', JSON.stringify({ week: currentWeek, vote }));
+    localStorage.setItem('swipefolio_prediction', JSON.stringify({ week: currentWeek, vote }));
   };
 
   // Start swiping
   const handleStart = () => {
     setView('swipe');
-    localStorage.setItem('coinswipe_landed', 'true');
+    localStorage.setItem('swipefolio_landed', 'true');
   };
 
   // Calculate landing page stats
@@ -2840,19 +3082,6 @@ export default function SwipeInvest() {
   // Landing Page
   if (view === 'landing') {
     return <LandingPage onStart={handleStart} stats={landingStats} />;
-  }
-
-  // Portfolio View
-  if (view === 'portfolio') {
-    return (
-      <PortfolioView
-        portfolio={portfolio}
-        currentPrices={currentPrices}
-        onBack={() => setView('swipe')}
-        onRemove={removeFromPortfolio}
-        onShare={shareToTwitter}
-      />
-    );
   }
 
   // Loading
@@ -2873,24 +3102,45 @@ export default function SwipeInvest() {
     );
   }
 
-  // Main Swipe View
+  // Handle tab change
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
+
+  // Render Portfolio Tab content (inline for cleaner mobile UX)
+  const renderPortfolioTab = () => (
+    <div className="flex-1 overflow-y-auto">
+      <PortfolioView
+        portfolio={portfolio}
+        currentPrices={currentPrices}
+        onBack={() => setActiveTab('discover')}
+        onRemove={removeFromPortfolio}
+        onShare={shareToTwitter}
+        embedded={true}
+      />
+    </div>
+  );
+
+  // Main App with Bottom Navigation
   return (
     <div className="h-[100dvh] text-white flex flex-col relative overflow-hidden"
       style={{
         background: 'linear-gradient(180deg, #0a0f1a 0%, #1a1040 40%, #0f172a 100%)',
       }}
     >
-      {/* Subtle Grid Pattern */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-[0.03]"
-        style={{
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px',
-        }}
-      />
+      {/* Subtle Grid Pattern - Only show on discover tab */}
+      {activeTab === 'discover' && (
+        <div
+          className="fixed inset-0 pointer-events-none opacity-[0.03]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px',
+          }}
+        />
+      )}
 
       {/* Aurora Background - More Dramatic */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -3022,6 +3272,9 @@ export default function SwipeInvest() {
         )}
       </AnimatePresence>
 
+      {/* DISCOVER TAB CONTENT */}
+      {activeTab === 'discover' && (
+        <>
       {/* Header - Glassmorphism - Compact */}
       <header
         className="relative z-10 flex justify-between items-center px-3 py-2 border-b border-white/[0.08] shrink-0"
@@ -3041,7 +3294,7 @@ export default function SwipeInvest() {
             <span className="text-xl">{assetType === 'crypto' ? '🪙' : '📈'}</span>
           </motion.div>
           <span className="text-xl font-display font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent hidden sm:inline">
-            SwipeInvest
+            Swipefolio
           </span>
           {/* Asset Type Toggle */}
           <div className="flex bg-slate-800 rounded-lg p-1">
@@ -3093,13 +3346,6 @@ export default function SwipeInvest() {
           >
             {soundEnabled ? '🔊' : '🔇'}
           </button>
-          <button
-            onClick={() => setView('portfolio')}
-            className="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-xl hover:bg-slate-700 transition"
-          >
-            <span className="text-green-400">🦍</span>
-            <span className="font-bold">{portfolio.length}</span>
-          </button>
         </div>
       </header>
 
@@ -3133,48 +3379,7 @@ export default function SwipeInvest() {
         ))}
       </div>
 
-      {/* Community Features - Mobile Only (collapsible) */}
-      {currentAssets.length > 0 && (
-        <div className="lg:hidden px-3 py-1 shrink-0">
-          {/* Toggle Button */}
-          <button
-            onClick={() => setShowCommunity(!showCommunity)}
-            className="w-full flex items-center justify-center gap-3 py-1.5 bg-slate-800/60 rounded-lg border border-white/5"
-          >
-            <span className="text-xs">🎲 Prediction</span>
-            <span className="text-slate-600">•</span>
-            <span className="text-xs">🏆 Leaderboard</span>
-            <motion.span
-              animate={{ rotate: showCommunity ? 180 : 0 }}
-              className="text-slate-400 text-xs"
-            >
-              ▼
-            </motion.span>
-          </button>
-
-          {/* Collapsible Content */}
-          <AnimatePresence>
-            {showCommunity && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <DailyPrediction
-                    coins={currentAssets}
-                    onVote={handlePredictionVote}
-                    userVote={predictionVote}
-                  />
-                  <Leaderboard portfolio={portfolio} />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      )}
+      {/* Community Features moved to Community Tab on mobile */}
 
       {/* Card Stack Area with Community Sidebar on Desktop */}
       <div className="flex-1 min-h-0 flex items-stretch p-2 sm:p-4 relative overflow-hidden">
@@ -3333,6 +3538,49 @@ export default function SwipeInvest() {
           </span>
         </div>
       )}
+        </>
+      )}
+
+      {/* Portfolio Tab */}
+      {activeTab === 'portfolio' && (
+        <div className="flex-1 overflow-y-auto">
+          <PortfolioView
+            portfolio={portfolio}
+            currentPrices={currentPrices}
+            onBack={() => setActiveTab('discover')}
+            onRemove={removeFromPortfolio}
+            onShare={shareToTwitter}
+          />
+        </div>
+      )}
+
+      {/* Community Tab */}
+      {activeTab === 'community' && (
+        <CommunityTab
+          coins={currentAssets}
+          portfolio={portfolio}
+          predictionVote={predictionVote}
+          onPredictionVote={handlePredictionVote}
+        />
+      )}
+
+      {/* Account Tab */}
+      {activeTab === 'account' && (
+        <AccountTab
+          isPremium={isPremium}
+          onUpgrade={() => setShowPremiumModal(true)}
+          swipesToday={swipesToday}
+          stats={stats}
+        />
+      )}
+
+      {/* Bottom Navigation */}
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        portfolioCount={portfolio.length}
+        isPremium={isPremium}
+      />
     </div>
   );
 }

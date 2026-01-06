@@ -1,6 +1,6 @@
 {
-  "appId": "com.swipeinvest.app",
-  "appName": "SwipeInvest",
+  "appId": "com.swipefolio.app",
+  "appName": "Swipefolio",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"

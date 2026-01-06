@@ -1,4 +1,4 @@
-package com.swipeinvest.app;
+package com.swipefolio.app;
 
 import com.getcapacitor.BridgeActivity;
 

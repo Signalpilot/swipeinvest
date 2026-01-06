@@ -1,6 +1,6 @@
-# SwipeInvest - Tinder for Investments
+# Swipefolio - Swipe. Match. Invest.
 
-Discover your next investment by swiping. Build your portfolio the fun way with crypto AND stocks.
+Discover your next investment by swiping. Build your portfolio the fun way with crypto AND stocks. Match with like-minded investors!
 
 ## Features
 
@@ -20,13 +20,16 @@ Discover your next investment by swiping. Build your portfolio the fun way with 
 - **Share to Twitter** - One-click share your trades
 - **Mobile Optimized** - Works great on phones
 - **Android App Ready** - Capacitor configured for Google Play
+- **Bottom Navigation** - Clean mobile-first UX with tabs
+- **Account System** - Sign up to sync across devices
+- **Community Features** - Predictions, leaderboard, investor matching (coming soon)
 
 ## Quick Start
 
 ```bash
 # Clone the repo
-git clone https://github.com/YOUR_USERNAME/swipeinvest.git
-cd swipeinvest
+git clone https://github.com/YOUR_USERNAME/swipefolio.git
+cd swipefolio
 
 # Install dependencies
 npm install
