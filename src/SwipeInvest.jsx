@@ -868,17 +868,34 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
         transition: { duration: 0.2 }
       }}
     >
-      {/* Card Container */}
-      <div className="relative bg-gradient-to-b from-slate-800/90 to-slate-900/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/10">
+      {/* Card Container - Finex-inspired glassmorphism */}
+      <div
+        className="relative rounded-3xl overflow-hidden border border-white/[0.08]"
+        style={{
+          background: 'linear-gradient(145deg, rgba(30,41,59,0.95) 0%, rgba(15,23,42,0.98) 100%)',
+          backdropFilter: 'blur(24px)',
+          boxShadow: '0 24px 48px -8px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05) inset, 0 -20px 40px -20px rgba(139,92,246,0.15) inset',
+        }}
+      >
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/[0.08] via-transparent to-cyan-500/[0.05] pointer-events-none" />
 
         {/* APE Stamp */}
         <motion.div
           className="absolute top-8 left-4 z-30 pointer-events-none"
           style={{ opacity: apeOpacity }}
         >
-          <div className="border-4 border-green-500 text-green-500 px-6 py-3 rounded-xl font-black text-3xl rotate-[-15deg] bg-green-500/10 backdrop-blur-sm shadow-lg shadow-green-500/20">
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="border-[3px] border-emerald-400 text-emerald-400 px-6 py-3 rounded-2xl font-black text-3xl rotate-[-15deg] backdrop-blur-md"
+            style={{
+              background: 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.05) 100%)',
+              boxShadow: '0 8px 32px rgba(16,185,129,0.3), 0 0 0 1px rgba(16,185,129,0.1) inset',
+            }}
+          >
             APE 🦍
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* RUG Stamp */}
@@ -886,36 +903,72 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
           className="absolute top-8 right-4 z-30 pointer-events-none"
           style={{ opacity: rugOpacity }}
         >
-          <div className="border-4 border-red-500 text-red-500 px-6 py-3 rounded-xl font-black text-3xl rotate-[15deg] bg-red-500/10 backdrop-blur-sm shadow-lg shadow-red-500/20">
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className="border-[3px] border-rose-400 text-rose-400 px-6 py-3 rounded-2xl font-black text-3xl rotate-[15deg] backdrop-blur-md"
+            style={{
+              background: 'linear-gradient(135deg, rgba(244,63,94,0.2) 0%, rgba(244,63,94,0.05) 100%)',
+              boxShadow: '0 8px 32px rgba(244,63,94,0.3), 0 0 0 1px rgba(244,63,94,0.1) inset',
+            }}
+          >
             RUG 🚫
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Coin Header */}
         <div className="relative p-6 pb-4">
-          {/* Background glow */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-cyan-500/10" />
-
-          {/* Rank badge */}
-          <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full text-sm font-bold border border-white/10">
+          {/* Rank badge - refined glassmorphism */}
+          <div
+            className="absolute top-4 right-4 px-3 py-1.5 rounded-full text-sm font-semibold"
+            style={{
+              background: 'rgba(0,0,0,0.3)',
+              backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+            }}
+          >
             #{coin.market_cap_rank || '?'}
           </div>
 
-          {/* Hot badge */}
+          {/* Hot badge - with glow */}
           {coin.price_change_percentage_24h > 15 && (
-            <div className="absolute top-4 left-4 bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1 rounded-full text-xs font-bold animate-pulse shadow-lg shadow-orange-500/30">
+            <motion.div
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="absolute top-4 left-4 px-3 py-1.5 rounded-full text-xs font-bold"
+              style={{
+                background: 'linear-gradient(135deg, #f97316 0%, #ef4444 100%)',
+                boxShadow: '0 4px 20px rgba(249,115,22,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset',
+              }}
+            >
               🔥 HOT
-            </div>
+            </motion.div>
           )}
 
           {/* Coin image and name */}
           <div className="flex items-center gap-4 relative">
-            <div className="relative">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/10">
+            <div className="relative group">
+              {/* Animated glow behind image */}
+              <motion.div
+                animate={{ opacity: [0.4, 0.7, 0.4], scale: [0.95, 1.05, 0.95] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="absolute inset-0 rounded-2xl blur-xl -z-10"
+                style={{
+                  background: `radial-gradient(circle, ${isPositive ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)'} 0%, transparent 70%)`,
+                }}
+              />
+              <div
+                className="w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden"
+                style={{
+                  background: 'linear-gradient(145deg, rgba(51,65,85,0.8) 0%, rgba(30,41,59,0.9) 100%)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.08) inset',
+                }}
+              >
                 <img
                   src={coin.image}
                   alt={coin.name}
-                  className="w-16 h-16 object-contain"
+                  className="w-16 h-16 object-contain transition-transform duration-300 group-hover:scale-110"
                   draggable={false}
                   onError={(e) => {
                     e.target.style.display = 'none';
@@ -923,13 +976,11 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
                   }}
                 />
               </div>
-              {/* Glow effect */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/20 to-cyan-500/20 blur-xl -z-10" />
             </div>
 
             <div className="flex-1 min-w-0">
-              <h2 className="text-2xl font-black truncate">{coin.name}</h2>
-              <p className="text-slate-400 font-bold uppercase tracking-wider">${coin.symbol}</p>
+              <h2 className="text-2xl font-extrabold truncate tracking-tight">{coin.name}</h2>
+              <p className="text-slate-400 font-semibold uppercase tracking-widest text-sm">${coin.symbol}</p>
             </div>
           </div>
         </div>
@@ -1400,15 +1451,42 @@ const LandingPage = ({ onStart, stats }) => {
           </motion.div>
         )}
 
-        {/* CTA Button */}
+        {/* CTA Button - Finex-style with shimmer */}
         <motion.button
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          whileHover={{ scale: 1.05, y: -2 }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           onClick={onStart}
-          className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 px-12 py-5 rounded-2xl font-black text-xl hover:opacity-90 transition shadow-2xl shadow-purple-500/30 hover:shadow-pink-500/40"
+          className="relative group px-12 py-5 rounded-2xl font-display font-bold text-xl overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 50%, #f97316 100%)',
+            boxShadow: '0 20px 40px -10px rgba(139,92,246,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset',
+          }}
         >
-          Start Swiping 🚀
+          {/* Shimmer overlay */}
+          <div
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            style={{
+              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+              backgroundSize: '200% 100%',
+              animation: 'shimmer 1.5s infinite',
+            }}
+          />
+          {/* Glow effect on hover */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
+            style={{ boxShadow: '0 0 40px rgba(236,72,153,0.6)' }}
+          />
+          <span className="relative z-10 flex items-center gap-2">
+            Start Swiping
+            <motion.span
+              animate={{ x: [0, 4, 0] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            >
+              🚀
+            </motion.span>
+          </span>
         </motion.button>
 
         {/* Disclaimer */}
