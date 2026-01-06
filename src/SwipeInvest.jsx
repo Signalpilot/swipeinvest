@@ -1389,23 +1389,23 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
             </a>
           </div>
 
-          {/* BUY NOW - Deep links to specific coin/stock buy pages */}
+          {/* BUY NOW - Referral links with coin name visible */}
           <div className="flex gap-2">
             {coin.isStock ? (
               <>
                 <a
-                  href={`https://robinhood.com/stocks/${coin.symbol?.toUpperCase()}`}
+                  href={AFFILIATE_LINKS.robinhood}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-green-500 to-emerald-500 shadow-green-500/30"
+                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-green-500 to-emerald-500 shadow-green-500/30 text-sm"
                 >
-                  💰 Robinhood
+                  💰 Buy {coin.symbol?.toUpperCase()} on Robinhood
                 </a>
                 <a
-                  href={`https://www.webull.com/quote/nasdaq-${coin.symbol?.toLowerCase()}`}
+                  href={AFFILIATE_LINKS.webull}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-orange-500 to-red-500 shadow-orange-500/30"
+                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-orange-500 to-red-500 shadow-orange-500/30 text-sm"
                 >
                   📈 Webull
                 </a>
@@ -1413,18 +1413,18 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
             ) : (
               <>
                 <a
-                  href={`https://www.coinbase.com/price/${coin.id}`}
+                  href={AFFILIATE_LINKS.coinbase}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-blue-500 to-cyan-500 shadow-blue-500/30"
+                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-blue-500 to-cyan-500 shadow-blue-500/30 text-sm"
                 >
-                  💰 Coinbase
+                  💰 Buy {coin.symbol?.toUpperCase()} on Coinbase
                 </a>
                 <a
-                  href={`https://www.binance.com/en/trade/${coin.symbol?.toUpperCase()}_USDT`}
+                  href={AFFILIATE_LINKS.binance}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-yellow-500 to-orange-500 shadow-yellow-500/30 text-black"
+                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-yellow-500 to-orange-500 shadow-yellow-500/30 text-black text-sm"
                 >
                   📊 Binance
                 </a>
