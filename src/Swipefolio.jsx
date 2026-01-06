@@ -748,29 +748,20 @@ const STABLECOIN_IDS = [
   'tether-gold', 'pax-gold', 'usdd', 'usual-usd', 'paypal-usd', 'tether-eurt',
 ];
 
-// Patterns that indicate stablecoins or wrapped assets
-const STABLECOIN_PATTERNS = ['usd', 'eur', 'gbp', 'jpy', 'syrup', 'wrapped', 'wbtc', 'weth', 'steth'];
-
+// Only filter obvious stablecoins - be less aggressive to keep more coins
 const isStablecoin = (coin) => {
   const id = coin.id?.toLowerCase() || '';
   const symbol = coin.symbol?.toLowerCase() || '';
-  const name = coin.name?.toLowerCase() || '';
 
-  // Check against known stablecoin IDs
+  // Check against known stablecoin IDs only
   if (STABLECOIN_IDS.includes(id)) return true;
 
-  // Check for common stablecoin/wrapped patterns in symbol or name
-  for (const pattern of STABLECOIN_PATTERNS) {
-    if (symbol.includes(pattern) || id.includes(pattern)) return true;
-  }
+  // Only filter exact stablecoin symbols (not partial matches)
+  const stablecoinSymbols = ['usdt', 'usdc', 'busd', 'tusd', 'usdp', 'gusd', 'frax', 'lusd', 'usdd', 'fdusd', 'pyusd'];
+  if (stablecoinSymbols.includes(symbol)) return true;
 
-  if (name.includes('usd coin') || name.includes('stablecoin') || name.includes('dollar')) return true;
-  if (name.includes('wrapped') || name.includes('staked')) return true;
-
-  // Check if price is pegged around $1 with very low volatility (likely a stablecoin)
-  const price = coin.current_price;
-  const change = Math.abs(coin.price_change_percentage_24h || 0);
-  if (price > 0.98 && price < 1.02 && change < 0.5) return true;
+  // Filter wrapped tokens by exact pattern
+  if (symbol === 'wbtc' || symbol === 'weth' || symbol === 'steth' || symbol === 'wsteth') return true;
 
   return false;
 };
@@ -4786,6 +4777,10 @@ export default function Swipefolio() {
   // Get current assets based on asset type
   const currentAssets = assetType === 'crypto' ? coins : stocks;
 
+  // Refs for portfolio saving logic
+  const cloudSyncTimeoutRef = useRef(null);
+  const portfolioLoadedRef = useRef(false); // Track if portfolio was loaded from storage
+
   // Load from localStorage
   useEffect(() => {
     const savedPortfolio = localStorage.getItem('swipefolio_portfolio');
@@ -4794,7 +4789,12 @@ export default function Swipefolio() {
     const savedPremium = localStorage.getItem('swipefolio_premium');
     const savedSwipes = localStorage.getItem('swipefolio_swipes');
 
-    if (savedPortfolio) setPortfolio(JSON.parse(savedPortfolio));
+    if (savedPortfolio) {
+      setPortfolio(JSON.parse(savedPortfolio));
+    }
+    // Mark portfolio as loaded so save effect can run
+    portfolioLoadedRef.current = true;
+
     if (savedStats) setStats(JSON.parse(savedStats));
     if (savedLanded) setView('swipe');
     if (savedPremium === 'true') setIsPremium(true);
@@ -4822,9 +4822,12 @@ export default function Swipefolio() {
   }, []);
 
   // Save to localStorage and cloud (debounced)
-  const cloudSyncTimeoutRef = useRef(null);
-
   useEffect(() => {
+    // DON'T save empty portfolio on initial mount - wait until loaded from storage
+    if (!portfolioLoadedRef.current) {
+      return;
+    }
+
     localStorage.setItem('swipefolio_portfolio', JSON.stringify(portfolio));
 
     // Sync to cloud if user is logged in (debounced to avoid too many writes)
@@ -4840,6 +4843,11 @@ export default function Swipefolio() {
   }, [portfolio, user]);
 
   useEffect(() => {
+    // DON'T save initial stats before loading from storage
+    if (!portfolioLoadedRef.current) {
+      return;
+    }
+
     localStorage.setItem('swipefolio_stats', JSON.stringify(stats));
 
     // Sync stats to cloud if user is logged in (debounced)
