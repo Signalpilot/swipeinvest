@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SwipeInvest</string>
+    <string name="title_activity_main">SwipeInvest</string>
+    <string name="package_name">com.swipeinvest.app</string>
+    <string name="custom_url_scheme">com.swipeinvest.app</string>
+</resources>
