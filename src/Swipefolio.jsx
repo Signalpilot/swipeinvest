@@ -27,7 +27,15 @@ import {
   savePortfolioToCloud,
   loadPortfolioFromCloud,
   saveStatsToCloud,
-  loadStatsFromCloud
+  loadStatsFromCloud,
+  updateStreak,
+  getUserStreak,
+  requestNotificationPermission,
+  getFCMToken,
+  saveNotificationToken,
+  onForegroundMessage,
+  getNotificationSettings,
+  updateNotificationSettings
 } from './firebase';
 
 // ============================================================================
@@ -75,6 +83,7 @@ const TRADINGVIEW_SYMBOLS = {
   'mantra-dao': 'BINANCE:OMUSDT',
   'crypto-com-chain': 'COINBASE:CROUSD',
   'okb': 'OKX:OKBUSDT',
+  'whitebit': 'MEXC:WBTUSDT',
   'injective-protocol': 'BINANCE:INJUSDT',
   'vechain': 'BINANCE:VETUSDT',
   'immutable-x': 'BINANCE:IMXUSDT',
@@ -205,9 +214,244 @@ const TRADINGVIEW_SYMBOLS = {
   'pendle': 'BINANCE:PENDLEUSDT',
   'eigenlayer': 'BINANCE:EIGENUSDT',
   'bittensor': 'BYBIT:TAOUSDT',
+  // Exchange tokens
+  'kucoin-shares': 'KUCOIN:KCSUSDT',
+  'gate-token': 'GATEIO:GTUSDT',
+  'bitget-token': 'BITGET:BGBUSDT',
+  'mx-token': 'MEXC:MXUSDT',
+  'huobi-token': 'HTX:HTUSDT',
+  // AI & Gaming
+  'singularitynet': 'BINANCE:AGIXUSDT',
+  'akash-network': 'KUCOIN:AKTUSDT',
+  'render': 'BINANCE:RENDERUSDT',
+  'arweave': 'BINANCE:ARUSDT',
+  'worldcoin': 'BINANCE:WLDUSDT',
+  'iotaai': 'BINANCE:IOTAUSDT',
+  'illuvium': 'BINANCE:ILVUSDT',
+  'stepn': 'BINANCE:GMTUSDT',
+  'magic': 'BINANCE:MAGICUSDT',
+  'treasure': 'KUCOIN:MAGICUSDT',
+  // DeFi protocols
+  'lido-dao': 'BINANCE:LDOUSDT',
+  'thorchain': 'BINANCE:RUNEUSDT',
+  'just': 'BINANCE:JSTUSDT',
+  'convex-finance': 'BINANCE:CVXUSDT',
+  'ribbon-finance': 'BINANCE:RBNUSDT',
+  'spell-token': 'BINANCE:SPELLUSDT',
+  'joe': 'BINANCE:JOEUSDT',
+  'raydium': 'BYBIT:RAYUSDT',
+  'orca': 'KUCOIN:ORCAUSDT',
+  'marinade': 'BYBIT:MNDEUSD',
+  // More L1/L2
+  'mantle': 'BYBIT:MNTUSDT',
+  'base-protocol': 'COINBASE:BASEUSD',
+  'scroll': 'BINANCE:SCROLLUSDT',
+  'linea': 'BYBIT:LINEAUSDT',
+  'zksync': 'BINANCE:ZKUSDT',
+  'starknet': 'BINANCE:STRKUSDT',
+  'blast': 'BYBIT:BLASTUSDT',
+  'mode': 'BYBIT:MODEUSDT',
+  'manta-network': 'BINANCE:MANTAUSDT',
+  'beam': 'MEXC:BEAMUSDT',
+  'ronin': 'BINANCE:RONUSDT',
+  'echelon-prime': 'BYBIT:PRIMEUSDT',
+  'astar': 'BINANCE:ASTRUSDT',
+  'moonbeam': 'BINANCE:GLMRUSDT',
+  'moonriver': 'KUCOIN:MOVRUSDT',
+  'metis-token': 'KUCOIN:METISUSDT',
+  'canto': 'KUCOIN:CANTOUSDT',
+  // More meme coins
+  'memecoin': 'BYBIT:MEMEUSDT',
+  'turbo': 'BINANCE:TURBOUSDT',
+  'neiro': 'BINANCE:NEIROUSDT',
+  'moodeng': 'BYBIT:MOODENGUSDT',
+  'goatseus-maximus': 'BYBIT:GOATUSDT',
+  'ponke': 'BYBIT:PONKEUSDT',
+  'gigachad': 'BYBIT:GIGAUSDT',
+  'mother-iggy': 'BYBIT:MOTHERUSDT',
+  'myro': 'BYBIT:MYROUSDT',
+  'wen': 'BYBIT:WENUSDT',
+  'slerf': 'BYBIT:SLERFUSDT',
+  'jeo-boden': 'BYBIT:BODENUSDT',
+  // RWA & utility
+  'chainlink-ccip': 'BINANCE:LINKUSDT',
+  'tokenfi': 'KUCOIN:TOKENUSDT',
+  'polymesh': 'KUCOIN:POLYXUSDT',
+  'centrifuge': 'COINBASE:CFGUSD',
+  'maple': 'COINBASE:MPLUSD',
+  'clearpool': 'KUCOIN:CPOOLUSDT',
+  // Privacy coins
+  'zcash': 'BINANCE:ZECUSDT',
+  'secret': 'BINANCE:SCRTUSDT',
+  'oasis-network': 'BINANCE:ROSEUSDT',
+  'dusk-network': 'BINANCE:DUSKUSDT',
+  // Infrastructure
+  'helium': 'COINBASE:HNTUSD',
+  'iotex': 'BINANCE:IOTXUSDT',
+  'deeper-network': 'KUCOIN:DPRUSDT',
+  'flux': 'KUCOIN:FLUXUSDT',
+  'dvpn': 'KUCOIN:DVPNUSDT',
+  // Additional top 200-300 coins
+  'first-digital-usd': 'BINANCE:FDUSDUSDT',
+  'ethena-usde': 'BYBIT:USDEUSDT',
+  'virtual-protocol': 'BYBIT:VIRTUALUSDT',
+  'fartcoin': 'BYBIT:FARTCOINUSDT',
+  'ai16z': 'BYBIT:AI16ZUSDT',
+  'pudgy-penguins': 'BYBIT:PENGUUSDT',
+  'usual': 'BINANCE:USUALUSDT',
+  'movement': 'BINANCE:MOVEUSDT',
+  'grass': 'BYBIT:GRASSUSDT',
+  'morpho': 'COINBASE:MORPHOUSD',
+  'aerodrome-finance': 'BYBIT:AEROUSDT',
+  'sonic-svm': 'BYBIT:SONICUSDT',
+  'io': 'BINANCE:IOUSDT',
+  'aixbt': 'BYBIT:AIXBTUSDT',
+  'zerebro': 'BYBIT:ZEREBROUSDT',
+  'safe': 'BYBIT:SAFEUSDT',
+  'pnut': 'BINANCE:PNUTUSDT',
+  'act-i-the-ai-prophecy': 'BINANCE:ACTUSDT',
+  'cookie-dao': 'BYBIT:COOKIEUSDT',
+  'spx6900': 'BYBIT:SPX6900USDT',
+  'cow-protocol': 'COINBASE:COWUSD',
+  'pumpfun': 'BYBIT:PUMPUSDT',
+  'griffain': 'BYBIT:GRIFFAINUSDT',
+  'swarms': 'BYBIT:SWARMSUSDT',
+  'onyxcoin': 'MEXC:XCNUSDT',
+  'fasttoken': 'KUCOIN:FTNUSDT',
+  'layerzero': 'BINANCE:ZROUSDT',
+  'ether-fi': 'BINANCE:ETHFIUSDT',
+  'ai-rig-complex': 'BYBIT:ARCUSDT',
+  // More DeFi & Infrastructure
+  'frax-share': 'BINANCE:FXSUSDT',
+  'frax-ether': 'COINBASE:FRXETHUSD',
+  'ribbon-finance': 'BINANCE:RBNUSDT',
+  'amp-token': 'COINBASE:AMPUSD',
+  'threshold': 'COINBASE:TUSD',
+  'keep-network': 'COINBASE:KEEPUSD',
+  'nucypher': 'COINBASE:NUUSD',
+  'fetch-ai': 'BINANCE:FETUSDT',
+  'ocean-protocol': 'BINANCE:OCEANUSDT',
+  'singularitynet': 'BINANCE:AGIXUSDT',
+  // Gaming & Metaverse
+  'enjin-coin': 'BINANCE:ENJUSDT',
+  'ultra': 'KUCOIN:UOSUSDT',
+  'yield-guild-games': 'BINANCE:YGGUSDT',
+  'vulcan-forged': 'KUCOIN:PYRUSDT',
+  'mobox': 'BINANCE:MBLUSDT',
+  'alien-worlds': 'BINANCE:TLMUSDT',
+  'star-atlas': 'BYBIT:ATLASUSDT',
+  'gods-unchained': 'COINBASE:GODSUSD',
+  'merit-circle': 'BYBIT:MCUSDT',
+  'bigtime': 'BYBIT:BIGTIMEUSDT',
+  'beam-2': 'BYBIT:BEAMUSDT',
+  'xai-blockchain': 'BINANCE:XAIUSDT',
+  'pixels': 'BINANCE:PIXELUSDT',
+  'portal': 'BINANCE:PORTALUSDT',
+  // More L1/L2 chains
+  'gnosis': 'BINANCE:GNOUSDT',
+  'wemix-token': 'KUCOIN:WEMIXUSDT',
+  'syscoin': 'BINANCE:SYSUSDT',
+  'elrond-erd-2': 'BINANCE:EGLDUSDT',
+  'multiversx': 'BINANCE:EGLDUSDT',
+  'klaytn': 'BINANCE:KLAYUSDT',
+  'oasys': 'BYBIT:OASUSDT',
+  'core': 'BYBIT:COREUSDT',
+  'lukso-token': 'KUCOIN:LYXUSDT',
+  'coreum': 'KUCOIN:COREUMUST',
+  'radix': 'BITFINEX:XRDUSD',
+  'velas': 'KUCOIN:VLXUSDT',
+  'aurora': 'KUCOIN:AURORAUSDT',
+  'boba-network': 'KUCOIN:BOBAUSDT',
+  'omax': 'MEXC:OMAXUSDT',
+  // DeFi protocols continued
+  'osmosis': 'BINANCE:OSMOUSDT',
+  'injective': 'BINANCE:INJUSDT',
+  'fraxswap': 'BINANCE:FXSUSDT',
+  'gains-network': 'BINANCE:GNSUSDT',
+  'vertex-protocol': 'BYBIT:VRTXUSDT',
+  'kyberswap': 'BINANCE:KNCUSDT',
+  'dodo-exchange': 'BINANCE:DODOUSDT',
+  'paraswap': 'COINBASE:PSPUSD',
+  'quickswap': 'COINBASE:QUICKUSD',
+  'balancer': 'BINANCE:BALUSDT',
+  'bancor': 'COINBASE:BNTUSD',
+  'uma': 'COINBASE:UMAUSD',
+  'mirror-protocol': 'BINANCE:MIRUSDT',
+  'perpetual-protocol': 'BINANCE:PERPUSDT',
+  'api3': 'BINANCE:API3USDT',
+  'dodo': 'BINANCE:DODOUSDT',
+  // More tokens 250-300
+  'woo-network': 'BINANCE:WOOUSDT',
+  'ssv-network': 'BINANCE:SSVUSDT',
+  'dymension': 'BINANCE:DYMUSDT',
+  'altlayer': 'BINANCE:ALTUSDT',
+  'mavia': 'BINANCE:MAVIAUSDT',
+  'portal-2': 'BINANCE:PORTALUSDT',
+  'pixel': 'BINANCE:PIXELUSDT',
+  'aevo': 'BINANCE:AEVOUSDT',
+  'banana-gun': 'BINANCE:BANANAUSDT',
+  'renzo': 'BINANCE:REZUSDT',
+  'lista-dao': 'BINANCE:LISTAUSDT',
+  'zeta-chain': 'BINANCE:ZETAUSDT',
+  'sleepless-ai': 'BINANCE:AIUSDT',
+  'nft-prompt': 'BINANCE:NFTUSDT',
+  'myneighboralice': 'BINANCE:ALICEUSDT',
+  'high-street': 'BINANCE:HIGHUSDT',
+  'bouncebit': 'BINANCE:BBUSDT',
+  'omni-network': 'BINANCE:OMNIUSDT',
+  'saga': 'BINANCE:SAGAUSDT',
+  'tnsr': 'BINANCE:TNSRUSDT',
+  'wormhole': 'BINANCE:WUSDT',
+  'wen-token': 'BYBIT:WENUSDT',
+  'parcl': 'BYBIT:PRCLUSDT',
+  'kamino': 'BYBIT:KMNOUSDT',
+  'sanctum': 'BYBIT:CLOUDUSDT',
+  'drift-protocol': 'BYBIT:DRIFTUSDT',
+  'tensor': 'BYBIT:TNSORUSDT',
+  'nosana': 'BYBIT:NOSUSDT',
+  // Old but still active
+  'qtum': 'BINANCE:QTUMUSDT',
+  'decred': 'BINANCE:DCRUSDT',
+  'horizen': 'BINANCE:ZENUSDT',
+  'digibyte': 'KUCOIN:DGBUSDT',
+  'komodo': 'BINANCE:KMDUSDT',
+  'stratis': 'BINANCE:STRAXUSDT',
+  'nano': 'BINANCE:NANOUSDT',
+  'nem': 'BINANCE:XEMUSDT',
+  'ardor': 'BINANCE:ARDRUSDT',
+  'electroneum': 'KUCOIN:ETNUSDT',
+  'factom': 'KUCOIN:FCTUSDT',
+  'bytom': 'KUCOIN:BTMUSDT',
+  'wanchain': 'BINANCE:WANUSDT',
+  'aelf': 'BINANCE:ELFUSDT',
+  'zcoin': 'BINANCE:FIRUSDT',
+  'firo': 'BINANCE:FIRUSDT',
+  'beam-coin': 'BINANCE:BEAMUSDT',
+  'grin': 'KUCOIN:GRINUSDT',
+  'pivx': 'BINANCE:PIVXUSDT',
+  'syscoin': 'BINANCE:SYSUSDT',
+  // Recent listings
+  'usual-usd': 'BINANCE:USD0USDT',
+  'solv-protocol': 'BINANCE:SOLVUSDT',
+  'vine': 'BYBIT:VINEUSDT',
+  'paal-ai': 'BYBIT:PAALUSDT',
+  'nosana': 'BYBIT:NOSUSDT',
+  'michi': 'BYBIT:MICHIUSDT',
+  'chillguy': 'BYBIT:CHILLGUYUSDT',
+  'agent-ai': 'BYBIT:AIAGENUSDT',
 };
 
-// Get TradingView symbol - every coin has a chart!
+// Check if a coin has a verified TradingView symbol
+const hasVerifiedChart = (coin) => {
+  // ONLY show chart if we have a verified mapping
+  if (TRADINGVIEW_SYMBOLS[coin.id]) return true;
+  // Stocks are always on NASDAQ/NYSE - TradingView handles routing
+  if (coin.isStock) return true;
+  // No fallback - if not in our mapping, don't show chart
+  return false;
+};
+
+// Get TradingView symbol - with smart fallback for major coins
 const getTradingViewSymbol = (coin) => {
   // Check our verified mapping first (best quality)
   if (TRADINGVIEW_SYMBOLS[coin.id]) {
@@ -219,8 +463,8 @@ const getTradingViewSymbol = (coin) => {
     return `NASDAQ:${coin.symbol?.toUpperCase()}`;
   }
 
-  // For crypto, use BINANCE with USDT pair as default
-  // TradingView's symbol search is enabled, so it can find alternatives if needed
+  // Smart fallback for top coins not in our mapping
+  // Try BINANCE first (most comprehensive), then BYBIT
   const symbol = coin.symbol?.toUpperCase();
   return `BINANCE:${symbol}USDT`;
 };
@@ -228,6 +472,9 @@ const getTradingViewSymbol = (coin) => {
 // Categories for filtering - CRYPTO
 const CRYPTO_CATEGORIES = [
   { id: 'all', label: 'All', emoji: '🔥' },
+  { id: 'top50', label: 'Top 50', emoji: '🏆' },
+  { id: 'top100', label: 'Top 100', emoji: '💯' },
+  { id: 'top200', label: 'Top 200', emoji: '📊' },
   { id: 'trending', label: 'Trending', emoji: '📈' },
   { id: 'meme', label: 'Meme', emoji: '🐸' },
   { id: 'defi', label: 'DeFi', emoji: '🏦' },
@@ -315,6 +562,146 @@ const STOCK_LIST = [
   { symbol: 'KO', name: 'Coca-Cola', sector: 'consumer', category: ['dividend', 'bluechip'] },
   { symbol: 'PEP', name: 'PepsiCo', sector: 'consumer', category: ['dividend'] },
   { symbol: 'DIS', name: 'Disney', sector: 'entertainment', category: ['bluechip'] },
+  // More Tech
+  { symbol: 'IBM', name: 'IBM', sector: 'tech', category: ['tech', 'dividend'] },
+  { symbol: 'CSCO', name: 'Cisco', sector: 'tech', category: ['tech', 'dividend'] },
+  { symbol: 'QCOM', name: 'Qualcomm', sector: 'tech', category: ['tech', 'ai'] },
+  { symbol: 'TXN', name: 'Texas Instruments', sector: 'tech', category: ['tech', 'dividend'] },
+  { symbol: 'AVGO', name: 'Broadcom', sector: 'tech', category: ['tech', 'ai'] },
+  { symbol: 'MU', name: 'Micron', sector: 'tech', category: ['tech', 'ai'] },
+  { symbol: 'AMAT', name: 'Applied Materials', sector: 'tech', category: ['tech', 'ai'] },
+  { symbol: 'LRCX', name: 'Lam Research', sector: 'tech', category: ['tech'] },
+  { symbol: 'NOW', name: 'ServiceNow', sector: 'tech', category: ['tech', 'ai'] },
+  { symbol: 'PANW', name: 'Palo Alto', sector: 'tech', category: ['tech'] },
+  { symbol: 'CRWD', name: 'CrowdStrike', sector: 'tech', category: ['tech', 'trending'] },
+  { symbol: 'DDOG', name: 'Datadog', sector: 'tech', category: ['tech'] },
+  { symbol: 'ZS', name: 'Zscaler', sector: 'tech', category: ['tech'] },
+  { symbol: 'NET', name: 'Cloudflare', sector: 'tech', category: ['tech'] },
+  { symbol: 'TWLO', name: 'Twilio', sector: 'tech', category: ['tech'] },
+  { symbol: 'OKTA', name: 'Okta', sector: 'tech', category: ['tech'] },
+  { symbol: 'ZM', name: 'Zoom', sector: 'tech', category: ['tech'] },
+  { symbol: 'DOCU', name: 'DocuSign', sector: 'tech', category: ['tech'] },
+  { symbol: 'ROKU', name: 'Roku', sector: 'tech', category: ['tech', 'meme'] },
+  { symbol: 'PINS', name: 'Pinterest', sector: 'tech', category: ['tech'] },
+  { symbol: 'LYFT', name: 'Lyft', sector: 'tech', category: ['tech'] },
+  { symbol: 'DASH', name: 'DoorDash', sector: 'tech', category: ['tech'] },
+  { symbol: 'COIN', name: 'Coinbase', sector: 'tech', category: ['tech', 'trending'] },
+  { symbol: 'HOOD', name: 'Robinhood', sector: 'tech', category: ['tech', 'meme'] },
+  { symbol: 'SOFI', name: 'SoFi', sector: 'tech', category: ['tech', 'finance', 'meme'] },
+  { symbol: 'RBLX', name: 'Roblox', sector: 'tech', category: ['tech', 'meme'] },
+  { symbol: 'U', name: 'Unity', sector: 'tech', category: ['tech'] },
+  { symbol: 'ARM', name: 'ARM Holdings', sector: 'tech', category: ['tech', 'ai', 'trending'] },
+  { symbol: 'SMCI', name: 'Super Micro', sector: 'tech', category: ['tech', 'ai', 'trending'] },
+  { symbol: 'MRVL', name: 'Marvell', sector: 'tech', category: ['tech', 'ai'] },
+  { symbol: 'ON', name: 'ON Semi', sector: 'tech', category: ['tech'] },
+  { symbol: 'ADI', name: 'Analog Devices', sector: 'tech', category: ['tech'] },
+  // More Finance
+  { symbol: 'BLK', name: 'BlackRock', sector: 'finance', category: ['finance', 'bluechip'] },
+  { symbol: 'SCHW', name: 'Schwab', sector: 'finance', category: ['finance'] },
+  { symbol: 'USB', name: 'US Bancorp', sector: 'finance', category: ['finance', 'dividend'] },
+  { symbol: 'PNC', name: 'PNC', sector: 'finance', category: ['finance', 'dividend'] },
+  { symbol: 'TFC', name: 'Truist', sector: 'finance', category: ['finance', 'dividend'] },
+  { symbol: 'COF', name: 'Capital One', sector: 'finance', category: ['finance'] },
+  { symbol: 'SPGI', name: 'S&P Global', sector: 'finance', category: ['finance'] },
+  { symbol: 'ICE', name: 'ICE', sector: 'finance', category: ['finance'] },
+  { symbol: 'CME', name: 'CME Group', sector: 'finance', category: ['finance'] },
+  { symbol: 'MCO', name: 'Moody\'s', sector: 'finance', category: ['finance'] },
+  // Healthcare expansion
+  { symbol: 'AMGN', name: 'Amgen', sector: 'healthcare', category: ['healthcare', 'dividend'] },
+  { symbol: 'GILD', name: 'Gilead', sector: 'healthcare', category: ['healthcare', 'dividend'] },
+  { symbol: 'BIIB', name: 'Biogen', sector: 'healthcare', category: ['healthcare'] },
+  { symbol: 'REGN', name: 'Regeneron', sector: 'healthcare', category: ['healthcare'] },
+  { symbol: 'VRTX', name: 'Vertex', sector: 'healthcare', category: ['healthcare'] },
+  { symbol: 'MRNA', name: 'Moderna', sector: 'healthcare', category: ['healthcare', 'trending'] },
+  { symbol: 'BMY', name: 'Bristol Myers', sector: 'healthcare', category: ['healthcare', 'dividend'] },
+  { symbol: 'CVS', name: 'CVS Health', sector: 'healthcare', category: ['healthcare', 'dividend'] },
+  { symbol: 'CI', name: 'Cigna', sector: 'healthcare', category: ['healthcare'] },
+  { symbol: 'HUM', name: 'Humana', sector: 'healthcare', category: ['healthcare'] },
+  { symbol: 'ELV', name: 'Elevance', sector: 'healthcare', category: ['healthcare'] },
+  { symbol: 'ISRG', name: 'Intuitive Surgical', sector: 'healthcare', category: ['healthcare'] },
+  { symbol: 'DHR', name: 'Danaher', sector: 'healthcare', category: ['healthcare'] },
+  { symbol: 'SYK', name: 'Stryker', sector: 'healthcare', category: ['healthcare'] },
+  { symbol: 'MDT', name: 'Medtronic', sector: 'healthcare', category: ['healthcare', 'dividend'] },
+  { symbol: 'ZTS', name: 'Zoetis', sector: 'healthcare', category: ['healthcare'] },
+  // Energy expansion
+  { symbol: 'SLB', name: 'Schlumberger', sector: 'energy', category: ['energy'] },
+  { symbol: 'EOG', name: 'EOG Resources', sector: 'energy', category: ['energy', 'dividend'] },
+  { symbol: 'PXD', name: 'Pioneer Natural', sector: 'energy', category: ['energy', 'dividend'] },
+  { symbol: 'MPC', name: 'Marathon Petroleum', sector: 'energy', category: ['energy', 'dividend'] },
+  { symbol: 'PSX', name: 'Phillips 66', sector: 'energy', category: ['energy', 'dividend'] },
+  { symbol: 'VLO', name: 'Valero', sector: 'energy', category: ['energy', 'dividend'] },
+  { symbol: 'OXY', name: 'Occidental', sector: 'energy', category: ['energy'] },
+  { symbol: 'HAL', name: 'Halliburton', sector: 'energy', category: ['energy'] },
+  { symbol: 'DVN', name: 'Devon Energy', sector: 'energy', category: ['energy', 'dividend'] },
+  { symbol: 'FANG', name: 'Diamondback', sector: 'energy', category: ['energy', 'dividend'] },
+  // Consumer & Retail expansion
+  { symbol: 'TGT', name: 'Target', sector: 'retail', category: ['dividend'] },
+  { symbol: 'LOW', name: 'Lowe\'s', sector: 'retail', category: ['dividend'] },
+  { symbol: 'TJX', name: 'TJ Maxx', sector: 'retail', category: [] },
+  { symbol: 'ROST', name: 'Ross Stores', sector: 'retail', category: [] },
+  { symbol: 'DG', name: 'Dollar General', sector: 'retail', category: [] },
+  { symbol: 'DLTR', name: 'Dollar Tree', sector: 'retail', category: [] },
+  { symbol: 'LULU', name: 'Lululemon', sector: 'retail', category: ['trending'] },
+  { symbol: 'BURL', name: 'Burlington', sector: 'retail', category: [] },
+  { symbol: 'GPS', name: 'Gap', sector: 'retail', category: [] },
+  { symbol: 'ETSY', name: 'Etsy', sector: 'retail', category: [] },
+  { symbol: 'EBAY', name: 'eBay', sector: 'retail', category: [] },
+  { symbol: 'CHWY', name: 'Chewy', sector: 'retail', category: ['meme'] },
+  { symbol: 'W', name: 'Wayfair', sector: 'retail', category: ['meme'] },
+  { symbol: 'YUM', name: 'Yum Brands', sector: 'consumer', category: ['dividend'] },
+  { symbol: 'CMG', name: 'Chipotle', sector: 'consumer', category: [] },
+  { symbol: 'DPZ', name: 'Domino\'s', sector: 'consumer', category: [] },
+  { symbol: 'QSR', name: 'Restaurant Brands', sector: 'consumer', category: ['dividend'] },
+  { symbol: 'DKNG', name: 'DraftKings', sector: 'consumer', category: ['meme', 'trending'] },
+  { symbol: 'MGM', name: 'MGM Resorts', sector: 'consumer', category: [] },
+  { symbol: 'WYNN', name: 'Wynn Resorts', sector: 'consumer', category: [] },
+  { symbol: 'LVS', name: 'Las Vegas Sands', sector: 'consumer', category: [] },
+  // Industrial
+  { symbol: 'CAT', name: 'Caterpillar', sector: 'industrial', category: ['dividend', 'bluechip'] },
+  { symbol: 'DE', name: 'John Deere', sector: 'industrial', category: ['dividend'] },
+  { symbol: 'HON', name: 'Honeywell', sector: 'industrial', category: ['dividend'] },
+  { symbol: 'UPS', name: 'UPS', sector: 'industrial', category: ['dividend'] },
+  { symbol: 'FDX', name: 'FedEx', sector: 'industrial', category: [] },
+  { symbol: 'UNP', name: 'Union Pacific', sector: 'industrial', category: ['dividend'] },
+  { symbol: 'BA', name: 'Boeing', sector: 'industrial', category: ['bluechip'] },
+  { symbol: 'LMT', name: 'Lockheed Martin', sector: 'industrial', category: ['dividend'] },
+  { symbol: 'RTX', name: 'RTX', sector: 'industrial', category: ['dividend'] },
+  { symbol: 'GD', name: 'General Dynamics', sector: 'industrial', category: ['dividend'] },
+  { symbol: 'NOC', name: 'Northrop Grumman', sector: 'industrial', category: ['dividend'] },
+  { symbol: 'GE', name: 'GE Aerospace', sector: 'industrial', category: ['trending'] },
+  // Communications
+  { symbol: 'T', name: 'AT&T', sector: 'communications', category: ['dividend'] },
+  { symbol: 'VZ', name: 'Verizon', sector: 'communications', category: ['dividend'] },
+  { symbol: 'TMUS', name: 'T-Mobile', sector: 'communications', category: [] },
+  { symbol: 'CMCSA', name: 'Comcast', sector: 'communications', category: ['dividend'] },
+  { symbol: 'CHTR', name: 'Charter', sector: 'communications', category: [] },
+  // Materials
+  { symbol: 'LIN', name: 'Linde', sector: 'materials', category: ['bluechip'] },
+  { symbol: 'APD', name: 'Air Products', sector: 'materials', category: ['dividend'] },
+  { symbol: 'SHW', name: 'Sherwin-Williams', sector: 'materials', category: [] },
+  { symbol: 'FCX', name: 'Freeport-McMoRan', sector: 'materials', category: [] },
+  { symbol: 'NEM', name: 'Newmont', sector: 'materials', category: ['dividend'] },
+  // Real Estate
+  { symbol: 'AMT', name: 'American Tower', sector: 'realestate', category: ['dividend'] },
+  { symbol: 'PLD', name: 'Prologis', sector: 'realestate', category: ['dividend'] },
+  { symbol: 'CCI', name: 'Crown Castle', sector: 'realestate', category: ['dividend'] },
+  { symbol: 'EQIX', name: 'Equinix', sector: 'realestate', category: ['dividend'] },
+  { symbol: 'SPG', name: 'Simon Property', sector: 'realestate', category: ['dividend'] },
+  { symbol: 'O', name: 'Realty Income', sector: 'realestate', category: ['dividend'] },
+  // More meme stocks
+  { symbol: 'RIVN', name: 'Rivian', sector: 'auto', category: ['meme', 'trending'] },
+  { symbol: 'LCID', name: 'Lucid', sector: 'auto', category: ['meme'] },
+  { symbol: 'NIO', name: 'NIO', sector: 'auto', category: ['meme', 'trending'] },
+  { symbol: 'XPEV', name: 'XPeng', sector: 'auto', category: ['meme'] },
+  { symbol: 'LI', name: 'Li Auto', sector: 'auto', category: ['meme'] },
+  { symbol: 'SPCE', name: 'Virgin Galactic', sector: 'aerospace', category: ['meme'] },
+  { symbol: 'PLUG', name: 'Plug Power', sector: 'energy', category: ['meme'] },
+  { symbol: 'FCEL', name: 'FuelCell', sector: 'energy', category: ['meme'] },
+  { symbol: 'CLOV', name: 'Clover Health', sector: 'healthcare', category: ['meme'] },
+  { symbol: 'WISH', name: 'Wish', sector: 'retail', category: ['meme'] },
+  { symbol: 'OPEN', name: 'Opendoor', sector: 'realestate', category: ['meme'] },
+  { symbol: 'UPST', name: 'Upstart', sector: 'finance', category: ['meme', 'ai'] },
+  { symbol: 'AFRM', name: 'Affirm', sector: 'finance', category: ['tech', 'meme'] },
 ];
 
 // For backwards compatibility
@@ -545,6 +932,12 @@ const getCoinCategory = (coin) => {
   if (coin.market_cap > 50000000000) {
     categories.push('bluechip');
   }
+
+  // Top rankings by market cap rank
+  const rank = coin.market_cap_rank;
+  if (rank && rank <= 50) categories.push('top50');
+  if (rank && rank <= 100) categories.push('top100');
+  if (rank && rank <= 200) categories.push('top200');
 
   // Trending (high 24h volume relative to mcap or big price move)
   if (coin.price_change_percentage_24h > 10 ||
@@ -1168,12 +1561,15 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
   const handleDragEnd = (event, info) => {
     const threshold = 100;
     const velocity = info.velocity.x;
+    const minDistanceForVelocity = 30; // Must move at least 30px before velocity counts
 
-    // Only process actual swipes, not taps
-    // (we have a dedicated View Chart button for opening charts)
-    if (info.offset.x > threshold || velocity > 500) {
+    // Only process actual swipes, not taps or accidental micro-movements
+    // Require EITHER sufficient distance OR (velocity + minimum distance)
+    const absOffset = Math.abs(info.offset.x);
+
+    if (info.offset.x > threshold || (velocity > 500 && absOffset > minDistanceForVelocity)) {
       onSwipe('right');
-    } else if (info.offset.x < -threshold || velocity < -500) {
+    } else if (info.offset.x < -threshold || (velocity < -500 && absOffset > minDistanceForVelocity)) {
       onSwipe('left');
     }
   };
@@ -1341,11 +1737,16 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
                   onPointerDown={(e) => e.stopPropagation()}
                   onPointerMove={(e) => e.stopPropagation()}
                   onPointerUp={(e) => e.stopPropagation()}
-                  style={{ touchAction: 'none' }}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchMove={(e) => e.stopPropagation()}
+                  onTouchEnd={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  style={{ touchAction: 'manipulation' }}
                 >
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      e.preventDefault();
                       onTap(coin);
                     }}
                     className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/30 active:scale-95 transition-transform touch-manipulation"
@@ -1838,6 +2239,99 @@ const DailyPrediction = ({ coins, onVote, userVote }) => {
       <p className="text-xs text-slate-500 text-center mt-2">
         {totalVotes.toLocaleString()} traders voted
       </p>
+    </motion.div>
+  );
+};
+
+// ============================================================================
+// STREAK BADGE COMPONENT
+// ============================================================================
+
+const StreakBadge = ({ streak, compact = false }) => {
+  if (!streak || streak.currentStreak === 0) {
+    if (compact) return null;
+    return (
+      <div className="bg-slate-800/50 rounded-xl p-3 border border-white/5 text-center">
+        <p className="text-slate-500 text-xs">Swipe daily to build your streak!</p>
+      </div>
+    );
+  }
+
+  const getStreakEmoji = (days) => {
+    if (days >= 30) return '👑';
+    if (days >= 14) return '💎';
+    if (days >= 7) return '🔥';
+    if (days >= 3) return '⚡';
+    return '✨';
+  };
+
+  const getStreakColor = (days) => {
+    if (days >= 30) return 'from-yellow-500 to-orange-500';
+    if (days >= 14) return 'from-cyan-500 to-blue-500';
+    if (days >= 7) return 'from-orange-500 to-red-500';
+    if (days >= 3) return 'from-blue-500 to-cyan-500';
+    return 'from-slate-500 to-slate-400';
+  };
+
+  const getStreakLabel = (days) => {
+    if (days >= 30) return 'Legend';
+    if (days >= 14) return 'Diamond';
+    if (days >= 7) return 'On Fire';
+    if (days >= 3) return 'Rising';
+    return 'Starting';
+  };
+
+  if (compact) {
+    return (
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r ${getStreakColor(streak.currentStreak)}`}
+      >
+        <span className="text-sm">{getStreakEmoji(streak.currentStreak)}</span>
+        <span className="font-bold text-sm">{streak.currentStreak}</span>
+        <span className="text-[10px] opacity-80">day{streak.currentStreak !== 1 ? 's' : ''}</span>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-slate-800/50 rounded-xl p-4 border border-white/5"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-bold text-sm flex items-center gap-2">
+          {getStreakEmoji(streak.currentStreak)} Daily Streak
+        </h3>
+        {streak.isActive && (
+          <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
+            Active today
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-center flex-1">
+          <p className={`text-3xl font-black bg-gradient-to-r ${getStreakColor(streak.currentStreak)} bg-clip-text text-transparent`}>
+            {streak.currentStreak}
+          </p>
+          <p className="text-slate-500 text-[10px]">Current</p>
+        </div>
+        <div className="text-center flex-1 border-l border-white/10">
+          <p className="text-xl font-bold text-slate-300">{streak.longestStreak || 0}</p>
+          <p className="text-slate-500 text-[10px]">Best</p>
+        </div>
+        <div className="text-center flex-1 border-l border-white/10">
+          <p className="text-xl font-bold text-slate-300">{streak.totalActiveDays || 0}</p>
+          <p className="text-slate-500 text-[10px]">Total Days</p>
+        </div>
+      </div>
+
+      <div className={`text-center py-2 rounded-lg bg-gradient-to-r ${getStreakColor(streak.currentStreak)} bg-opacity-20`}>
+        <span className="text-sm font-bold">{getStreakLabel(streak.currentStreak)} Status</span>
+      </div>
     </motion.div>
   );
 };
@@ -2573,7 +3067,7 @@ const INVESTMENT_STYLES = [
   { id: 'meme', emoji: '🚀', label: 'Meme Lord', desc: 'DOGE, PEPE, BONK life' },
 ];
 
-const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChange, userProfile, onProfileUpdate }) => {
+const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChange, userProfile, onProfileUpdate, userStreak, notificationSettings, onEnableNotifications }) => {
   const [showSignUp, setShowSignUp] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [email, setEmail] = useState('');
@@ -2583,6 +3077,7 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
   const [selectedStyle, setSelectedStyle] = useState(userProfile?.investmentStyle || null);
   const [bio, setBio] = useState(userProfile?.bio || '');
   const [editingBio, setEditingBio] = useState(false);
+  const [notifLoading, setNotifLoading] = useState(false);
 
   // Update investment style
   const handleStyleSelect = async (styleId) => {
@@ -2745,6 +3240,13 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
         </div>
       </div>
 
+      {/* Daily Streak */}
+      {user && (
+        <div className="mb-4">
+          <StreakBadge streak={userStreak} />
+        </div>
+      )}
+
       {/* Investment Style */}
       {user && (
         <div className="bg-slate-800/50 rounded-2xl p-4 mb-4 border border-white/5">
@@ -2835,8 +3337,34 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
         <h3 className="font-bold mb-3">Settings</h3>
         <div className="space-y-3">
           <div className="flex justify-between items-center py-2 border-b border-white/5">
-            <span className="text-slate-300">Notifications</span>
-            <span className="text-slate-500">Coming soon</span>
+            <div>
+              <span className="text-slate-300">Push Notifications</span>
+              <p className="text-slate-500 text-xs mt-0.5">Price alerts, streak reminders</p>
+            </div>
+            {user ? (
+              notificationSettings?.notificationsEnabled ? (
+                <span className="text-green-400 text-sm flex items-center gap-1">
+                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                  Enabled
+                </span>
+              ) : (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={async () => {
+                    setNotifLoading(true);
+                    await onEnableNotifications();
+                    setNotifLoading(false);
+                  }}
+                  disabled={notifLoading}
+                  className="px-3 py-1 bg-blue-500 rounded-lg text-xs font-medium disabled:opacity-50"
+                >
+                  {notifLoading ? 'Enabling...' : 'Enable'}
+                </motion.button>
+              )
+            ) : (
+              <span className="text-slate-500 text-xs">Sign in first</span>
+            )}
           </div>
           <div className="flex justify-between items-center py-2 border-b border-white/5">
             <span className="text-slate-300">Dark Mode</span>
@@ -3557,6 +4085,8 @@ export default function Swipefolio() {
   const [leaderboardData, setLeaderboardData] = useState([]); // Real leaderboard from Firestore
   const [userRankData, setUserRankData] = useState(null); // User's rank data
   const [userProfile, setUserProfile] = useState(null); // User's profile data (bio, investment style)
+  const [userStreak, setUserStreak] = useState(null); // User's streak data
+  const [notificationSettings, setNotificationSettings] = useState(null); // Push notification settings
 
   // Listen for auth state changes
   useEffect(() => {
@@ -3602,8 +4132,24 @@ export default function Swipefolio() {
           setUserProfile(profileData);
           console.log('👤 Profile loaded:', profileData.investmentStyle || 'no style set');
         }
+
+        // Load user streak
+        const { data: streakData } = await getUserStreak(currentUser.uid);
+        if (streakData) {
+          setUserStreak(streakData);
+          console.log('🔥 Streak loaded:', streakData.currentStreak || 0, 'days');
+        }
+
+        // Load notification settings
+        const { data: notifData } = await getNotificationSettings(currentUser.uid);
+        if (notifData) {
+          setNotificationSettings(notifData);
+          console.log('🔔 Notification settings loaded:', notifData.notificationsEnabled ? 'enabled' : 'disabled');
+        }
       } else {
         setUserProfile(null);
+        setUserStreak(null);
+        setNotificationSettings(null);
       }
     });
     return () => unsubscribe();
@@ -3618,6 +4164,56 @@ export default function Swipefolio() {
       console.log('👤 Profile updated');
     }
   };
+
+  // Handle enabling push notifications
+  const handleEnableNotifications = async () => {
+    if (!user) return;
+
+    try {
+      // Step 1: Request permission
+      const { granted, error: permError } = await requestNotificationPermission();
+      if (!granted) {
+        console.warn('🔔 Notification permission not granted:', permError);
+        return;
+      }
+      console.log('🔔 Notification permission granted');
+
+      // Step 2: Get FCM token
+      const { token, error: tokenError } = await getFCMToken();
+      if (!token) {
+        console.error('🔔 Failed to get FCM token:', tokenError);
+        return;
+      }
+      console.log('🔔 FCM token obtained');
+
+      // Step 3: Save token to Firestore
+      await saveNotificationToken(user.uid, token);
+      console.log('🔔 Token saved to Firestore');
+
+      // Step 4: Update local state
+      setNotificationSettings(prev => ({
+        ...prev,
+        notificationsEnabled: true
+      }));
+
+      console.log('🔔 Push notifications enabled successfully!');
+    } catch (error) {
+      console.error('🔔 Error enabling notifications:', error);
+    }
+  };
+
+  // Listen for foreground notifications
+  useEffect(() => {
+    if (!notificationSettings?.notificationsEnabled) return;
+
+    const unsubscribe = onForegroundMessage((payload) => {
+      // Show in-app notification toast
+      console.log('🔔 Foreground message:', payload);
+      // Could add a toast notification here
+    });
+
+    return () => unsubscribe();
+  }, [notificationSettings?.notificationsEnabled]);
 
   // Get current categories based on asset type
   const currentCategories = assetType === 'crypto' ? CRYPTO_CATEGORIES : STOCK_CATEGORIES;
@@ -4220,6 +4816,13 @@ export default function Swipefolio() {
           }
         };
       });
+
+      // Update streak
+      updateStreak(user.uid).then(({ data }) => {
+        if (data) {
+          setUserStreak(data);
+        }
+      });
     }
 
     setCurrentIndex(prev => prev + 1);
@@ -4548,7 +5151,7 @@ export default function Swipefolio() {
                     coin={coin}
                     isTop={i === 0}
                     onSwipe={handleSwipe}
-                    onTap={(coin) => setDetailModal(coin)}
+                    onTap={hasVerifiedChart(coin) ? (coin) => setDetailModal(coin) : null}
                     zIndex={3 - i}
                     coinStats={coinStats[coin.id]}
                     style={{
@@ -4703,6 +5306,9 @@ export default function Swipefolio() {
           onUserChange={setUser}
           userProfile={userProfile}
           onProfileUpdate={handleProfileUpdate}
+          userStreak={userStreak}
+          notificationSettings={notificationSettings}
+          onEnableNotifications={handleEnableNotifications}
         />
       )}
 
