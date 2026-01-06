@@ -447,6 +447,77 @@ const formatPnL = (pnl) => {
 };
 
 // ============================================================================
+// COMMUNITY SENTIMENT (Phase 1 - Simulated, feels real)
+// ============================================================================
+
+const getCommunitySentiment = (coin) => {
+  // Generate realistic-looking sentiment based on coin properties
+  // This creates consistent sentiment per coin (seeded by coin id hash)
+  const hash = coin.id.split('').reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0);
+  const seed = Math.abs(hash);
+
+  // Base APE rate influenced by:
+  // - Price change (positive = more bullish)
+  // - Market cap (bigger = more trust)
+  // - Volume (higher = more interest)
+  let baseRate = 50;
+
+  // Price momentum affects sentiment
+  if (coin.price_change_percentage_24h > 10) baseRate += 25;
+  else if (coin.price_change_percentage_24h > 5) baseRate += 15;
+  else if (coin.price_change_percentage_24h > 0) baseRate += 8;
+  else if (coin.price_change_percentage_24h > -5) baseRate -= 5;
+  else if (coin.price_change_percentage_24h > -10) baseRate -= 15;
+  else baseRate -= 25;
+
+  // Blue chips get more trust
+  if (coin.market_cap > 100000000000) baseRate += 10;
+  else if (coin.market_cap > 10000000000) baseRate += 5;
+  else if (coin.market_cap < 1000000000) baseRate -= 5;
+
+  // Add some pseudo-random variation (consistent per coin)
+  const variation = ((seed % 20) - 10);
+  const apeRate = Math.max(15, Math.min(95, baseRate + variation));
+
+  // Generate fake user count (higher for popular coins)
+  const baseUsers = coin.market_cap > 50000000000 ? 2000 :
+                    coin.market_cap > 10000000000 ? 800 :
+                    coin.market_cap > 1000000000 ? 300 : 100;
+  const userCount = baseUsers + (seed % 500);
+
+  // Generate top comment based on sentiment
+  const bullishComments = [
+    "Diamond hands only 💎",
+    "This is the way 🚀",
+    "Accumulating more",
+    "Bullish AF",
+    "Still early",
+    "LFG 🔥",
+    "Moon soon",
+    "Buy the dip",
+  ];
+
+  const bearishComments = [
+    "Be careful here",
+    "Taking profits",
+    "Waiting for lower",
+    "Risky at this level",
+    "Overextended imo",
+    "Not financial advice",
+  ];
+
+  const commentPool = apeRate > 60 ? bullishComments : bearishComments;
+  const topComment = commentPool[seed % commentPool.length];
+
+  return {
+    apeRate: Math.round(apeRate),
+    userCount,
+    topComment,
+    sentiment: apeRate > 70 ? 'bullish' : apeRate > 45 ? 'neutral' : 'bearish',
+  };
+};
+
+// ============================================================================
 // SOUND EFFECTS (Web Audio API) - Subtle, pleasant sounds
 // ============================================================================
 
@@ -1081,6 +1152,49 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
           </div>
         </div>
 
+        {/* Community Sentiment */}
+        {(() => {
+          const sentiment = getCommunitySentiment(coin);
+          return (
+            <div className="px-6 pb-4">
+              <div className="bg-slate-800/40 backdrop-blur-sm p-3 rounded-xl border border-white/5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-slate-400 text-xs font-medium flex items-center gap-1">
+                    👥 Community
+                  </span>
+                  <span className="text-slate-500 text-xs">
+                    {sentiment.userCount.toLocaleString()} swiped today
+                  </span>
+                </div>
+                {/* APE Rate Bar */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-500 ${
+                        sentiment.apeRate > 70 ? 'bg-gradient-to-r from-green-500 to-emerald-400' :
+                        sentiment.apeRate > 45 ? 'bg-gradient-to-r from-yellow-500 to-orange-400' :
+                        'bg-gradient-to-r from-red-500 to-pink-400'
+                      }`}
+                      style={{ width: `${sentiment.apeRate}%` }}
+                    />
+                  </div>
+                  <span className={`text-sm font-bold ${
+                    sentiment.apeRate > 70 ? 'text-green-400' :
+                    sentiment.apeRate > 45 ? 'text-yellow-400' :
+                    'text-red-400'
+                  }`}>
+                    🦍 {sentiment.apeRate}%
+                  </span>
+                </div>
+                {/* Top Comment */}
+                <p className="text-slate-500 text-xs mt-2 italic">
+                  "{sentiment.topComment}" - @trader_{Math.abs(coin.id.charCodeAt(0) % 999)}
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Risk Level */}
         <div className="px-6 pb-6">
           <div className={`flex items-center justify-between ${risk.bg} backdrop-blur-sm p-3 rounded-xl border border-white/5`}>
@@ -1339,6 +1453,177 @@ const FearGreedIndex = ({ value, label }) => {
       <span className={`font-bold ${getColor(value)}`}>{value}</span>
       <span className="text-slate-400 hidden sm:inline">{label}</span>
     </div>
+  );
+};
+
+// ============================================================================
+// DAILY PREDICTION COMPONENT
+// ============================================================================
+
+const DailyPrediction = ({ coins, onVote, userVote }) => {
+  // Pick a featured coin for today's prediction (consistent per day)
+  const today = new Date().toISOString().split('T')[0];
+  const dayHash = today.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+
+  const trendingCoins = coins.filter(c =>
+    Math.abs(c.price_change_percentage_24h) > 3 && c.market_cap > 1000000000
+  );
+  const featuredCoin = trendingCoins[dayHash % Math.max(1, trendingCoins.length)] || coins[0];
+
+  if (!featuredCoin) return null;
+
+  // Generate prediction target based on current price and momentum
+  const isUp = featuredCoin.price_change_percentage_24h > 0;
+  const targetMove = isUp ? 10 : -10;
+  const targetPrice = featuredCoin.current_price * (1 + targetMove / 100);
+
+  // Simulated community votes (seeded by coin + date)
+  const voteHash = (featuredCoin.id + today).split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+  const baseApeVotes = 50 + (voteHash % 30);
+  const apeVotes = userVote === 'ape' ? baseApeVotes + 1 : baseApeVotes;
+  const rugVotes = 100 - apeVotes + (userVote === 'rug' ? 1 : 0);
+  const totalVotes = apeVotes + rugVotes;
+  const apePercent = Math.round((apeVotes / totalVotes) * 100);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gradient-to-br from-purple-900/40 to-pink-900/40 backdrop-blur-sm rounded-2xl p-4 border border-purple-500/20"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🎲</span>
+          <span className="font-bold text-sm">Daily Prediction</span>
+        </div>
+        <span className="text-xs text-slate-400">🏆 Win points!</span>
+      </div>
+
+      <p className="text-sm text-slate-300 mb-3">
+        Will <span className="font-bold text-purple-300">${featuredCoin.symbol.toUpperCase()}</span> hit{' '}
+        <span className="font-bold text-white">{formatPrice(targetPrice)}</span> this week?
+      </p>
+
+      {/* Vote bars */}
+      <div className="space-y-2 mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs w-16">🦍 APE</span>
+          <div className="flex-1 h-3 bg-slate-700 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-green-500 to-emerald-400"
+              initial={{ width: 0 }}
+              animate={{ width: `${apePercent}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+          <span className="text-xs font-bold text-green-400 w-10 text-right">{apePercent}%</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs w-16">🚫 RUG</span>
+          <div className="flex-1 h-3 bg-slate-700 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-red-500 to-pink-400"
+              initial={{ width: 0 }}
+              animate={{ width: `${100 - apePercent}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+          <span className="text-xs font-bold text-red-400 w-10 text-right">{100 - apePercent}%</span>
+        </div>
+      </div>
+
+      {/* Vote buttons or status */}
+      {!userVote ? (
+        <div className="flex gap-2">
+          <button
+            onClick={() => onVote('ape')}
+            className="flex-1 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 py-2 rounded-lg text-sm font-bold transition"
+          >
+            🦍 APE
+          </button>
+          <button
+            onClick={() => onVote('rug')}
+            className="flex-1 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 py-2 rounded-lg text-sm font-bold transition"
+          >
+            🚫 RUG
+          </button>
+        </div>
+      ) : (
+        <div className="text-center py-2 bg-slate-800/50 rounded-lg">
+          <p className="text-sm">
+            Your prediction: <span className={userVote === 'ape' ? 'text-green-400' : 'text-red-400'}>
+              {userVote === 'ape' ? '🦍 APE' : '🚫 RUG'}
+            </span> ✓
+          </p>
+          <p className="text-xs text-slate-500 mt-1">Results in {7 - new Date().getDay()} days</p>
+        </div>
+      )}
+
+      <p className="text-xs text-slate-500 text-center mt-2">
+        {totalVotes.toLocaleString()} traders voted
+      </p>
+    </motion.div>
+  );
+};
+
+// ============================================================================
+// LEADERBOARD COMPONENT
+// ============================================================================
+
+const Leaderboard = ({ portfolio }) => {
+  // Generate fake leaderboard with user included
+  const fakeTraders = [
+    { name: 'DiamondHands', gain: 127, avatar: '💎' },
+    { name: 'DeFiDegen', gain: 89, avatar: '🦄' },
+    { name: 'MoonBoy', gain: 72, avatar: '🌙' },
+    { name: 'CryptoKing', gain: 58, avatar: '👑' },
+    { name: 'ApeStrong', gain: 45, avatar: '🦍' },
+    { name: 'WhaleAlert', gain: 38, avatar: '🐋' },
+    { name: 'SatoshiFan', gain: 29, avatar: '₿' },
+    { name: 'HODLer', gain: 22, avatar: '💪' },
+  ];
+
+  // Calculate user's gain (simplified)
+  const userGain = portfolio.length > 0 ? 12 + (portfolio.length * 3) : 0;
+  const userRank = fakeTraders.filter(t => t.gain > userGain).length + 1;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 }}
+      className="bg-slate-800/40 backdrop-blur-sm rounded-2xl p-4 border border-white/5"
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🏆</span>
+          <span className="font-bold text-sm">Top Swipers</span>
+        </div>
+        <span className="text-xs text-slate-400">This Week</span>
+      </div>
+
+      {/* Top 3 */}
+      <div className="space-y-2 mb-3">
+        {fakeTraders.slice(0, 3).map((trader, i) => (
+          <div key={trader.name} className="flex items-center gap-3">
+            <span className="text-lg">{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
+            <span className="text-sm">{trader.avatar}</span>
+            <span className="text-sm font-medium flex-1">@{trader.name}</span>
+            <span className="text-green-400 text-sm font-bold">+{trader.gain}%</span>
+          </div>
+        ))}
+      </div>
+
+      {/* User rank */}
+      <div className="bg-purple-500/20 rounded-lg p-2 flex items-center gap-3 border border-purple-500/30">
+        <span className="text-sm font-bold text-purple-400">#{userRank}</span>
+        <span className="text-sm">😎</span>
+        <span className="text-sm font-medium flex-1">You</span>
+        <span className={`text-sm font-bold ${userGain > 0 ? 'text-green-400' : 'text-slate-400'}`}>
+          {userGain > 0 ? `+${userGain}%` : 'Start swiping!'}
+        </span>
+      </div>
+    </motion.div>
   );
 };
 
@@ -1987,6 +2272,9 @@ export default function SwipeInvest() {
   const [confettiTrigger, setConfettiTrigger] = useState(0); // Incremented to trigger confetti
   const [swipeEffect, setSwipeEffect] = useState(null); // 'left' or 'right' for trail effect
 
+  // Community features state
+  const [predictionVote, setPredictionVote] = useState(null); // 'ape' or 'rug'
+
   // Get current categories based on asset type
   const currentCategories = assetType === 'crypto' ? CRYPTO_CATEGORIES : STOCK_CATEGORIES;
 
@@ -2016,6 +2304,16 @@ export default function SwipeInvest() {
         localStorage.setItem('swipeinvest_swipes', JSON.stringify({ date: getTodayKey(), count: 0 }));
       }
     }
+
+    // Load prediction vote (reset weekly)
+    const savedPrediction = localStorage.getItem('swipeinvest_prediction');
+    if (savedPrediction) {
+      const { week, vote } = JSON.parse(savedPrediction);
+      const currentWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+      if (week === currentWeek) {
+        setPredictionVote(vote);
+      }
+    }
   }, []);
 
   // Save to localStorage
@@ -2038,9 +2336,14 @@ export default function SwipeInvest() {
 
       try {
         // Use CoinCap API - more reliable, no aggressive rate limits
+        // Add cache-busting timestamp to prevent stale prices
         const response = await fetch(
-          'https://api.coincap.io/v2/assets?limit=100',
-          { signal: controller.signal }
+          `https://api.coincap.io/v2/assets?limit=100&_t=${Date.now()}`,
+          {
+            signal: controller.signal,
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache' }
+          }
         );
         clearTimeout(timeoutId);
 
@@ -2121,8 +2424,12 @@ export default function SwipeInvest() {
 
       try {
         const response = await fetch(
-          'https://api.coincap.io/v2/assets?limit=100',
-          { signal: controller.signal }
+          `https://api.coincap.io/v2/assets?limit=100&_t=${Date.now()}`,
+          {
+            signal: controller.signal,
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache' }
+          }
         );
         clearTimeout(timeoutId);
 
@@ -2432,6 +2739,13 @@ export default function SwipeInvest() {
     const text = `${emoji} My $${pos.symbol?.toUpperCase()} paper trade on SwipeInvest:\n\nEntry: ${formatPrice(pos.priceAtSwipe)}\nNow: ${formatPrice(currentPrices[pos.id] || pos.priceAtSwipe)}\nPnL: ${formatPnL(pnl)}\n\nSwipe to invest! 📈\n\n#SwipeInvest #Crypto #Stocks #PaperTrading`;
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
+  };
+
+  // Handle prediction vote
+  const handlePredictionVote = (vote) => {
+    setPredictionVote(vote);
+    const currentWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+    localStorage.setItem('swipeinvest_prediction', JSON.stringify({ week: currentWeek, vote }));
   };
 
   // Start swiping
@@ -2747,55 +3061,70 @@ export default function SwipeInvest() {
         ))}
       </div>
 
-      {/* Card Stack Area */}
-      <div className="flex-1 flex items-center justify-center p-4 relative overflow-hidden">
-        {currentIndex >= filteredCoins.length ? (
-          // End of cards
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center px-6"
-          >
-            <div className="text-7xl mb-4">🎉</div>
-            <h2 className="text-2xl font-black mb-2">That's All Folks!</h2>
-            <p className="text-slate-400 mb-6">
-              You've swiped through {filteredCoins.length} coins
-            </p>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={() => setView('portfolio')}
-                className="bg-gradient-to-r from-green-500 to-emerald-500 px-8 py-4 rounded-xl font-bold hover:opacity-90 transition shadow-lg shadow-green-500/20"
-              >
-                View Portfolio ({portfolio.length})
-              </button>
-              <button
-                onClick={handleReset}
-                className="bg-slate-800 px-8 py-4 rounded-xl font-bold hover:bg-slate-700 transition"
-              >
-                🔀 Shuffle & Restart
-              </button>
+      {/* Card Stack Area with Community Sidebar on Desktop */}
+      <div className="flex-1 flex items-stretch p-4 relative overflow-hidden">
+        {/* Main Card Area */}
+        <div className="flex-1 flex items-center justify-center relative">
+          {currentIndex >= filteredCoins.length ? (
+            // End of cards
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center px-6"
+            >
+              <div className="text-7xl mb-4">🎉</div>
+              <h2 className="text-2xl font-black mb-2">That's All Folks!</h2>
+              <p className="text-slate-400 mb-6">
+                You've swiped through {filteredCoins.length} coins
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => setView('portfolio')}
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 px-8 py-4 rounded-xl font-bold hover:opacity-90 transition shadow-lg shadow-green-500/20"
+                >
+                  View Portfolio ({portfolio.length})
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="bg-slate-800 px-8 py-4 rounded-xl font-bold hover:bg-slate-700 transition"
+                >
+                  🔀 Shuffle & Restart
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            // Card stack
+            <div className="relative w-full max-w-[340px] h-[520px] flex items-center justify-center">
+              <AnimatePresence mode="popLayout">
+                {filteredCoins.slice(currentIndex, currentIndex + 3).map((coin, i) => (
+                  <SwipeCard
+                    key={coin.id}
+                    coin={coin}
+                    isTop={i === 0}
+                    onSwipe={handleSwipe}
+                    onTap={(coin) => setDetailModal(coin)}
+                    zIndex={3 - i}
+                    style={{
+                      scale: 1 - i * 0.05,
+                      y: i * 8,
+                      opacity: 1 - i * 0.15,
+                    }}
+                  />
+                ))}
+              </AnimatePresence>
             </div>
-          </motion.div>
-        ) : (
-          // Card stack
-          <div className="relative w-full max-w-[340px] h-[520px] flex items-center justify-center">
-            <AnimatePresence mode="popLayout">
-              {filteredCoins.slice(currentIndex, currentIndex + 3).map((coin, i) => (
-                <SwipeCard
-                  key={coin.id}
-                  coin={coin}
-                  isTop={i === 0}
-                  onSwipe={handleSwipe}
-                  onTap={(coin) => setDetailModal(coin)}
-                  zIndex={3 - i}
-                  style={{
-                    scale: 1 - i * 0.05,
-                    y: i * 8,
-                    opacity: 1 - i * 0.15,
-                  }}
-                />
-              ))}
-            </AnimatePresence>
+          )}
+        </div>
+
+        {/* Community Sidebar - Desktop Only */}
+        {assetType === 'crypto' && coins.length > 0 && (
+          <div className="hidden lg:flex flex-col gap-4 w-72 pl-4">
+            <DailyPrediction
+              coins={coins}
+              onVote={handlePredictionVote}
+              userVote={predictionVote}
+            />
+            <Leaderboard portfolio={portfolio} />
           </div>
         )}
       </div>
