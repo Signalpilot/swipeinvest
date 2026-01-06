@@ -443,12 +443,11 @@ const TRADINGVIEW_SYMBOLS = {
 
 // Check if a coin has a verified TradingView symbol
 const hasVerifiedChart = (coin) => {
-  // Verified in our mapping
+  // ONLY show chart if we have a verified mapping
   if (TRADINGVIEW_SYMBOLS[coin.id]) return true;
-  // Stocks are always on NASDAQ/NYSE
+  // Stocks are always on NASDAQ/NYSE - TradingView handles routing
   if (coin.isStock) return true;
-  // Allow coins in top 100 market cap (they're usually on major exchanges)
-  if (coin.market_cap_rank && coin.market_cap_rank <= 100) return true;
+  // No fallback - if not in our mapping, don't show chart
   return false;
 };
 
