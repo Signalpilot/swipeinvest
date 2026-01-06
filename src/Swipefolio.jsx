@@ -982,6 +982,60 @@ const PulseRings = ({ active, color = 'blue' }) => {
   );
 };
 
+// Video Background Component - Signal Pilot style
+const VideoBackground = () => {
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+
+  return (
+    <>
+      {/* Video Background */}
+      {!videoError && (
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          onLoadedData={() => setVideoLoaded(true)}
+          onError={() => setVideoError(true)}
+          className={`fixed inset-0 w-full h-full object-cover z-0 transition-opacity duration-1000 ${
+            videoLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{ pointerEvents: 'none' }}
+        >
+          <source src="/videos/starfield-bg.mp4" type="video/mp4" />
+        </video>
+      )}
+
+      {/* Fallback CSS starfield (shows while video loads or if it fails) */}
+      {(!videoLoaded || videoError) && (
+        <div className="starfield">
+          {Array.from({ length: 50 }).map((_, i) => (
+            <div
+              key={i}
+              className="star"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                width: `${Math.random() * 2 + 1}px`,
+                height: `${Math.random() * 2 + 1}px`,
+                animationDelay: `${Math.random() * 3}s`,
+                opacity: Math.random() * 0.5 + 0.2,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Subtle overlay to darken video slightly */}
+      <div
+        className="fixed inset-0 z-[1] pointer-events-none"
+        style={{ background: 'rgba(5,7,13,0.3)' }}
+      />
+    </>
+  );
+};
+
 // Swipe Trail Effect
 const SwipeTrail = ({ direction }) => {
   const isRight = direction === 'right';
@@ -1811,105 +1865,8 @@ const LandingPage = ({ onStart, stats }) => {
 
   return (
     <div className="min-h-screen text-white overflow-hidden" style={{ background: '#05070d' }}>
-      {/* Starfield Background */}
-      <div className="starfield">
-        {Array.from({ length: 50 }).map((_, i) => (
-          <div key={i} className="star" style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            width: `${Math.random() * 2 + 1}px`,
-            height: `${Math.random() * 2 + 1}px`,
-            animationDelay: `${Math.random() * 3}s`,
-          }} />
-        ))}
-      </div>
-
-      {/* Subtle blue accent glows */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
-          transition={{ duration: 4, repeat: Infinity }}
-          className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/30 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{ scale: [1.2, 1, 1.2], opacity: [0.15, 0.25, 0.15] }}
-          transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl"
-        />
-      </div>
-
-      {/* Subtle top gradient - Signal Pilot style */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(ellipse 80% 50% at 20% 0%, rgba(91,138,255,0.15) 0%, transparent 50%),
-              radial-gradient(ellipse 60% 40% at 60% 0%, rgba(118,221,255,0.1) 0%, transparent 45%)
-            `,
-          }}
-          animate={{ opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        />
-
-        {/* Vertical light streaks */}
-        {[15, 30, 45, 55, 70, 85].map((left, i) => (
-          <motion.div
-            key={i}
-            className="absolute top-0"
-            style={{
-              left: `${left}%`,
-              width: '120px',
-              height: '70%',
-              background: `linear-gradient(180deg,
-                rgba(139,92,246,${0.15 + (i % 3) * 0.05}) 0%,
-                rgba(168,85,247,${0.1 + (i % 2) * 0.05}) 40%,
-                transparent 100%)`,
-              filter: 'blur(30px)',
-              transform: 'translateX(-50%)',
-            }}
-            animate={{
-              opacity: [0.4, 0.8, 0.4],
-              height: ['65%', '75%', '65%'],
-            }}
-            transition={{
-              duration: 5 + i * 0.8,
-              repeat: Infinity,
-              delay: i * 0.4,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
-
-        {/* Accent streaks - brighter, thinner */}
-        {[25, 50, 75].map((left, i) => (
-          <motion.div
-            key={`accent-${i}`}
-            className="absolute top-0"
-            style={{
-              left: `${left}%`,
-              width: '4px',
-              height: '50%',
-              background: `linear-gradient(180deg,
-                rgba(168,85,247,0.8) 0%,
-                rgba(139,92,246,0.4) 50%,
-                transparent 100%)`,
-              filter: 'blur(2px)',
-              transform: 'translateX(-50%)',
-            }}
-            animate={{
-              opacity: [0.3, 0.7, 0.3],
-              height: ['45%', '55%', '45%'],
-            }}
-            transition={{
-              duration: 3 + i * 0.5,
-              repeat: Infinity,
-              delay: i * 0.6,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
-      </div>
+      {/* Video Starfield Background */}
+      <VideoBackground />
 
       {/* Floating Emojis */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -4019,42 +3976,8 @@ export default function Swipefolio() {
     <div className="h-[100dvh] text-white flex flex-col relative overflow-hidden"
       style={{ background: '#05070d' }}
     >
-      {/* Starfield Background - Signal Pilot style */}
-      <div className="starfield">
-        {/* Static stars */}
-        {Array.from({ length: 50 }).map((_, i) => (
-          <div
-            key={i}
-            className="star"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              width: `${Math.random() * 2 + 1}px`,
-              height: `${Math.random() * 2 + 1}px`,
-              animationDelay: `${Math.random() * 3}s`,
-              opacity: Math.random() * 0.5 + 0.2,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Subtle blue accent glows */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div
-          className="absolute -top-40 left-1/4 w-[600px] h-[400px]"
-          style={{
-            background: 'radial-gradient(ellipse at center, rgba(91,138,255,0.08) 0%, transparent 70%)',
-            filter: 'blur(60px)',
-          }}
-        />
-        <div
-          className="absolute top-1/2 right-0 w-[400px] h-[400px]"
-          style={{
-            background: 'radial-gradient(ellipse at center, rgba(118,221,255,0.05) 0%, transparent 70%)',
-            filter: 'blur(80px)',
-          }}
-        />
-      </div>
+      {/* Video Starfield Background - Signal Pilot style */}
+      <VideoBackground />
 
       {/* Floating Sparkles - Reduced */}
       <FloatingSparkles count={15} />
