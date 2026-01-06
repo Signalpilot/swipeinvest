@@ -3608,6 +3608,12 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
   const [cooldownTime, setCooldownTime] = useState(0);
   const messagesEndRef = useRef(null);
 
+  // Follow System state
+  const [followingList, setFollowingList] = useState([]);
+  const [followersList, setFollowersList] = useState([]);
+  const [activityFeed, setActivityFeed] = useState([]);
+  const [followingStatus, setFollowingStatus] = useState({}); // { [userId]: true/false }
+
   // Load investor matches
   useEffect(() => {
     if (user && activeSection === 'matches') {
@@ -3633,6 +3639,37 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
       getTrendingCoins().then(({ data }) => setTrendingCoins(data));
     }
   }, [activeSection]);
+
+  // Load following/followers list
+  useEffect(() => {
+    if (user && activeSection === 'following') {
+      setLoading(true);
+      Promise.all([
+        getFollowing(user.uid),
+        getFollowers(user.uid),
+        getActivityFeed(user.uid)
+      ]).then(([following, followers, feed]) => {
+        setFollowingList(following);
+        setFollowersList(followers);
+        setActivityFeed(feed);
+        setLoading(false);
+      });
+    }
+  }, [user, activeSection]);
+
+  // Check following status for matches
+  useEffect(() => {
+    if (user && investorMatches.length > 0) {
+      const checkStatus = async () => {
+        const statuses = {};
+        for (const match of investorMatches) {
+          statuses[match.id] = await isFollowing(user.uid, match.id);
+        }
+        setFollowingStatus(statuses);
+      };
+      checkStatus();
+    }
+  }, [user, investorMatches]);
 
   // Subscribe to chat room
   useEffect(() => {
@@ -3723,6 +3760,29 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
     // Refresh connections and requests
     getUserConnections(user.uid).then(({ data }) => setConnections(data));
     getMatchRequests(user.uid).then(({ data }) => setMatchRequests(data));
+  };
+
+  // Follow/Unfollow handlers
+  const handleFollow = async (targetUserId) => {
+    if (!user) return;
+    await followUser(user.uid, targetUserId);
+    setFollowingStatus(prev => ({ ...prev, [targetUserId]: true }));
+    // Refresh following list if on that tab
+    if (activeSection === 'following') {
+      const following = await getFollowing(user.uid);
+      setFollowingList(following);
+    }
+  };
+
+  const handleUnfollow = async (targetUserId) => {
+    if (!user) return;
+    await unfollowUser(user.uid, targetUserId);
+    setFollowingStatus(prev => ({ ...prev, [targetUserId]: false }));
+    // Refresh following list if on that tab
+    if (activeSection === 'following') {
+      const following = await getFollowing(user.uid);
+      setFollowingList(following);
+    }
   };
 
   // Not logged in
@@ -3904,6 +3964,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {[
           { id: 'matches', label: 'Matches', emoji: '💙' },
+          { id: 'following', label: 'Following', emoji: '👥' },
           { id: 'chatrooms', label: 'Chat Rooms', emoji: '💬' },
           { id: 'connections', label: 'Connections', emoji: '🤝' },
           { id: 'trending', label: 'Trending', emoji: '🔥' },
@@ -3950,15 +4011,162 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                   <h4 className="font-medium truncate">{match.displayName}</h4>
                   <p className="text-xs text-blue-400">{match.commonCoins} coins in common</p>
                 </div>
-                <button
-                  onClick={() => handleConnect(match.id)}
-                  className="px-3 py-1.5 bg-blue-600 rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors"
-                >
-                  Connect
-                </button>
+                <div className="flex gap-2">
+                  {followingStatus[match.id] ? (
+                    <button
+                      onClick={() => handleUnfollow(match.id)}
+                      className="px-3 py-1.5 bg-slate-600 rounded-lg text-sm font-medium hover:bg-slate-500 transition-colors"
+                    >
+                      Following
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleFollow(match.id)}
+                      className="px-3 py-1.5 bg-purple-600 rounded-lg text-sm font-medium hover:bg-purple-500 transition-colors"
+                    >
+                      Follow
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleConnect(match.id)}
+                    className="px-3 py-1.5 bg-blue-600 rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors"
+                  >
+                    Connect
+                  </button>
+                </div>
               </div>
             ))
           )}
+        </div>
+      )}
+
+      {/* Following Section */}
+      {activeSection === 'following' && (
+        <div className="space-y-4">
+          {/* Stats */}
+          <div className="flex gap-4">
+            <div className="flex-1 bg-slate-800/50 rounded-xl p-4 border border-white/5 text-center">
+              <p className="text-2xl font-bold text-purple-400">{followingList.length}</p>
+              <p className="text-xs text-slate-400">Following</p>
+            </div>
+            <div className="flex-1 bg-slate-800/50 rounded-xl p-4 border border-white/5 text-center">
+              <p className="text-2xl font-bold text-cyan-400">{followersList.length}</p>
+              <p className="text-xs text-slate-400">Followers</p>
+            </div>
+          </div>
+
+          {/* Activity Feed */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-slate-400 flex items-center gap-2">
+              <span>📡</span> Activity Feed
+            </h3>
+            {loading ? (
+              <div className="text-center py-8 text-slate-400">Loading activity...</div>
+            ) : activityFeed.length === 0 ? (
+              <div className="bg-slate-800/50 rounded-2xl p-6 text-center border border-white/5">
+                <div className="text-4xl mb-3">📡</div>
+                <p className="text-slate-400">No activity yet</p>
+                <p className="text-xs text-slate-500 mt-2">Follow investors to see their swipes here!</p>
+              </div>
+            ) : (
+              activityFeed.slice(0, 20).map((activity, idx) => (
+                <div key={idx} className="bg-slate-800/50 rounded-xl p-3 border border-white/5 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
+                    {activity.userPhotoURL ? (
+                      <img src={activity.userPhotoURL} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sm">
+                        {activity.userDisplayName?.[0] || '?'}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm">
+                      <span className="font-medium">{activity.userDisplayName}</span>
+                      <span className="text-slate-400">
+                        {activity.swipeDirection === 'right' ? ' APEd ' : ' RUGged '}
+                      </span>
+                      <span className="font-medium text-blue-400">${activity.coinSymbol?.toUpperCase()}</span>
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {activity.swipedAt?.toDate?.()?.toLocaleDateString() || 'Recently'}
+                    </p>
+                  </div>
+                  <span className="text-2xl">
+                    {activity.swipeDirection === 'right' ? '🦍' : '🚫'}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Following List */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-slate-400">People You Follow</h3>
+            {followingList.length === 0 ? (
+              <div className="bg-slate-800/50 rounded-xl p-4 text-center border border-white/5">
+                <p className="text-slate-500 text-sm">Not following anyone yet</p>
+              </div>
+            ) : (
+              followingList.map((person) => (
+                <div key={person.id} className="bg-slate-800/50 rounded-xl p-3 border border-white/5 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
+                    {person.photoURL ? (
+                      <img src={person.photoURL} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sm">
+                        {person.displayName?.[0] || '?'}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium truncate">{person.displayName}</h4>
+                  </div>
+                  <button
+                    onClick={() => handleUnfollow(person.id)}
+                    className="px-3 py-1.5 bg-slate-600 rounded-lg text-xs font-medium hover:bg-red-600 transition-colors"
+                  >
+                    Unfollow
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Followers List */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-slate-400">Your Followers</h3>
+            {followersList.length === 0 ? (
+              <div className="bg-slate-800/50 rounded-xl p-4 text-center border border-white/5">
+                <p className="text-slate-500 text-sm">No followers yet</p>
+              </div>
+            ) : (
+              followersList.map((person) => (
+                <div key={person.id} className="bg-slate-800/50 rounded-xl p-3 border border-white/5 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
+                    {person.photoURL ? (
+                      <img src={person.photoURL} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sm">
+                        {person.displayName?.[0] || '?'}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium truncate">{person.displayName}</h4>
+                  </div>
+                  {!followingStatus[person.id] && (
+                    <button
+                      onClick={() => handleFollow(person.id)}
+                      className="px-3 py-1.5 bg-purple-600 rounded-lg text-xs font-medium hover:bg-purple-500 transition-colors"
+                    >
+                      Follow Back
+                    </button>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
 
