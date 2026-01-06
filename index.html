@@ -4,25 +4,67 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/coin.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#111827" />
-    <meta name="description" content="CoinSwipe - Discover your next crypto investment, Tinder style. Swipe right on coins you like, build your watchlist." />
-    
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="description" content="CoinSwipe - Tinder for Crypto. Swipe right to APE, swipe left to avoid the RUG. Paper trade your way to degen glory." />
+
     <!-- Open Graph / Social -->
     <meta property="og:title" content="CoinSwipe - Tinder for Crypto" />
-    <meta property="og:description" content="Discover your next crypto investment by swiping. Build your watchlist the fun way." />
+    <meta property="og:description" content="Swipe right to APE. Swipe left to avoid the RUG. Paper trade crypto the fun way." />
     <meta property="og:type" content="website" />
-    
+    <meta property="og:site_name" content="CoinSwipe" />
+    <meta property="og:url" content="https://coinswipe-umber.vercel.app/" />
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="CoinSwipe - Tinder for Crypto" />
-    <meta name="twitter:description" content="Swipe right on coins you like. Build your watchlist the fun way." />
-    
-    <title>CoinSwipe - Tinder for Crypto 🪙</title>
-    
-    <!-- Prevent pull-to-refresh on mobile -->
+    <meta name="twitter:description" content="Swipe right to APE. Swipe left to avoid the RUG. Paper trade crypto." />
+    <meta name="twitter:creator" content="@coinswipe" />
+
+    <!-- PWA -->
+    <link rel="apple-touch-icon" href="/coin.svg" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <title>CoinSwipe - Tinder for Crypto</title>
+
+    <!-- Preconnect to API -->
+    <link rel="preconnect" href="https://api.coingecko.com" />
+    <link rel="preconnect" href="https://assets.coingecko.com" />
+
+    <!-- Font preload -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
     <style>
+      /* Prevent pull-to-refresh and overscroll */
       html, body {
         overscroll-behavior: none;
+        touch-action: pan-y;
+      }
+
+      /* Initial loading state */
+      #root:empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: #0f172a;
+      }
+
+      #root:empty::after {
+        content: '';
+        width: 48px;
+        height: 48px;
+        border: 3px solid rgba(168, 85, 247, 0.3);
+        border-top-color: #a855f7;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
       }
     </style>
   </head>
