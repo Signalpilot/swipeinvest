@@ -1081,26 +1081,26 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
           </div>
         </div>
 
-        {/* Price Section */}
-        <div className="px-6 pb-4">
+        {/* Price Section - Compact */}
+        <div className="px-5 pb-2">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-4xl font-black tracking-tight">{formatPrice(coin.current_price)}</p>
-              <div className={`flex items-center gap-2 mt-1 ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                <span className="text-lg font-bold">
+              <p className="text-3xl font-black tracking-tight">{formatPrice(coin.current_price)}</p>
+              <div className={`flex items-center gap-1 ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                <span className="text-sm font-bold">
                   {isPositive ? '▲' : '▼'} {Math.abs(coin.price_change_percentage_24h || 0).toFixed(2)}%
                 </span>
-                <span className="text-slate-500 text-sm">24h</span>
+                <span className="text-slate-500 text-xs">24h</span>
               </div>
             </div>
 
             {/* Mini Chart */}
-            <div className="w-28">
+            <div className="w-24">
               <SparklineSVG data={sparklineData.slice(-24)} positive={isPositive} />
             </div>
           </div>
 
-          {/* View Chart Button - DEDICATED TAP TARGET */}
+          {/* View Chart Button - Compact */}
           {isTop && onTap && (
             <motion.button
               initial={{ opacity: 0, y: 10 }}
@@ -1111,25 +1111,25 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
                 e.stopPropagation();
                 onTap(coin);
               }}
-              className="w-full mt-3 py-3 px-4 rounded-xl bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 flex items-center justify-center gap-2 active:scale-95 transition-transform touch-manipulation"
+              className="w-full mt-2 py-2 px-3 rounded-lg bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 flex items-center justify-center gap-2 active:scale-95 transition-transform touch-manipulation"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
-              <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
               </svg>
-              <span className="text-purple-300 font-semibold text-sm">View Full Chart</span>
+              <span className="text-purple-300 font-semibold text-xs">View Full Chart</span>
             </motion.button>
           )}
         </div>
 
-        {/* Vibes/Tags */}
+        {/* Vibes/Tags - Compact */}
         {vibes.length > 0 && (
-          <div className="px-6 pb-4">
-            <div className="flex flex-wrap gap-2">
+          <div className="px-5 pb-2">
+            <div className="flex flex-wrap gap-1.5">
               {vibes.map((vibe, i) => (
                 <span
                   key={i}
-                  className={`bg-gradient-to-r ${vibe.color} px-3 py-1.5 rounded-full text-xs font-bold shadow-lg`}
+                  className={`bg-gradient-to-r ${vibe.color} px-2 py-1 rounded-full text-[10px] font-bold shadow-lg`}
                 >
                   {vibe.emoji} {vibe.text}
                 </span>
@@ -1138,37 +1138,35 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
           </div>
         )}
 
-        {/* Stats Grid */}
-        <div className="px-6 pb-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-slate-800/60 backdrop-blur-sm p-3 rounded-xl border border-white/5">
-              <p className="text-slate-500 text-xs font-medium mb-1">Market Cap</p>
-              <p className="font-bold text-lg">{formatNumber(coin.market_cap)}</p>
+        {/* Stats Grid - Compact */}
+        <div className="px-5 pb-2">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-slate-800/60 backdrop-blur-sm p-2 rounded-lg border border-white/5">
+              <p className="text-slate-500 text-xs font-medium">Market Cap</p>
+              <p className="font-bold text-sm">{formatNumber(coin.market_cap)}</p>
             </div>
-            <div className="bg-slate-800/60 backdrop-blur-sm p-3 rounded-xl border border-white/5">
-              <p className="text-slate-500 text-xs font-medium mb-1">24h Volume</p>
-              <p className="font-bold text-lg">{formatNumber(coin.total_volume)}</p>
+            <div className="bg-slate-800/60 backdrop-blur-sm p-2 rounded-lg border border-white/5">
+              <p className="text-slate-500 text-xs font-medium">24h Volume</p>
+              <p className="font-bold text-sm">{formatNumber(coin.total_volume)}</p>
             </div>
           </div>
         </div>
 
-        {/* Community Sentiment */}
+        {/* Community Sentiment - Compact */}
         {(() => {
           const sentiment = getCommunitySentiment(coin);
           return (
-            <div className="px-6 pb-4">
-              <div className="bg-slate-800/40 backdrop-blur-sm p-3 rounded-xl border border-white/5">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-slate-400 text-xs font-medium flex items-center gap-1">
-                    👥 Community
-                  </span>
+            <div className="px-5 pb-2">
+              <div className="bg-slate-800/40 backdrop-blur-sm p-2 rounded-lg border border-white/5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-slate-400 text-xs font-medium">👥 Community</span>
                   <span className="text-slate-500 text-xs">
-                    {sentiment.userCount.toLocaleString()} swiped today
+                    {sentiment.userCount.toLocaleString()} today
                   </span>
                 </div>
                 {/* APE Rate Bar */}
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
                     <div
                       className={`h-full transition-all duration-500 ${
                         sentiment.apeRate > 70 ? 'bg-gradient-to-r from-green-500 to-emerald-400' :
@@ -1178,7 +1176,7 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
                       style={{ width: `${sentiment.apeRate}%` }}
                     />
                   </div>
-                  <span className={`text-sm font-bold ${
+                  <span className={`text-xs font-bold ${
                     sentiment.apeRate > 70 ? 'text-green-400' :
                     sentiment.apeRate > 45 ? 'text-yellow-400' :
                     'text-red-400'
@@ -1187,7 +1185,7 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
                   </span>
                 </div>
                 {/* Top Comment */}
-                <p className="text-slate-500 text-xs mt-2 italic">
+                <p className="text-slate-500 text-[10px] mt-1 italic truncate">
                   "{sentiment.topComment}" - @trader_{Math.abs(coin.id.charCodeAt(0) % 999)}
                 </p>
               </div>
@@ -1195,12 +1193,12 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
           );
         })()}
 
-        {/* Risk Level */}
-        <div className="px-6 pb-6">
-          <div className={`flex items-center justify-between ${risk.bg} backdrop-blur-sm p-3 rounded-xl border border-white/5`}>
-            <span className="text-slate-400 text-sm font-medium">Risk Level</span>
-            <span className={`font-bold ${risk.color} flex items-center gap-2`}>
-              <span className="text-xl">{risk.emoji}</span>
+        {/* Risk Level - Compact */}
+        <div className="px-5 pb-3">
+          <div className={`flex items-center justify-between ${risk.bg} backdrop-blur-sm p-2 rounded-lg border border-white/5`}>
+            <span className="text-slate-400 text-xs font-medium">Risk</span>
+            <span className={`font-bold text-sm ${risk.color} flex items-center gap-1`}>
+              <span>{risk.emoji}</span>
               {risk.label}
             </span>
           </div>
@@ -3099,7 +3097,7 @@ export default function SwipeInvest() {
             </motion.div>
           ) : (
             // Card stack
-            <div className="relative w-full max-w-[340px] h-[520px] flex items-center justify-center">
+            <div className="relative w-full max-w-[340px] h-[560px] flex items-center justify-center">
               <AnimatePresence mode="popLayout">
                 {filteredCoins.slice(currentIndex, currentIndex + 3).map((coin, i) => (
                   <SwipeCard
