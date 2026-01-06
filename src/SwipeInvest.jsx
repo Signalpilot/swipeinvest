@@ -822,7 +822,7 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
   const isPositive = coin.price_change_percentage_24h >= 0;
 
   const handleDragStart = (event, info) => {
-    dragStartRef.current = { x: info.point.x, y: info.point.y };
+    dragStartRef.current = { x: info.point.x, y: info.point.y, time: Date.now() };
   };
 
   const handleDragEnd = (event, info) => {
@@ -831,9 +831,10 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
     const dragDistance = Math.sqrt(
       Math.pow(info.offset.x, 2) + Math.pow(info.offset.y, 2)
     );
+    const dragTime = Date.now() - (dragStartRef.current?.time || 0);
 
-    // If minimal drag, treat as tap
-    if (dragDistance < 10 && isTop && onTap) {
+    // If minimal drag (less than 20px) and quick tap (less than 200ms), treat as tap
+    if (dragDistance < 20 && dragTime < 200 && isTop && onTap) {
       onTap(coin);
       return;
     }
@@ -842,6 +843,15 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
       onSwipe('right');
     } else if (info.offset.x < -threshold || velocity < -500) {
       onSwipe('left');
+    }
+  };
+
+  // Direct click handler for chart tap
+  const handleCardClick = (e) => {
+    // Only trigger if not dragging
+    if (!dragStartRef.current?.time || Date.now() - dragStartRef.current.time > 200) return;
+    if (isTop && onTap) {
+      onTap(coin);
     }
   };
 
@@ -1003,6 +1013,25 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap }) => {
               <SparklineSVG data={sparklineData.slice(-24)} positive={isPositive} />
             </div>
           </div>
+
+          {/* Tap for Chart hint */}
+          {isTop && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex items-center justify-center gap-1.5 mt-2"
+            >
+              <motion.span
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="text-slate-500 text-xs"
+              >
+                👆
+              </motion.span>
+              <span className="text-slate-500 text-xs font-medium">Tap for full chart</span>
+            </motion.div>
+          )}
         </div>
 
         {/* Vibes/Tags */}
