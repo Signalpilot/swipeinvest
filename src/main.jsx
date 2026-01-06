@@ -1,10 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import CoinSwipe from './CoinSwipe.jsx'
+import SwipeInvest from './SwipeInvest.jsx'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <CoinSwipe />
+    <SwipeInvest />
   </React.StrictMode>,
 )

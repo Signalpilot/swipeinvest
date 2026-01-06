@@ -611,6 +611,201 @@ const SparklineSVG = ({ data, positive }) => {
 };
 
 // ============================================================================
+// EPIC ANIMATION COMPONENTS
+// ============================================================================
+
+// Confetti Explosion - triggers on APE swipe
+const Confetti = ({ trigger, type = 'ape' }) => {
+  const [particles, setParticles] = useState([]);
+
+  useEffect(() => {
+    if (!trigger) return;
+
+    const colors = type === 'ape'
+      ? ['#22c55e', '#4ade80', '#86efac', '#fbbf24', '#f59e0b', '#a855f7'] // Green + gold
+      : ['#ef4444', '#f87171', '#fca5a5', '#a855f7', '#c084fc']; // Red + purple
+
+    const newParticles = Array.from({ length: 50 }, (_, i) => ({
+      id: `${Date.now()}-${i}`,
+      x: Math.random() * 100,
+      y: Math.random() * 30 + 35,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      size: Math.random() * 10 + 4,
+      velocityX: (Math.random() - 0.5) * 30,
+      velocityY: Math.random() * -20 - 10,
+      rotation: Math.random() * 360,
+      shape: Math.random() > 0.5 ? 'circle' : 'rect',
+    }));
+
+    setParticles(newParticles);
+    setTimeout(() => setParticles([]), 1500);
+  }, [trigger, type]);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+      <AnimatePresence>
+        {particles.map((p) => (
+          <motion.div
+            key={p.id}
+            initial={{
+              x: `${p.x}%`,
+              y: `${p.y}%`,
+              scale: 1,
+              rotate: p.rotation,
+              opacity: 1,
+            }}
+            animate={{
+              x: `${p.x + p.velocityX}%`,
+              y: `${p.y + p.velocityY + 100}%`,
+              scale: 0,
+              rotate: p.rotation + 720,
+              opacity: 0,
+            }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.5, ease: 'easeOut' }}
+            style={{
+              position: 'absolute',
+              width: p.size,
+              height: p.size,
+              backgroundColor: p.color,
+              borderRadius: p.shape === 'circle' ? '50%' : '2px',
+              boxShadow: `0 0 10px ${p.color}`,
+            }}
+          />
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Floating Sparkles Background
+const FloatingSparkles = ({ count = 20 }) => {
+  const sparkles = useMemo(() =>
+    Array.from({ length: count }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      delay: Math.random() * 5,
+      duration: 3 + Math.random() * 4,
+      size: 2 + Math.random() * 4,
+    })), [count]);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      {sparkles.map((s) => (
+        <motion.div
+          key={s.id}
+          className="absolute rounded-full bg-gradient-to-r from-purple-400 to-cyan-400"
+          style={{ left: s.left, top: s.top, width: s.size, height: s.size }}
+          animate={{
+            y: [-20, 20, -20],
+            x: [-10, 10, -10],
+            opacity: [0.2, 0.8, 0.2],
+            scale: [0.8, 1.2, 0.8],
+          }}
+          transition={{
+            duration: s.duration,
+            delay: s.delay,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+// Pulse Ring Effect for buttons
+const PulseRings = ({ active, color = 'purple' }) => {
+  if (!active) return null;
+
+  const colorClasses = {
+    purple: 'border-purple-500',
+    green: 'border-green-500',
+    red: 'border-red-500',
+    gold: 'border-yellow-400',
+  };
+
+  return (
+    <>
+      {[0, 1, 2].map((i) => (
+        <motion.div
+          key={i}
+          className={`absolute inset-0 rounded-full border-2 ${colorClasses[color]}`}
+          initial={{ scale: 1, opacity: 0.6 }}
+          animate={{ scale: 2.5, opacity: 0 }}
+          transition={{
+            duration: 1.5,
+            delay: i * 0.4,
+            repeat: Infinity,
+            ease: 'easeOut',
+          }}
+        />
+      ))}
+    </>
+  );
+};
+
+// Swipe Trail Effect
+const SwipeTrail = ({ direction }) => {
+  const isRight = direction === 'right';
+
+  return (
+    <motion.div
+      className="fixed inset-0 pointer-events-none z-40"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      {[...Array(8)].map((_, i) => (
+        <motion.div
+          key={i}
+          className={`absolute top-1/2 ${isRight ? 'left-1/2' : 'right-1/2'} w-4 h-4 rounded-full`}
+          style={{
+            background: isRight
+              ? `radial-gradient(circle, rgba(34,197,94,0.8) 0%, transparent 70%)`
+              : `radial-gradient(circle, rgba(239,68,68,0.8) 0%, transparent 70%)`,
+          }}
+          initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
+          animate={{
+            scale: [0, 3, 0],
+            x: isRight ? [0, 100 + i * 20, 200] : [0, -100 - i * 20, -200],
+            y: Math.sin(i) * 50,
+            opacity: [1, 0.8, 0],
+          }}
+          transition={{
+            duration: 0.6,
+            delay: i * 0.05,
+            ease: 'easeOut',
+          }}
+        />
+      ))}
+    </motion.div>
+  );
+};
+
+// Glow Text Effect
+const GlowText = ({ children, color = 'purple', className = '' }) => {
+  const glowColors = {
+    purple: 'text-purple-400 drop-shadow-[0_0_15px_rgba(168,85,247,0.8)]',
+    green: 'text-green-400 drop-shadow-[0_0_15px_rgba(34,197,94,0.8)]',
+    red: 'text-red-400 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]',
+    gold: 'text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]',
+    cyan: 'text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]',
+  };
+
+  return (
+    <motion.span
+      className={`${glowColors[color]} ${className}`}
+      animate={{ textShadow: ['0 0 10px currentColor', '0 0 20px currentColor', '0 0 10px currentColor'] }}
+      transition={{ duration: 2, repeat: Infinity }}
+    >
+      {children}
+    </motion.span>
+  );
+};
+
+// ============================================================================
 // SWIPEABLE CARD COMPONENT (Framer Motion Physics)
 // ============================================================================
 
@@ -1053,25 +1248,86 @@ const FearGreedIndex = ({ value, label }) => {
 // ============================================================================
 
 const LandingPage = ({ onStart, stats }) => {
+  // Floating emojis for epic vibes
+  const floatingEmojis = useMemo(() => [
+    { emoji: '🚀', left: '10%', delay: 0 },
+    { emoji: '💎', left: '25%', delay: 0.5 },
+    { emoji: '🦍', left: '40%', delay: 1 },
+    { emoji: '📈', left: '55%', delay: 1.5 },
+    { emoji: '🔥', left: '70%', delay: 2 },
+    { emoji: '⭐', left: '85%', delay: 2.5 },
+    { emoji: '💰', left: '15%', delay: 0.3 },
+    { emoji: '🎯', left: '80%', delay: 1.2 },
+  ], []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-900/20 to-slate-900 text-white overflow-hidden">
       {/* Animated background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/30 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl animate-pulse delay-500" />
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity }}
+          className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{ scale: [1.2, 1, 1.2], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-cyan-500/30 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
+          transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
+          className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl"
+        />
       </div>
 
+      {/* Floating Emojis */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {floatingEmojis.map((item, i) => (
+          <motion.div
+            key={i}
+            className="absolute text-4xl"
+            style={{ left: item.left, bottom: '-60px' }}
+            animate={{
+              y: [0, -window.innerHeight - 100],
+              rotate: [0, 360],
+              opacity: [0, 1, 1, 0],
+            }}
+            transition={{
+              duration: 8 + Math.random() * 4,
+              delay: item.delay,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+          >
+            {item.emoji}
+          </motion.div>
+        ))}
+      </div>
+
+      <FloatingSparkles count={15} />
+
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-6">
-        {/* Logo */}
+        {/* Logo with glow pulse */}
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', duration: 0.8 }}
-          className="mb-8"
+          className="mb-8 relative"
         >
-          <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/30">
-            <span className="text-5xl">🪙</span>
+          <motion.div
+            animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl blur-xl"
+          />
+          <div className="relative w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-purple-500/30">
+            <motion.span
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="text-5xl"
+            >
+              🪙
+            </motion.span>
           </div>
         </motion.div>
 
@@ -1358,7 +1614,7 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
 // MAIN APP COMPONENT
 // ============================================================================
 
-export default function CoinSwipe() {
+export default function SwipeInvest() {
   // Views: 'landing', 'swipe', 'portfolio'
   const [view, setView] = useState('landing');
   const [assetType, setAssetType] = useState('crypto'); // 'crypto' or 'stocks'
@@ -1376,6 +1632,8 @@ export default function CoinSwipe() {
   const [detailModal, setDetailModal] = useState(null); // For coin/stock detail with TradingView
   const [fearGreed, setFearGreed] = useState({ value: null, label: '' }); // Fear & Greed index
   const [marketStatus, setMarketStatus] = useState('open'); // 'open', 'closed', 'premarket'
+  const [confettiTrigger, setConfettiTrigger] = useState(0); // Incremented to trigger confetti
+  const [swipeEffect, setSwipeEffect] = useState(null); // 'left' or 'right' for trail effect
 
   // Get current categories based on asset type
   const currentCategories = assetType === 'crypto' ? CRYPTO_CATEGORIES : STOCK_CATEGORIES;
@@ -1716,7 +1974,14 @@ export default function CoinSwipe() {
     // Save to history for undo
     setHistory(prev => [...prev.slice(-20), { coin, index: currentIndex, direction, isSuper }]);
 
+    // Trigger visual effects!
+    setSwipeEffect(direction);
+    setTimeout(() => setSwipeEffect(null), 600);
+
     if (direction === 'right') {
+      // CONFETTI EXPLOSION! 🎉
+      setConfettiTrigger(prev => prev + 1);
+
       // APE - add to portfolio with entry price
       const position = {
         id: coin.id,
@@ -1847,7 +2112,18 @@ export default function CoinSwipe() {
 
   // Main Swipe View
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col">
+    <div className="min-h-screen bg-slate-900 text-white flex flex-col relative overflow-hidden">
+      {/* Epic Background Effects */}
+      <FloatingSparkles count={25} />
+
+      {/* Confetti Explosion on APE! */}
+      <Confetti trigger={confettiTrigger} type="ape" />
+
+      {/* Swipe Trail Effect */}
+      <AnimatePresence>
+        {swipeEffect && <SwipeTrail direction={swipeEffect} />}
+      </AnimatePresence>
+
       {/* Match Modal */}
       <AnimatePresence>
         {matchModal && (
@@ -2030,29 +2306,43 @@ export default function CoinSwipe() {
 
           {/* RUG (Pass) */}
           <motion.button
-            whileTap={{ scale: 0.85 }}
+            whileHover={{ scale: 1.15, rotate: -5 }}
+            whileTap={{ scale: 0.85, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={() => handleSwipe('left')}
-            className="w-18 h-18 bg-slate-800 rounded-full flex items-center justify-center hover:bg-red-500/20 border-2 border-slate-700 hover:border-red-500 transition shadow-lg text-4xl p-5"
+            className="relative w-18 h-18 bg-gradient-to-br from-slate-800 to-slate-900 rounded-full flex items-center justify-center border-2 border-red-500/50 hover:border-red-500 shadow-lg hover:shadow-red-500/30 text-4xl p-5 group"
           >
-            🚫
+            <span className="group-hover:animate-bounce">🚫</span>
+            <div className="absolute inset-0 rounded-full bg-red-500/0 group-hover:bg-red-500/10 transition-all duration-300" />
           </motion.button>
 
           {/* Super APE */}
           <motion.button
+            whileHover={{ scale: 1.2, y: -5 }}
             whileTap={{ scale: 0.85 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={() => handleSwipe('right', true)}
-            className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center hover:bg-blue-500/20 border-2 border-slate-700 hover:border-blue-500 transition text-3xl"
+            className="relative w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center border-2 border-blue-400 shadow-lg hover:shadow-blue-500/50 text-3xl group"
           >
-            ⭐
+            <motion.span
+              animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              ⭐
+            </motion.span>
+            <div className="absolute inset-0 rounded-full bg-gradient-to-t from-white/0 to-white/20" />
           </motion.button>
 
           {/* APE (Like) */}
           <motion.button
-            whileTap={{ scale: 0.85 }}
+            whileHover={{ scale: 1.15, rotate: 5 }}
+            whileTap={{ scale: 0.85, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={() => handleSwipe('right')}
-            className="w-18 h-18 bg-slate-800 rounded-full flex items-center justify-center hover:bg-green-500/20 border-2 border-slate-700 hover:border-green-500 transition shadow-lg text-4xl p-5"
+            className="relative w-18 h-18 bg-gradient-to-br from-green-600 to-emerald-700 rounded-full flex items-center justify-center border-2 border-green-400 shadow-lg hover:shadow-green-500/50 text-4xl p-5 group"
           >
-            🦍
+            <span className="group-hover:animate-bounce">🦍</span>
+            <div className="absolute inset-0 rounded-full bg-gradient-to-t from-white/0 to-white/20" />
           </motion.button>
 
           {/* Shuffle */}
