@@ -1802,13 +1802,13 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
                       e.preventDefault();
                       onTap(coin);
                     }}
-                    className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-blue-500/20 border border-blue-500/30 active:scale-95 transition-transform touch-manipulation"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-500/20 border border-blue-500/30 active:scale-95 transition-transform touch-manipulation"
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
-                    <svg className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
                     </svg>
-                    <span className="text-[10px] font-medium text-blue-400">View Chart</span>
+                    <span className="text-xs font-medium text-blue-400">Chart</span>
                   </button>
                 </div>
               )}
@@ -2894,13 +2894,13 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
                 </a>
                 <button
                   onClick={() => onShare(pos)}
-                  className="bg-slate-700 px-4 py-2 rounded-lg hover:bg-slate-600 transition text-sm"
+                  className="bg-slate-700 px-3 py-2 rounded-xl hover:bg-slate-600 transition-colors"
                 >
                   🐦
                 </button>
                 <button
                   onClick={() => onRemove(pos.id)}
-                  className="bg-slate-700 px-4 py-2 rounded-lg hover:bg-red-500/50 transition text-sm"
+                  className="bg-slate-700 px-3 py-2 rounded-xl hover:bg-red-500/50 transition-colors"
                 >
                   ✕
                 </button>
@@ -3423,7 +3423,7 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
                   </button>
                   <button
                     onClick={handleSaveBio}
-                    className="px-4 py-1 bg-blue-500 rounded-lg text-sm font-medium"
+                    className="px-4 py-2 bg-blue-500 rounded-xl text-sm font-medium hover:bg-blue-400 transition-colors"
                   >
                     Save
                   </button>
@@ -3463,7 +3463,7 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
                     setNotifLoading(false);
                   }}
                   disabled={notifLoading}
-                  className="px-3 py-1 bg-blue-500 rounded-lg text-xs font-medium disabled:opacity-50"
+                  className="px-4 py-2 bg-blue-500 rounded-xl text-sm font-medium disabled:opacity-50 hover:bg-blue-400 transition-colors"
                 >
                   {notifLoading ? 'Enabling...' : 'Enable'}
                 </motion.button>
@@ -3982,7 +3982,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
             <button
               onClick={handleSendMessage}
               disabled={cooldownTime > 0}
-              className="px-4 py-2 bg-blue-600 rounded-lg font-medium text-sm hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-blue-600 rounded-xl font-medium text-sm hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {cooldownTime > 0 ? cooldownTime : 'Send'}
             </button>
@@ -4053,7 +4053,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
             <button
               onClick={handleSendMessage}
               disabled={cooldownTime > 0}
-              className="px-4 py-2 bg-blue-600 rounded-lg font-medium text-sm hover:bg-blue-500 transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-blue-600 rounded-xl font-medium text-sm hover:bg-blue-500 transition-colors disabled:opacity-50"
             >
               {cooldownTime > 0 ? cooldownTime : 'Send'}
             </button>
@@ -4123,21 +4123,21 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                   {followingStatus[match.id] ? (
                     <button
                       onClick={() => handleUnfollow(match.id)}
-                      className="px-3 py-1.5 bg-slate-600 rounded-lg text-sm font-medium hover:bg-slate-500 transition-colors"
+                      className="px-4 py-2 bg-slate-600 rounded-xl text-sm font-medium hover:bg-slate-500 transition-colors"
                     >
                       Following
                     </button>
                   ) : (
                     <button
                       onClick={() => handleFollow(match.id)}
-                      className="px-3 py-1.5 bg-purple-600 rounded-lg text-sm font-medium hover:bg-purple-500 transition-colors"
+                      className="px-4 py-2 bg-purple-600 rounded-xl text-sm font-medium hover:bg-purple-500 transition-colors"
                     >
                       Follow
                     </button>
                   )}
                   <button
                     onClick={() => handleConnect(match.id)}
-                    className="px-3 py-1.5 bg-blue-600 rounded-lg text-sm font-medium hover:bg-blue-500 transition-colors"
+                    className="px-4 py-2 bg-blue-600 rounded-xl text-sm font-medium hover:bg-blue-500 transition-colors"
                   >
                     Connect
                   </button>
@@ -4232,7 +4232,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                   </div>
                   <button
                     onClick={() => handleUnfollow(person.id)}
-                    className="px-3 py-1.5 bg-slate-600 rounded-lg text-xs font-medium hover:bg-red-600 transition-colors"
+                    className="px-4 py-2 bg-slate-600 rounded-xl text-sm font-medium hover:bg-red-600 transition-colors"
                   >
                     Unfollow
                   </button>
@@ -4266,7 +4266,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                   {!followingStatus[person.id] && (
                     <button
                       onClick={() => handleFollow(person.id)}
-                      className="px-3 py-1.5 bg-purple-600 rounded-lg text-xs font-medium hover:bg-purple-500 transition-colors"
+                      className="px-4 py-2 bg-purple-600 rounded-xl text-sm font-medium hover:bg-purple-500 transition-colors"
                     >
                       Follow Back
                     </button>
@@ -4419,14 +4419,14 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                       {joinedChallenges[challenge.id] ? (
                         <button
                           onClick={() => setSelectedChallenge(challenge)}
-                          className="px-4 py-2 bg-green-600 rounded-lg text-sm font-medium hover:bg-green-500 transition-colors"
+                          className="px-4 py-2 bg-green-600 rounded-xl text-sm font-medium hover:bg-green-500 transition-colors"
                         >
                           View
                         </button>
                       ) : (
                         <button
                           onClick={() => handleJoinChallenge(challenge.id)}
-                          className="px-4 py-2 bg-purple-600 rounded-lg text-sm font-medium hover:bg-purple-500 transition-colors"
+                          className="px-4 py-2 bg-purple-600 rounded-xl text-sm font-medium hover:bg-purple-500 transition-colors"
                         >
                           Join
                         </button>
@@ -4501,7 +4501,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                   </div>
                   <button
                     onClick={() => handleAcceptRequest(req.from)}
-                    className="px-3 py-1.5 bg-green-600 rounded-lg text-sm font-medium hover:bg-green-500"
+                    className="px-4 py-2 bg-green-600 rounded-xl text-sm font-medium hover:bg-green-500 transition-colors"
                   >
                     Accept
                   </button>
