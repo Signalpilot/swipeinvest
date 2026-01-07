@@ -14,6 +14,7 @@ import {
   getInvestorMatches,
   sendChatMessage,
   subscribeToChatRoom,
+  loadOlderMessages,
   sendMatchRequest,
   acceptMatchRequest,
   getMatchRequests,
@@ -294,13 +295,10 @@ const TRADINGVIEW_SYMBOLS = {
   'maple': 'COINBASE:MPLUSD',
   'clearpool': 'KUCOIN:CPOOLUSDT',
   // Privacy coins
-  'zcash': 'BINANCE:ZECUSDT',
   'secret': 'BINANCE:SCRTUSDT',
-  'oasis-network': 'BINANCE:ROSEUSDT',
   'dusk-network': 'BINANCE:DUSKUSDT',
   // Infrastructure
   'helium': 'COINBASE:HNTUSD',
-  'iotex': 'BINANCE:IOTXUSDT',
   'deeper-network': 'KUCOIN:DPRUSDT',
   'flux': 'KUCOIN:FLUXUSDT',
   'dvpn': 'KUCOIN:DVPNUSDT',
@@ -337,14 +335,10 @@ const TRADINGVIEW_SYMBOLS = {
   // More DeFi & Infrastructure
   'frax-share': 'BINANCE:FXSUSDT',
   'frax-ether': 'COINBASE:FRXETHUSD',
-  'ribbon-finance': 'BINANCE:RBNUSDT',
   'amp-token': 'COINBASE:AMPUSD',
   'threshold': 'COINBASE:TUSD',
   'keep-network': 'COINBASE:KEEPUSD',
   'nucypher': 'COINBASE:NUUSD',
-  'fetch-ai': 'BINANCE:FETUSDT',
-  'ocean-protocol': 'BINANCE:OCEANUSDT',
-  'singularitynet': 'BINANCE:AGIXUSDT',
   // Gaming & Metaverse
   'enjin-coin': 'BINANCE:ENJUSDT',
   'ultra': 'KUCOIN:UOSUSDT',
@@ -392,7 +386,6 @@ const TRADINGVIEW_SYMBOLS = {
   'mirror-protocol': 'BINANCE:MIRUSDT',
   'perpetual-protocol': 'BINANCE:PERPUSDT',
   'api3': 'BINANCE:API3USDT',
-  'dodo': 'BINANCE:DODOUSDT',
   // More tokens 250-300
   'woo-network': 'BINANCE:WOOUSDT',
   'ssv-network': 'BINANCE:SSVUSDT',
@@ -414,7 +407,6 @@ const TRADINGVIEW_SYMBOLS = {
   'omni-network': 'BINANCE:OMNIUSDT',
   'saga': 'BINANCE:SAGAUSDT',
   'tnsr': 'BINANCE:TNSRUSDT',
-  'wormhole': 'BINANCE:WUSDT',
   'wen-token': 'BYBIT:WENUSDT',
   'parcl': 'BYBIT:PRCLUSDT',
   'kamino': 'BYBIT:KMNOUSDT',
@@ -442,7 +434,6 @@ const TRADINGVIEW_SYMBOLS = {
   'beam-coin': 'BINANCE:BEAMUSDT',
   'grin': 'KUCOIN:GRINUSDT',
   'pivx': 'BINANCE:PIVXUSDT',
-  'syscoin': 'BINANCE:SYSUSDT',
   // Recent listings
   'usual-usd': 'BINANCE:USD0USDT',
   'solv-protocol': 'BINANCE:SOLVUSDT',
@@ -486,13 +477,15 @@ const CRYPTO_CATEGORIES = [
   { id: 'all', label: 'All', emoji: '🔥' },
   { id: 'top50', label: 'Top 50', emoji: '🏆' },
   { id: 'top100', label: 'Top 100', emoji: '💯' },
-  { id: 'top200', label: 'Top 200', emoji: '📊' },
   { id: 'trending', label: 'Trending', emoji: '📈' },
   { id: 'meme', label: 'Meme', emoji: '🐸' },
-  { id: 'defi', label: 'DeFi', emoji: '🏦' },
   { id: 'ai', label: 'AI', emoji: '🤖' },
+  { id: 'gaming', label: 'Gaming', emoji: '🎮' },
+  { id: 'defi', label: 'DeFi', emoji: '🏦' },
   { id: 'l1', label: 'L1', emoji: '⛓️' },
   { id: 'l2', label: 'L2', emoji: '🔷' },
+  { id: 'nft', label: 'NFT', emoji: '🖼️' },
+  { id: 'privacy', label: 'Privacy', emoji: '🕵️' },
   { id: 'bluechip', label: 'Blue Chip', emoji: '💎' },
 ];
 
@@ -501,11 +494,15 @@ const STOCK_CATEGORIES = [
   { id: 'all', label: 'All', emoji: '🔥' },
   { id: 'trending', label: 'Trending', emoji: '📈' },
   { id: 'tech', label: 'Tech', emoji: '💻' },
+  { id: 'ai', label: 'AI', emoji: '🤖' },
   { id: 'finance', label: 'Finance', emoji: '🏦' },
   { id: 'healthcare', label: 'Health', emoji: '🏥' },
   { id: 'energy', label: 'Energy', emoji: '⚡' },
+  { id: 'retail', label: 'Retail', emoji: '🛒' },
+  { id: 'auto', label: 'Auto', emoji: '🚗' },
   { id: 'meme', label: 'Meme', emoji: '🚀' },
   { id: 'dividend', label: 'Dividend', emoji: '💰' },
+  { id: 'bluechip', label: 'Blue Chip', emoji: '💎' },
 ];
 
 // Popular stocks to track (symbol -> metadata)
@@ -565,10 +562,10 @@ const STOCK_LIST = [
   { symbol: 'BBBY', name: 'Bed Bath Beyond', sector: 'retail', category: ['meme'] },
   { symbol: 'BB', name: 'BlackBerry', sector: 'tech', category: ['meme', 'tech'] },
   // Consumer
-  { symbol: 'WMT', name: 'Walmart', sector: 'retail', category: ['dividend', 'bluechip'] },
-  { symbol: 'COST', name: 'Costco', sector: 'retail', category: ['bluechip'] },
-  { symbol: 'HD', name: 'Home Depot', sector: 'retail', category: ['dividend'] },
-  { symbol: 'NKE', name: 'Nike', sector: 'consumer', category: ['bluechip'] },
+  { symbol: 'WMT', name: 'Walmart', sector: 'retail', category: ['retail', 'dividend', 'bluechip'] },
+  { symbol: 'COST', name: 'Costco', sector: 'retail', category: ['retail', 'bluechip'] },
+  { symbol: 'HD', name: 'Home Depot', sector: 'retail', category: ['retail', 'dividend', 'bluechip'] },
+  { symbol: 'NKE', name: 'Nike', sector: 'consumer', category: ['retail', 'bluechip'] },
   { symbol: 'SBUX', name: 'Starbucks', sector: 'consumer', category: ['dividend'] },
   { symbol: 'MCD', name: 'McDonald\'s', sector: 'consumer', category: ['dividend', 'bluechip'] },
   { symbol: 'KO', name: 'Coca-Cola', sector: 'consumer', category: ['dividend', 'bluechip'] },
@@ -647,22 +644,22 @@ const STOCK_LIST = [
   { symbol: 'DVN', name: 'Devon Energy', sector: 'energy', category: ['energy', 'dividend'] },
   { symbol: 'FANG', name: 'Diamondback', sector: 'energy', category: ['energy', 'dividend'] },
   // Consumer & Retail expansion
-  { symbol: 'TGT', name: 'Target', sector: 'retail', category: ['dividend'] },
-  { symbol: 'LOW', name: 'Lowe\'s', sector: 'retail', category: ['dividend'] },
-  { symbol: 'TJX', name: 'TJ Maxx', sector: 'retail', category: [] },
-  { symbol: 'ROST', name: 'Ross Stores', sector: 'retail', category: [] },
-  { symbol: 'DG', name: 'Dollar General', sector: 'retail', category: [] },
-  { symbol: 'DLTR', name: 'Dollar Tree', sector: 'retail', category: [] },
-  { symbol: 'LULU', name: 'Lululemon', sector: 'retail', category: ['trending'] },
-  { symbol: 'BURL', name: 'Burlington', sector: 'retail', category: [] },
-  { symbol: 'GPS', name: 'Gap', sector: 'retail', category: [] },
-  { symbol: 'ETSY', name: 'Etsy', sector: 'retail', category: [] },
-  { symbol: 'EBAY', name: 'eBay', sector: 'retail', category: [] },
-  { symbol: 'CHWY', name: 'Chewy', sector: 'retail', category: ['meme'] },
-  { symbol: 'W', name: 'Wayfair', sector: 'retail', category: ['meme'] },
+  { symbol: 'TGT', name: 'Target', sector: 'retail', category: ['retail', 'dividend'] },
+  { symbol: 'LOW', name: 'Lowe\'s', sector: 'retail', category: ['retail', 'dividend'] },
+  { symbol: 'TJX', name: 'TJ Maxx', sector: 'retail', category: ['retail', 'dividend'] },
+  { symbol: 'ROST', name: 'Ross Stores', sector: 'retail', category: ['retail'] },
+  { symbol: 'DG', name: 'Dollar General', sector: 'retail', category: ['retail'] },
+  { symbol: 'DLTR', name: 'Dollar Tree', sector: 'retail', category: ['retail'] },
+  { symbol: 'LULU', name: 'Lululemon', sector: 'retail', category: ['retail', 'trending'] },
+  { symbol: 'BURL', name: 'Burlington', sector: 'retail', category: ['retail'] },
+  { symbol: 'GPS', name: 'Gap', sector: 'retail', category: ['retail'] },
+  { symbol: 'ETSY', name: 'Etsy', sector: 'retail', category: ['retail', 'tech'] },
+  { symbol: 'EBAY', name: 'eBay', sector: 'retail', category: ['retail', 'tech'] },
+  { symbol: 'CHWY', name: 'Chewy', sector: 'retail', category: ['retail', 'meme'] },
+  { symbol: 'W', name: 'Wayfair', sector: 'retail', category: ['retail', 'meme'] },
   { symbol: 'YUM', name: 'Yum Brands', sector: 'consumer', category: ['dividend'] },
-  { symbol: 'CMG', name: 'Chipotle', sector: 'consumer', category: [] },
-  { symbol: 'DPZ', name: 'Domino\'s', sector: 'consumer', category: [] },
+  { symbol: 'CMG', name: 'Chipotle', sector: 'consumer', category: ['retail'] },
+  { symbol: 'DPZ', name: 'Domino\'s', sector: 'consumer', category: ['retail'] },
   { symbol: 'QSR', name: 'Restaurant Brands', sector: 'consumer', category: ['dividend'] },
   { symbol: 'DKNG', name: 'DraftKings', sector: 'consumer', category: ['meme', 'trending'] },
   { symbol: 'MGM', name: 'MGM Resorts', sector: 'consumer', category: [] },
@@ -701,11 +698,11 @@ const STOCK_LIST = [
   { symbol: 'SPG', name: 'Simon Property', sector: 'realestate', category: ['dividend'] },
   { symbol: 'O', name: 'Realty Income', sector: 'realestate', category: ['dividend'] },
   // More meme stocks
-  { symbol: 'RIVN', name: 'Rivian', sector: 'auto', category: ['meme', 'trending'] },
-  { symbol: 'LCID', name: 'Lucid', sector: 'auto', category: ['meme'] },
-  { symbol: 'NIO', name: 'NIO', sector: 'auto', category: ['meme', 'trending'] },
-  { symbol: 'XPEV', name: 'XPeng', sector: 'auto', category: ['meme'] },
-  { symbol: 'LI', name: 'Li Auto', sector: 'auto', category: ['meme'] },
+  { symbol: 'RIVN', name: 'Rivian', sector: 'auto', category: ['auto', 'meme', 'trending'] },
+  { symbol: 'LCID', name: 'Lucid', sector: 'auto', category: ['auto', 'meme'] },
+  { symbol: 'NIO', name: 'NIO', sector: 'auto', category: ['auto', 'meme', 'trending'] },
+  { symbol: 'XPEV', name: 'XPeng', sector: 'auto', category: ['auto', 'meme'] },
+  { symbol: 'LI', name: 'Li Auto', sector: 'auto', category: ['auto', 'meme'] },
   { symbol: 'SPCE', name: 'Virgin Galactic', sector: 'aerospace', category: ['meme'] },
   { symbol: 'PLUG', name: 'Plug Power', sector: 'energy', category: ['meme'] },
   { symbol: 'FCEL', name: 'FuelCell', sector: 'energy', category: ['meme'] },
@@ -714,6 +711,48 @@ const STOCK_LIST = [
   { symbol: 'OPEN', name: 'Opendoor', sector: 'realestate', category: ['meme'] },
   { symbol: 'UPST', name: 'Upstart', sector: 'finance', category: ['meme', 'ai'] },
   { symbol: 'AFRM', name: 'Affirm', sector: 'finance', category: ['tech', 'meme'] },
+  // Additional Tech (unique stocks)
+  { symbol: 'KLAC', name: 'KLA Corp', sector: 'tech', category: ['tech', 'ai'] },
+  { symbol: 'FTNT', name: 'Fortinet', sector: 'tech', category: ['tech'] },
+  { symbol: 'TEAM', name: 'Atlassian', sector: 'tech', category: ['tech'] },
+  { symbol: 'TTD', name: 'Trade Desk', sector: 'tech', category: ['tech', 'ai'] },
+  // AI Stocks
+  { symbol: 'IONQ', name: 'IonQ', sector: 'tech', category: ['tech', 'ai', 'meme'] },
+  { symbol: 'RGTI', name: 'Rigetti', sector: 'tech', category: ['tech', 'ai', 'meme'] },
+  { symbol: 'SOUN', name: 'SoundHound', sector: 'tech', category: ['tech', 'ai', 'meme'] },
+  { symbol: 'BBAI', name: 'BigBear.ai', sector: 'tech', category: ['tech', 'ai', 'meme'] },
+  { symbol: 'SERV', name: 'Serve Robotics', sector: 'tech', category: ['tech', 'ai', 'meme'] },
+  // Additional Retail
+  { symbol: 'DECK', name: 'Deckers', sector: 'retail', category: ['retail'] },
+  { symbol: 'CROX', name: 'Crocs', sector: 'retail', category: ['retail', 'meme'] },
+  // Auto & EV (Major automakers)
+  { symbol: 'GM', name: 'General Motors', sector: 'auto', category: ['auto', 'dividend'] },
+  { symbol: 'F', name: 'Ford', sector: 'auto', category: ['auto', 'dividend'] },
+  { symbol: 'TM', name: 'Toyota', sector: 'auto', category: ['auto', 'dividend', 'bluechip'] },
+  { symbol: 'RACE', name: 'Ferrari', sector: 'auto', category: ['auto'] },
+  { symbol: 'STLA', name: 'Stellantis', sector: 'auto', category: ['auto', 'dividend'] },
+  { symbol: 'HMC', name: 'Honda', sector: 'auto', category: ['auto', 'dividend'] },
+  // Consumer Goods
+  { symbol: 'PG', name: 'Procter & Gamble', sector: 'consumer', category: ['dividend', 'bluechip'] },
+  { symbol: 'CL', name: 'Colgate-Palmolive', sector: 'consumer', category: ['dividend'] },
+  { symbol: 'KMB', name: 'Kimberly-Clark', sector: 'consumer', category: ['dividend'] },
+  // Healthcare additions
+  { symbol: 'BNTX', name: 'BioNTech', sector: 'healthcare', category: ['healthcare'] },
+  // Crypto-related stocks
+  { symbol: 'MSTR', name: 'MicroStrategy', sector: 'tech', category: ['tech', 'meme', 'trending'] },
+  { symbol: 'MARA', name: 'Marathon Digital', sector: 'tech', category: ['tech', 'meme', 'trending'] },
+  { symbol: 'RIOT', name: 'Riot Platforms', sector: 'tech', category: ['tech', 'meme', 'trending'] },
+  { symbol: 'CLSK', name: 'CleanSpark', sector: 'tech', category: ['tech', 'meme'] },
+  { symbol: 'HUT', name: 'Hut 8 Mining', sector: 'tech', category: ['tech', 'meme'] },
+  // ETFs (popular trading)
+  { symbol: 'SPY', name: 'S&P 500 ETF', sector: 'etf', category: ['bluechip'] },
+  { symbol: 'QQQ', name: 'Nasdaq 100 ETF', sector: 'etf', category: ['tech', 'bluechip'] },
+  { symbol: 'IWM', name: 'Russell 2000 ETF', sector: 'etf', category: [] },
+  { symbol: 'DIA', name: 'Dow Jones ETF', sector: 'etf', category: ['bluechip'] },
+  { symbol: 'ARKK', name: 'ARK Innovation', sector: 'etf', category: ['tech', 'ai', 'meme'] },
+  { symbol: 'SOXL', name: 'Semis 3x Bull', sector: 'etf', category: ['tech', 'ai', 'meme'] },
+  { symbol: 'TQQQ', name: 'Nasdaq 3x Bull', sector: 'etf', category: ['tech', 'meme'] },
+  { symbol: 'SQQQ', name: 'Nasdaq 3x Bear', sector: 'etf', category: ['meme'] },
 ];
 
 // For backwards compatibility
@@ -795,14 +834,14 @@ const getStockVibes = (stock) => {
   const stockSymbol = stock.symbol?.toUpperCase();
   const stockMeta = STOCK_LIST.find(s => s.symbol === stockSymbol);
 
-  if (categories.includes('trending')) vibes.push({ text: 'Trending', emoji: '🔥', color: 'from-orange-500 to-red-500' });
-  if (categories.includes('ai')) vibes.push({ text: 'AI', emoji: '🤖', color: 'from-blue-500 to-cyan-500' });
-  if (categories.includes('meme')) vibes.push({ text: 'Meme', emoji: '🚀', color: 'from-green-500 to-emerald-500' });
-  if (categories.includes('tech')) vibes.push({ text: 'Tech', emoji: '💻', color: 'from-blue-500 to-cyan-500' });
-  if (categories.includes('finance')) vibes.push({ text: 'Finance', emoji: '🏦', color: 'from-yellow-500 to-orange-500' });
-  if (categories.includes('dividend')) vibes.push({ text: 'Dividend', emoji: '💰', color: 'from-green-500 to-teal-500' });
-  if (categories.includes('healthcare')) vibes.push({ text: 'Health', emoji: '🏥', color: 'from-red-500 to-pink-500' });
-  if (categories.includes('energy')) vibes.push({ text: 'Energy', emoji: '⚡', color: 'from-amber-500 to-yellow-500' });
+  if (categories.includes('trending')) vibes.push({ text: 'Trending', emoji: '🔥', color: 'from-white/30 to-white/20' });
+  if (categories.includes('ai')) vibes.push({ text: 'AI', emoji: '🤖', color: 'from-white/20 to-white/10' });
+  if (categories.includes('meme')) vibes.push({ text: 'Meme', emoji: '🚀', color: 'from-white/20 to-white/10' });
+  if (categories.includes('tech')) vibes.push({ text: 'Tech', emoji: '💻', color: 'from-white/20 to-white/10' });
+  if (categories.includes('finance')) vibes.push({ text: 'Finance', emoji: '🏦', color: 'from-white/80 to-white/60' });
+  if (categories.includes('dividend')) vibes.push({ text: 'Dividend', emoji: '💰', color: 'from-white/20 to-white/10' });
+  if (categories.includes('healthcare')) vibes.push({ text: 'Health', emoji: '🏥', color: 'from-white/40 to-white/20' });
+  if (categories.includes('energy')) vibes.push({ text: 'Energy', emoji: '⚡', color: 'from-white/40 to-white/20' });
 
   // Sector badge
   if (stockMeta?.sector && vibes.length < 2) {
@@ -817,8 +856,8 @@ const getStockVibes = (stock) => {
     });
   }
 
-  if (stock.price_change_percentage_24h > 8) vibes.push({ text: 'Pumping', emoji: '🚀', color: 'from-green-400 to-emerald-400' });
-  if (stock.price_change_percentage_24h < -8) vibes.push({ text: 'Dipping', emoji: '📉', color: 'from-red-500 to-pink-500' });
+  if (stock.price_change_percentage_24h > 8) vibes.push({ text: 'Pumping', emoji: '🚀', color: 'from-white/20 to-white/10' });
+  if (stock.price_change_percentage_24h < -8) vibes.push({ text: 'Dipping', emoji: '📉', color: 'from-white/40 to-white/20' });
 
   return vibes.slice(0, 3);
 };
@@ -929,44 +968,63 @@ const transformQuotes = (quotes) => {
 };
 
 const getRiskLevel = (marketCap) => {
-  if (marketCap > 100000000000) return { emoji: '💎', label: 'Blue Chip', color: 'text-cyan-400', bg: 'bg-cyan-500/20' };
-  if (marketCap > 10000000000) return { emoji: '🟢', label: 'Large Cap', color: 'text-green-400', bg: 'bg-green-500/20' };
-  if (marketCap > 1000000000) return { emoji: '🟡', label: 'Mid Cap', color: 'text-yellow-400', bg: 'bg-yellow-500/20' };
-  if (marketCap > 100000000) return { emoji: '🟠', label: 'Small Cap', color: 'text-orange-400', bg: 'bg-orange-500/20' };
-  return { emoji: '💀', label: 'Degen', color: 'text-blue-400', bg: 'bg-blue-500/20' };
+  if (marketCap > 100000000000) return { emoji: '💎', label: 'Blue Chip', color: 'text-white', bg: 'bg-white/10' };
+  if (marketCap > 10000000000) return { emoji: '🟢', label: 'Large Cap', color: 'text-white', bg: 'bg-white/10' };
+  if (marketCap > 1000000000) return { emoji: '🟡', label: 'Mid Cap', color: 'text-white/70', bg: 'bg-white/10' };
+  if (marketCap > 100000000) return { emoji: '🟠', label: 'Small Cap', color: 'text-white/70', bg: 'bg-white/10' };
+  return { emoji: '💀', label: 'Degen', color: 'text-white', bg: 'bg-white/10' };
 };
 
 const getCoinCategory = (coin) => {
   const id = coin.id?.toLowerCase() || '';
   const name = coin.name?.toLowerCase() || '';
+  const symbol = coin.symbol?.toLowerCase() || '';
   const categories = [];
 
   // Meme coins
-  const memeKeywords = ['doge', 'shib', 'pepe', 'floki', 'bonk', 'wojak', 'meme', 'inu', 'elon', 'moon', 'safe'];
-  if (memeKeywords.some(k => id.includes(k) || name.includes(k))) {
+  const memeKeywords = ['doge', 'shib', 'pepe', 'floki', 'bonk', 'wojak', 'meme', 'inu', 'elon', 'moon', 'safe', 'cat', 'frog', 'popcat', 'brett', 'mog', 'turbo', 'ladys', 'milady', 'andy', 'chad', 'coq', 'myro', 'wen', 'book', 'bome', 'slerf', 'pork', 'neiro', 'goat', 'act', 'pnut', 'chillguy'];
+  if (memeKeywords.some(k => id.includes(k) || name.includes(k) || symbol.includes(k))) {
     categories.push('meme');
   }
 
   // AI coins
-  const aiKeywords = ['render', 'fetch', 'singularity', 'ocean', 'ai', 'neural', 'gpt', 'bittensor'];
+  const aiKeywords = ['render', 'fetch', 'singularity', 'ocean', 'ai', 'neural', 'gpt', 'bittensor', 'worldcoin', 'akash', 'tau', 'cortex', 'numeraire', 'virtual', 'agent', 'griffain', 'fartcoin', 'zerebro', 'phala', 'io-net', 'nosana', 'grass', 'golem'];
   if (aiKeywords.some(k => id.includes(k) || name.includes(k))) {
     categories.push('ai');
   }
 
+  // Gaming / GameFi
+  const gamingKeywords = ['axie', 'sandbox', 'decentraland', 'gala', 'enjin', 'immutable', 'illuvium', 'beam', 'prime', 'pixel', 'super', 'hero', 'ronin', 'wemix', 'magic', 'treasure', 'bigtime', 'game', 'play', 'guild'];
+  if (gamingKeywords.some(k => id.includes(k) || name.includes(k))) {
+    categories.push('gaming');
+  }
+
+  // NFT / Metaverse
+  const nftKeywords = ['ape', 'blur', 'looks', 'x2y2', 'nft', 'meta', 'verse', 'land', 'world', 'virtual', 'decentraland', 'sandbox', 'otherside', 'pudgy'];
+  if (nftKeywords.some(k => id.includes(k) || name.includes(k))) {
+    categories.push('nft');
+  }
+
+  // Privacy coins
+  const privacyKeywords = ['monero', 'zcash', 'dash', 'secret', 'oasis', 'horizen', 'firo', 'haven', 'pirate', 'dero', 'ergo', 'iron', 'beam', 'grin'];
+  if (privacyKeywords.some(k => id.includes(k) || name.includes(k))) {
+    categories.push('privacy');
+  }
+
   // DeFi
-  const defiIds = ['uniswap', 'aave', 'compound', 'maker', 'curve', 'sushi', 'pancake', 'lido', 'rocket-pool'];
-  if (defiIds.some(d => id.includes(d))) {
+  const defiKeywords = ['uniswap', 'aave', 'compound', 'maker', 'curve', 'sushi', 'pancake', 'lido', 'rocket', 'yearn', 'synthetix', 'balancer', '1inch', 'dydx', 'gmx', 'raydium', 'jupiter', 'orca', 'marinade', 'jito', 'kamino', 'drift', 'pendle', 'ethena', 'usual', 'morpho', 'fluid', 'cow', 'aerodrome'];
+  if (defiKeywords.some(d => id.includes(d) || name.includes(d))) {
     categories.push('defi');
   }
 
   // L1s
-  const l1Ids = ['bitcoin', 'ethereum', 'solana', 'cardano', 'avalanche', 'sui', 'near', 'aptos', 'sei'];
+  const l1Ids = ['bitcoin', 'ethereum', 'solana', 'cardano', 'avalanche', 'sui', 'near', 'aptos', 'sei', 'ton', 'tron', 'cosmos', 'polkadot', 'algorand', 'hedera', 'fantom', 'flow', 'kaspa', 'injective', 'celestia', 'berachain', 'monad', 'movement'];
   if (l1Ids.some(l => id.includes(l))) {
     categories.push('l1');
   }
 
   // L2s
-  const l2Ids = ['arbitrum', 'optimism', 'polygon', 'base', 'zksync', 'starknet', 'mantle'];
+  const l2Ids = ['arbitrum', 'optimism', 'polygon', 'base', 'zksync', 'starknet', 'mantle', 'scroll', 'linea', 'blast', 'mode', 'manta', 'zora', 'metis', 'boba'];
   if (l2Ids.some(l => id.includes(l))) {
     categories.push('l2');
   }
@@ -980,10 +1038,9 @@ const getCoinCategory = (coin) => {
   const rank = coin.market_cap_rank;
   if (rank && rank <= 50) categories.push('top50');
   if (rank && rank <= 100) categories.push('top100');
-  if (rank && rank <= 200) categories.push('top200');
 
   // Trending (high 24h volume relative to mcap or big price move)
-  if (coin.price_change_percentage_24h > 10 ||
+  if (coin.price_change_percentage_24h > 10 || coin.price_change_percentage_24h < -10 ||
       (coin.total_volume > coin.market_cap * 0.15)) {
     categories.push('trending');
   }
@@ -1000,15 +1057,15 @@ const getVibes = (asset) => {
   const vibes = [];
   const categories = getCoinCategory(asset);
 
-  if (categories.includes('trending')) vibes.push({ text: 'Trending', emoji: '🔥', color: 'from-orange-500 to-red-500' });
-  if (categories.includes('ai')) vibes.push({ text: 'AI', emoji: '🤖', color: 'from-blue-500 to-cyan-500' });
-  if (categories.includes('meme')) vibes.push({ text: 'Meme', emoji: '🐸', color: 'from-green-500 to-emerald-500' });
-  if (categories.includes('defi')) vibes.push({ text: 'DeFi', emoji: '🏦', color: 'from-blue-500 to-cyan-500' });
-  if (categories.includes('l1')) vibes.push({ text: 'L1', emoji: '⛓️', color: 'from-yellow-500 to-orange-500' });
-  if (categories.includes('l2')) vibes.push({ text: 'L2', emoji: '🔷', color: 'from-indigo-500 to-blue-500' });
+  if (categories.includes('trending')) vibes.push({ text: 'Trending', emoji: '🔥', color: 'from-white/30 to-white/20' });
+  if (categories.includes('ai')) vibes.push({ text: 'AI', emoji: '🤖', color: 'from-white/20 to-white/10' });
+  if (categories.includes('meme')) vibes.push({ text: 'Meme', emoji: '🐸', color: 'from-white/20 to-white/10' });
+  if (categories.includes('defi')) vibes.push({ text: 'DeFi', emoji: '🏦', color: 'from-white/20 to-white/10' });
+  if (categories.includes('l1')) vibes.push({ text: 'L1', emoji: '⛓️', color: 'from-white/80 to-white/60' });
+  if (categories.includes('l2')) vibes.push({ text: 'L2', emoji: '🔷', color: 'from-white/40 to-white/20' });
 
-  if (asset.price_change_percentage_24h > 20) vibes.push({ text: 'Pumping', emoji: '🚀', color: 'from-green-400 to-emerald-400' });
-  if (asset.price_change_percentage_24h < -15) vibes.push({ text: 'Dipping', emoji: '📉', color: 'from-red-500 to-pink-500' });
+  if (asset.price_change_percentage_24h > 20) vibes.push({ text: 'Pumping', emoji: '🚀', color: 'from-white/20 to-white/10' });
+  if (asset.price_change_percentage_24h < -15) vibes.push({ text: 'Dipping', emoji: '📉', color: 'from-white/40 to-white/20' });
 
   return vibes.slice(0, 3);
 };
@@ -1221,7 +1278,7 @@ const LoadingSpinner = ({ text = 'Loading...', size = 'md' }) => {
 
   return (
     <div className="flex flex-col items-center justify-center py-8 gap-3">
-      <div className={`${sizeClasses[size]} border-2 border-slate-600 border-t-blue-500 rounded-full animate-spin`} />
+      <div className={`${sizeClasses[size]} border-2 border-white/30 border-t-white rounded-full animate-spin`} />
       <p className="text-slate-400 text-sm">{text}</p>
     </div>
   );
@@ -1460,10 +1517,10 @@ const PulseRings = ({ active, color = 'blue' }) => {
   if (!active) return null;
 
   const colorClasses = {
-    blue: 'border-blue-500',
-    green: 'border-green-500',
-    red: 'border-red-500',
-    gold: 'border-yellow-400',
+    blue: 'border-white/30',
+    green: 'border-white/30',
+    red: 'border-white/30',
+    gold: 'border-white/60',
   };
 
   return (
@@ -1582,11 +1639,11 @@ const SwipeTrail = ({ direction }) => {
 // Glow Text Effect
 const GlowText = ({ children, color = 'blue', className = '' }) => {
   const glowColors = {
-    blue: 'text-blue-400 drop-shadow-[0_0_15px_rgba(91,138,255,0.8)]',
-    green: 'text-green-400 drop-shadow-[0_0_15px_rgba(34,197,94,0.8)]',
-    red: 'text-red-400 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]',
-    gold: 'text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]',
-    cyan: 'text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]',
+    blue: 'text-white drop-shadow-[0_0_15px_rgba(91,138,255,0.8)]',
+    green: 'text-white drop-shadow-[0_0_15px_rgba(34,197,94,0.8)]',
+    red: 'text-white/60 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]',
+    gold: 'text-white/70 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]',
+    cyan: 'text-white drop-shadow-[0_0_15px_rgba(34,211,238,0.8)]',
   };
 
   return (
@@ -1659,19 +1716,22 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
         transition: { duration: 0.2 }
       }}
     >
-      {/* Card Container - Finex-inspired glassmorphism */}
+      {/* Card Container - Terminal aesthetic */}
       <div
-        className="relative rounded-3xl overflow-hidden border border-white/[0.08]"
+        className="relative rounded-2xl overflow-hidden border border-white/20"
         style={{
-          background: 'linear-gradient(145deg, rgba(30,41,59,0.95) 0%, rgba(15,23,42,0.98) 100%)',
+          background: 'rgba(0,0,0,0.85)',
           backdropFilter: 'blur(24px)',
-          boxShadow: '0 24px 48px -8px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05) inset, 0 -20px 40px -20px rgba(91,138,255,0.15) inset',
+          boxShadow: '0 24px 48px -8px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1) inset',
         }}
       >
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.08] via-transparent to-cyan-500/[0.05] pointer-events-none" />
+        {/* Subtle grid overlay for terminal feel */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+          backgroundSize: '20px 20px',
+        }} />
 
-        {/* APE Stamp */}
+        {/* SMASH Stamp */}
         <motion.div
           className="absolute top-8 left-4 z-30 pointer-events-none"
           style={{ opacity: apeOpacity }}
@@ -1679,17 +1739,17 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
           <motion.div
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
-            className="border-[3px] border-emerald-400 text-emerald-400 px-6 py-3 rounded-2xl font-black text-3xl rotate-[-15deg] backdrop-blur-md"
+            className="border-2 border-white text-white px-6 py-3 rounded-xl font-mono font-black text-2xl rotate-[-15deg]"
             style={{
-              background: 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.05) 100%)',
-              boxShadow: '0 8px 32px rgba(16,185,129,0.3), 0 0 0 1px rgba(16,185,129,0.1) inset',
+              background: 'rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(8px)',
             }}
           >
-            APE 🦍
+            SMASH +
           </motion.div>
         </motion.div>
 
-        {/* RUG Stamp */}
+        {/* PASS Stamp */}
         <motion.div
           className="absolute top-8 right-4 z-30 pointer-events-none"
           style={{ opacity: rugOpacity }}
@@ -1697,65 +1757,38 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
           <motion.div
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
-            className="border-[3px] border-rose-400 text-rose-400 px-6 py-3 rounded-2xl font-black text-3xl rotate-[15deg] backdrop-blur-md"
+            className="border-2 border-white/50 text-white/70 px-6 py-3 rounded-xl font-mono font-black text-2xl rotate-[15deg]"
             style={{
-              background: 'linear-gradient(135deg, rgba(244,63,94,0.2) 0%, rgba(244,63,94,0.05) 100%)',
-              boxShadow: '0 8px 32px rgba(244,63,94,0.3), 0 0 0 1px rgba(244,63,94,0.1) inset',
+              background: 'rgba(255,255,255,0.05)',
+              backdropFilter: 'blur(8px)',
             }}
           >
-            RUG 🚫
+            PASS ✕
           </motion.div>
         </motion.div>
 
         {/* Coin Header - Compact */}
         <div className="relative p-4 pb-3">
-          {/* Rank badge - refined glassmorphism */}
-          <div
-            className="absolute top-4 right-4 px-3 py-1.5 rounded-full text-sm font-semibold"
-            style={{
-              background: 'rgba(0,0,0,0.3)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-            }}
-          >
+          {/* Rank badge - monochrome */}
+          <div className="absolute top-4 right-4 px-3 py-1.5 rounded-lg text-sm font-mono font-semibold bg-white/10 border border-white/20">
             #{coin.market_cap_rank || '?'}
           </div>
 
-          {/* Hot badge - with glow */}
+          {/* Hot badge - monochrome */}
           {coin.price_change_percentage_24h > 15 && (
             <motion.div
-              animate={{ scale: [1, 1.05, 1] }}
+              animate={{ opacity: [0.7, 1, 0.7] }}
               transition={{ duration: 1.5, repeat: Infinity }}
-              className="absolute top-4 left-4 px-3 py-1.5 rounded-full text-xs font-bold"
-              style={{
-                background: 'linear-gradient(135deg, #f97316 0%, #ef4444 100%)',
-                boxShadow: '0 4px 20px rgba(249,115,22,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset',
-              }}
+              className="absolute top-4 left-4 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-white text-black"
             >
-              🔥 HOT
+              ↑ HOT
             </motion.div>
           )}
 
           {/* Coin image and name */}
           <div className="flex items-center gap-4 relative">
             <div className="relative group">
-              {/* Animated glow behind image */}
-              <motion.div
-                animate={{ opacity: [0.4, 0.7, 0.4], scale: [0.95, 1.05, 0.95] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="absolute inset-0 rounded-2xl blur-xl -z-10"
-                style={{
-                  background: `radial-gradient(circle, ${isPositive ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)'} 0%, transparent 70%)`,
-                }}
-              />
-              <div
-                className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden"
-                style={{
-                  background: 'linear-gradient(145deg, rgba(51,65,85,0.8) 0%, rgba(30,41,59,0.9) 100%)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.08) inset',
-                }}
-              >
+              <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden bg-white/10 border border-white/20">
                 <img
                   src={coin.image}
                   alt={coin.name}
@@ -1763,15 +1796,15 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
                   draggable={false}
                   onError={(e) => {
                     e.target.style.display = 'none';
-                    e.target.parentElement.innerHTML = `<span class="text-3xl font-black bg-gradient-to-br from-blue-400 to-cyan-400 bg-clip-text text-transparent">${coin.symbol?.toUpperCase().slice(0,3) || '?'}</span>`;
+                    e.target.parentElement.innerHTML = `<span class="text-2xl font-mono font-black text-white">${coin.symbol?.toUpperCase().slice(0,3) || '?'}</span>`;
                   }}
                 />
               </div>
             </div>
 
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-extrabold truncate tracking-tight">{coin.name}</h2>
-              <p className="text-slate-400 font-semibold uppercase tracking-widest text-xs">${coin.symbol}</p>
+              <h2 className="text-xl font-mono font-black truncate tracking-tight">{coin.name}</h2>
+              <p className="text-white/50 font-mono uppercase tracking-widest text-xs">${coin.symbol}</p>
             </div>
           </div>
         </div>
@@ -1780,12 +1813,12 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
         <div className="px-4 pb-1.5">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-2xl font-black tracking-tight">{formatPrice(coin.current_price)}</p>
-              <div className={`flex items-center gap-1 ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                <span className="text-xs font-bold">
+              <p className="text-2xl font-mono font-black tracking-tight">{formatPrice(coin.current_price)}</p>
+              <div className={`flex items-center gap-1 ${isPositive ? 'text-white' : 'text-white/50'}`}>
+                <span className="text-xs font-mono font-bold">
                   {isPositive ? '▲' : '▼'} {Math.abs(coin.price_change_percentage_24h || 0).toFixed(2)}%
                 </span>
-                <span className="text-slate-500 text-[10px]">24h</span>
+                <span className="text-white/30 text-[10px] font-mono">24h</span>
               </div>
             </div>
 
@@ -1811,13 +1844,13 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
                       e.preventDefault();
                       onTap(coin);
                     }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-500/20 border border-blue-500/30 active:scale-95 transition-transform touch-manipulation"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 border border-white/20 active:scale-95 transition-transform touch-manipulation hover:bg-white/20"
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
-                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
                     </svg>
-                    <span className="text-xs font-medium text-blue-400">Chart</span>
+                    <span className="text-xs font-mono font-medium text-white">Chart</span>
                   </button>
                 </div>
               )}
@@ -1844,11 +1877,11 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
         {/* Stats Grid - Ultra Compact */}
         <div className="px-4 pb-1.5">
           <div className="grid grid-cols-2 gap-1.5">
-            <div className="bg-slate-800/60 p-1.5 rounded-lg border border-white/5">
+            <div className="bg-black/60 p-1.5 rounded-lg border border-white/5">
               <p className="text-slate-500 text-[10px]">Market Cap</p>
               <p className="font-bold text-xs">{formatNumber(coin.market_cap)}</p>
             </div>
-            <div className="bg-slate-800/60 p-1.5 rounded-lg border border-white/5">
+            <div className="bg-black/60 p-1.5 rounded-lg border border-white/5">
               <p className="text-slate-500 text-[10px]">24h Volume</p>
               <p className="font-bold text-xs">{formatNumber(coin.total_volume)}</p>
             </div>
@@ -1864,28 +1897,28 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
                 {/* Community Mini - Shows real data when available */}
                 <div className={`flex-1 p-1.5 rounded-lg border ${
                   sentiment.isReal
-                    ? 'bg-blue-500/10 border-blue-500/20'
-                    : 'bg-slate-800/40 border-white/5'
+                    ? 'bg-white/5 border-white/20'
+                    : 'bg-black/40 border-white/5'
                 }`}>
                   <div className="flex items-center gap-1 mb-0.5">
                     <span className="text-[10px]">{sentiment.isReal ? '🦍' : '👥'}</span>
-                    <div className="flex-1 h-1 bg-slate-700 rounded-full overflow-hidden">
+                    <div className="flex-1 h-1 bg-black/60 rounded-full overflow-hidden">
                       <div
                         className={`h-full ${
-                          sentiment.apeRate > 70 ? 'bg-green-500' :
-                          sentiment.apeRate > 45 ? 'bg-yellow-500' : 'bg-red-500'
+                          sentiment.apeRate > 70 ? 'bg-white text-black' :
+                          sentiment.apeRate > 45 ? 'bg-white/80 text-black' : 'bg-white/30'
                         }`}
                         style={{ width: `${sentiment.apeRate}%` }}
                       />
                     </div>
                     <span className={`text-[10px] font-bold ${
-                      sentiment.apeRate > 70 ? 'text-green-400' :
-                      sentiment.apeRate > 45 ? 'text-yellow-400' : 'text-red-400'
+                      sentiment.apeRate > 70 ? 'text-white' :
+                      sentiment.apeRate > 45 ? 'text-white/70' : 'text-white/60'
                     }`}>
                       {sentiment.apeRate}%
                     </span>
                     {sentiment.isReal && (
-                      <span className="text-[8px] text-blue-400 font-semibold">LIVE</span>
+                      <span className="text-[8px] text-white font-semibold">LIVE</span>
                     )}
                   </div>
                 </div>
@@ -1902,7 +1935,7 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
         {/* Swipe hint for top card */}
         {isTop && (
           <div className="pb-3 flex justify-center">
-            <p className="text-slate-600 text-xs font-medium">← Rug • Swipe • Ape →</p>
+            <p className="text-slate-500 text-xs font-mono tracking-wider">← PASS • SWIPE • SMASH →</p>
           </div>
         )}
       </div>
@@ -1924,7 +1957,7 @@ const MatchModal = ({ coin, pnl, onClose }) => {
       onClick={onClose}
     >
       <motion.div
-        className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-3xl p-8 max-w-sm w-full text-center border border-white/10 shadow-2xl"
+        className="bg-gradient-to-b from-black to-black rounded-3xl p-8 max-w-sm w-full text-center border border-white/10 shadow-2xl"
         initial={{ scale: 0.8, y: 50 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.8, y: 50 }}
@@ -1933,7 +1966,7 @@ const MatchModal = ({ coin, pnl, onClose }) => {
         {/* Celebration animation */}
         <div className="text-7xl mb-4 animate-bounce">🎉</div>
 
-        <h2 className="text-3xl font-black bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent mb-2">
+        <h2 className="text-3xl font-black bg-gradient-to-r from-white/20 to-white/10 bg-clip-text text-transparent mb-2">
           IT'S A MATCH!
         </h2>
 
@@ -1942,12 +1975,12 @@ const MatchModal = ({ coin, pnl, onClose }) => {
         </p>
 
         <div className="flex items-center justify-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-slate-700 overflow-hidden">
+          <div className="w-16 h-16 rounded-2xl bg-black/60 overflow-hidden">
             <img src={coin.image} alt={coin.name} className="w-full h-full object-cover" />
           </div>
           <div className="text-left">
             <p className="font-bold text-xl">{coin.symbol?.toUpperCase()}</p>
-            <p className="text-green-400 font-bold text-2xl">{formatPnL(pnl)}</p>
+            <p className="text-white font-bold text-2xl">{formatPnL(pnl)}</p>
           </div>
         </div>
 
@@ -1956,13 +1989,13 @@ const MatchModal = ({ coin, pnl, onClose }) => {
             href={`${AFFILIATE_LINKS.coinbase}?entry=match_${coin.symbol}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full bg-gradient-to-r from-green-500 to-emerald-500 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition shadow-lg shadow-green-500/30"
+            className="block w-full bg-gradient-to-r from-white/20 to-white/10 py-4 rounded-xl font-bold text-lg hover:opacity-90 transition shadow-lg shadow-white/20"
           >
             Buy More {coin.symbol?.toUpperCase()} 🚀
           </a>
           <button
             onClick={onClose}
-            className="block w-full bg-slate-700 py-3 rounded-xl font-medium hover:bg-slate-600 transition"
+            className="block w-full bg-black/60 py-3 rounded-xl font-medium hover:bg-white/20 transition"
           >
             Keep Swiping
           </button>
@@ -2033,7 +2066,7 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
       onClick={onClose}
     >
       <motion.div
-        className="bg-slate-900 rounded-3xl w-full max-w-2xl max-h-[95vh] overflow-hidden border border-white/10 shadow-2xl flex flex-col"
+        className="bg-black rounded-3xl w-full max-w-2xl max-h-[95vh] overflow-hidden border border-white/10 shadow-2xl flex flex-col"
         style={{ boxShadow: '0 25px 50px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(139,92,246,0.1)' }}
         initial={{ scale: 0.9, y: 50 }}
         animate={{ scale: 1, y: 0 }}
@@ -2043,7 +2076,7 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-slate-800 overflow-hidden">
+            <div className="w-12 h-12 rounded-xl bg-black/70 overflow-hidden">
               <img src={coin.image} alt={coin.name} className="w-full h-full object-cover" />
             </div>
             <div>
@@ -2053,14 +2086,14 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-800 rounded-xl transition text-2xl"
+            className="p-2 hover:bg-black/70 rounded-xl transition text-2xl"
           >
             ✕
           </button>
         </div>
 
         {/* TradingView Chart - Uses advanced chart with symbol search enabled */}
-        <div className="h-[400px] sm:h-[450px] bg-slate-950">
+        <div className="h-[400px] sm:h-[450px] bg-black">
           <iframe
             src={`https://www.tradingview.com/widgetembed/?symbol=${tvSymbol}&interval=60&symboledit=1&saveimage=0&toolbarbg=0f172a&studies=[]&theme=dark&style=1&timezone=exchange&withdateranges=1&studies_overrides={}&overrides={}&enabled_features=["header_symbol_search"]&disabled_features=["header_compare"]&locale=en&utm_source=swipefolio`}
             style={{ width: '100%', height: '100%' }}
@@ -2077,7 +2110,7 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
           <div className="flex items-end justify-between">
             <div>
               <p className="text-3xl font-black">{formatPrice(coin.current_price)}</p>
-              <p className={`text-lg font-bold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+              <p className={`text-lg font-bold ${isPositive ? 'text-white' : 'text-white/60'}`}>
                 {isPositive ? '▲' : '▼'} {Math.abs(coin.price_change_percentage_24h || 0).toFixed(2)}% (24h)
               </p>
             </div>
@@ -2099,19 +2132,19 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-slate-800/60 p-3 rounded-xl">
+            <div className="bg-black/60 p-3 rounded-xl">
               <p className="text-slate-500 text-xs">Market Cap</p>
               <p className="font-bold text-lg">{formatNumber(coin.market_cap)}</p>
             </div>
-            <div className="bg-slate-800/60 p-3 rounded-xl">
+            <div className="bg-black/60 p-3 rounded-xl">
               <p className="text-slate-500 text-xs">24h Volume</p>
               <p className="font-bold text-lg">{formatNumber(coin.total_volume)}</p>
             </div>
-            <div className="bg-slate-800/60 p-3 rounded-xl">
+            <div className="bg-black/60 p-3 rounded-xl">
               <p className="text-slate-500 text-xs">24h High</p>
               <p className="font-bold text-lg">{formatPrice(coin.high_24h || coin.current_price * 1.02)}</p>
             </div>
-            <div className="bg-slate-800/60 p-3 rounded-xl">
+            <div className="bg-black/60 p-3 rounded-xl">
               <p className="text-slate-500 text-xs">24h Low</p>
               <p className="font-bold text-lg">{formatPrice(coin.low_24h || coin.current_price * 0.98)}</p>
             </div>
@@ -2126,7 +2159,7 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
               }
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 bg-slate-800 py-2 rounded-xl text-center text-sm font-medium hover:bg-slate-700 transition-colors"
+              className="flex-1 bg-black/70 py-2 rounded-xl text-center text-sm font-medium hover:bg-black/60 transition-colors"
             >
               {coin.isStock ? 'Yahoo Finance ↗' : 'CoinGecko ↗'}
             </a>
@@ -2134,7 +2167,7 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
               href={`https://www.tradingview.com/chart/?symbol=${tvSymbol}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 bg-slate-800 py-2 rounded-xl text-center text-sm font-medium hover:bg-slate-700 transition-colors"
+              className="flex-1 bg-black/70 py-2 rounded-xl text-center text-sm font-medium hover:bg-black/60 transition-colors"
             >
               TradingView ↗
             </a>
@@ -2148,7 +2181,7 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
                   href={AFFILIATE_LINKS.robinhood}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-green-500 to-emerald-500 shadow-green-500/30 text-sm"
+                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-white/20 to-white/10 shadow-white/20 text-sm"
                 >
                   💰 Buy {coin.symbol?.toUpperCase()} on Robinhood
                 </a>
@@ -2156,7 +2189,7 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
                   href={AFFILIATE_LINKS.webull}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-orange-500 to-red-500 shadow-orange-500/30 text-sm"
+                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-white/30 to-white/20 shadow-white/10 text-sm"
                 >
                   📈 Webull
                 </a>
@@ -2167,7 +2200,7 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
                   href={AFFILIATE_LINKS.coinbase}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-blue-500 to-cyan-500 shadow-blue-500/30 text-sm"
+                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-white/20 to-white/10 shadow-white/20 text-sm"
                 >
                   💰 Buy {coin.symbol?.toUpperCase()} on Coinbase
                 </a>
@@ -2175,7 +2208,7 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
                   href={AFFILIATE_LINKS.binance}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-yellow-500 to-orange-500 shadow-yellow-500/30 text-black text-sm"
+                  className="flex-1 py-3 rounded-xl text-center font-bold shadow-lg transition hover:opacity-90 bg-gradient-to-r from-white/80 to-white/60 shadow-white/10 text-black text-sm"
                 >
                   📊 Binance
                 </a>
@@ -2185,30 +2218,30 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="p-4 border-t border-white/10 flex gap-3">
+        <div className="p-4 border-t border-white/20 flex gap-3">
           <button
             onClick={() => { onRug(); onClose(); }}
-            className="flex-1 bg-red-500/20 hover:bg-red-500/30 border-2 border-red-500 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2"
+            className="flex-1 bg-black hover:bg-white/10 border-2 border-white/30 hover:border-white/50 py-3 rounded-xl font-mono font-bold transition flex items-center justify-center gap-2"
           >
-            <span className="text-xl">🚫</span> RUG
+            <span className="text-xl">✕</span> PASS
           </button>
           <button
             onClick={handleShare}
-            className="bg-blue-500/20 hover:bg-blue-500/30 border-2 border-blue-500 px-4 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2"
+            className="bg-black hover:bg-white/10 border-2 border-white/30 hover:border-white/50 px-4 py-3 rounded-xl font-mono font-bold transition flex items-center justify-center gap-2"
           >
             {shareStatus === 'copied' ? (
-              <><span className="text-xl">✓</span> Copied!</>
+              <><span className="text-xl">✓</span> Copied</>
             ) : shareStatus === 'shared' ? (
-              <><span className="text-xl">✓</span> Shared!</>
+              <><span className="text-xl">✓</span> Shared</>
             ) : (
-              <><span className="text-xl">📤</span> Share</>
+              <><span className="text-xl">↗</span> Share</>
             )}
           </button>
           <button
             onClick={() => { onApe(); onClose(); }}
-            className="flex-1 bg-green-500/20 hover:bg-green-500/30 border-2 border-green-500 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2"
+            className="flex-1 bg-white hover:bg-white/90 text-black border-2 border-white py-3 rounded-xl font-mono font-bold transition flex items-center justify-center gap-2"
           >
-            <span className="text-xl">🦍</span> APE
+            <span className="text-xl">+</span> SMASH
           </button>
         </div>
       </motion.div>
@@ -2222,11 +2255,11 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
 
 const FearGreedIndex = ({ value, label }) => {
   const getColor = (val) => {
-    if (val <= 25) return 'text-red-500';
-    if (val <= 45) return 'text-orange-500';
-    if (val <= 55) return 'text-yellow-500';
+    if (val <= 25) return 'text-white/50';
+    if (val <= 45) return 'text-white/70';
+    if (val <= 55) return 'text-white/70';
     if (val <= 75) return 'text-lime-500';
-    return 'text-green-500';
+    return 'text-white';
   };
 
   const getEmoji = (val) => {
@@ -2240,7 +2273,7 @@ const FearGreedIndex = ({ value, label }) => {
   if (!value) return null;
 
   return (
-    <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-full text-sm">
+    <div className="flex items-center gap-2 bg-black/80 px-3 py-1.5 rounded-full text-sm">
       <span>{getEmoji(value)}</span>
       <span className={`font-bold ${getColor(value)}`}>{value}</span>
       <span className="text-slate-400 hidden sm:inline">{label}</span>
@@ -2281,7 +2314,7 @@ const DailyPrediction = ({ coins, onVote, userVote }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gradient-to-br from-blue-900/40 to-cyan-900/40 backdrop-blur-sm rounded-2xl p-4 border border-blue-500/20"
+      className="bg-black/50 backdrop-blur-sm rounded-2xl p-4 border border-white/20"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -2292,35 +2325,35 @@ const DailyPrediction = ({ coins, onVote, userVote }) => {
       </div>
 
       <p className="text-sm text-slate-300 mb-3">
-        Will <span className="font-bold text-blue-300">${featuredCoin.symbol.toUpperCase()}</span> hit{' '}
+        Will <span className="font-bold text-white/80">${featuredCoin.symbol.toUpperCase()}</span> hit{' '}
         <span className="font-bold text-white">{formatPrice(targetPrice)}</span> this week?
       </p>
 
       {/* Vote bars */}
       <div className="space-y-2 mb-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs w-16">🦍 APE</span>
-          <div className="flex-1 h-3 bg-slate-700 rounded-full overflow-hidden">
+          <span className="text-xs font-mono w-12">+ YES</span>
+          <div className="flex-1 h-3 bg-white/10 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-green-500 to-emerald-400"
+              className="h-full bg-white"
               initial={{ width: 0 }}
               animate={{ width: `${apePercent}%` }}
               transition={{ duration: 0.5 }}
             />
           </div>
-          <span className="text-xs font-bold text-green-400 w-10 text-right">{apePercent}%</span>
+          <span className="text-xs font-mono font-bold text-white w-10 text-right">{apePercent}%</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs w-16">🚫 RUG</span>
-          <div className="flex-1 h-3 bg-slate-700 rounded-full overflow-hidden">
+          <span className="text-xs font-mono w-12">✕ NO</span>
+          <div className="flex-1 h-3 bg-white/10 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-gradient-to-r from-red-500 to-pink-400"
+              className="h-full bg-white/50"
               initial={{ width: 0 }}
               animate={{ width: `${100 - apePercent}%` }}
               transition={{ duration: 0.5 }}
             />
           </div>
-          <span className="text-xs font-bold text-red-400 w-10 text-right">{100 - apePercent}%</span>
+          <span className="text-xs font-mono font-bold text-white/70 w-10 text-right">{100 - apePercent}%</span>
         </div>
       </div>
 
@@ -2329,29 +2362,29 @@ const DailyPrediction = ({ coins, onVote, userVote }) => {
         <div className="flex gap-2">
           <button
             onClick={() => onVote('ape')}
-            className="flex-1 bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 py-2 rounded-xl text-sm font-bold transition-colors"
+            className="flex-1 bg-white text-black hover:bg-white/90 border border-white py-2 rounded-xl text-sm font-mono font-bold transition-colors"
           >
-            🦍 APE
+            + YES
           </button>
           <button
             onClick={() => onVote('rug')}
-            className="flex-1 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 py-2 rounded-xl text-sm font-bold transition-colors"
+            className="flex-1 bg-white/10 hover:bg-white/20 border border-white/30 py-2 rounded-xl text-sm font-mono font-bold transition-colors"
           >
-            🚫 RUG
+            ✕ NO
           </button>
         </div>
       ) : (
-        <div className="text-center py-2 bg-slate-800/50 rounded-lg">
-          <p className="text-sm">
-            Your prediction: <span className={userVote === 'ape' ? 'text-green-400' : 'text-red-400'}>
-              {userVote === 'ape' ? '🦍 APE' : '🚫 RUG'}
+        <div className="text-center py-2 bg-white/5 rounded-lg border border-white/10">
+          <p className="text-sm font-mono">
+            Your prediction: <span className="text-white font-bold">
+              {userVote === 'ape' ? '+ YES' : '✕ NO'}
             </span> ✓
           </p>
-          <p className="text-xs text-slate-500 mt-1">Results in {7 - new Date().getDay()} days</p>
+          <p className="text-xs text-white/50 mt-1 font-mono">Results in {7 - new Date().getDay()} days</p>
         </div>
       )}
 
-      <p className="text-xs text-slate-500 text-center mt-2">
+      <p className="text-xs text-white/50 font-mono text-center mt-2">
         {totalVotes.toLocaleString()} traders voted
       </p>
     </motion.div>
@@ -2366,7 +2399,7 @@ const StreakBadge = ({ streak, compact = false }) => {
   if (!streak || streak.currentStreak === 0) {
     if (compact) return null;
     return (
-      <div className="bg-slate-800/50 rounded-xl p-3 border border-white/5 text-center">
+      <div className="bg-black/50 rounded-xl p-3 border border-white/5 text-center">
         <p className="text-slate-500 text-xs">Swipe daily to build your streak!</p>
       </div>
     );
@@ -2381,10 +2414,10 @@ const StreakBadge = ({ streak, compact = false }) => {
   };
 
   const getStreakColor = (days) => {
-    if (days >= 30) return 'from-yellow-500 to-orange-500';
-    if (days >= 14) return 'from-cyan-500 to-blue-500';
-    if (days >= 7) return 'from-orange-500 to-red-500';
-    if (days >= 3) return 'from-blue-500 to-cyan-500';
+    if (days >= 30) return 'from-white/80 to-white/60';
+    if (days >= 14) return 'from-white/20 to-white/10';
+    if (days >= 7) return 'from-white/30 to-white/20';
+    if (days >= 3) return 'from-white/20 to-white/10';
     return 'from-slate-500 to-slate-400';
   };
 
@@ -2414,14 +2447,14 @@ const StreakBadge = ({ streak, compact = false }) => {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-slate-800/50 rounded-xl p-4 border border-white/5"
+      className="bg-black/50 rounded-xl p-4 border border-white/5"
     >
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-bold text-sm flex items-center gap-2">
           {getStreakEmoji(streak.currentStreak)} Daily Streak
         </h3>
         {streak.isActive && (
-          <span className="text-[10px] bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full">
             Active today
           </span>
         )}
@@ -2486,14 +2519,14 @@ const Leaderboard = ({ portfolio, user, leaderboardData, userRankData }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="bg-slate-800/40 backdrop-blur-sm rounded-2xl p-4 border border-white/5"
+      className="bg-black/40 backdrop-blur-sm rounded-2xl p-4 border border-white/5"
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-xl">🏆</span>
           <span className="font-bold text-sm">Top Swipers</span>
           {isRealData && (
-            <span className="text-[8px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded font-semibold">LIVE</span>
+            <span className="text-[8px] bg-white/10 text-white px-1.5 py-0.5 rounded font-semibold">LIVE</span>
           )}
         </div>
         <span className="text-xs text-slate-400">All Time</span>
@@ -2513,7 +2546,7 @@ const Leaderboard = ({ portfolio, user, leaderboardData, userRankData }) => {
               {trader.displayName?.split(' ')[0] || 'Anonymous'}
             </span>
             <div className="text-right">
-              <span className="text-cyan-400 text-sm font-bold">{trader.totalSwipes}</span>
+              <span className="text-white text-sm font-bold">{trader.totalSwipes}</span>
               <span className="text-slate-500 text-[10px] ml-1">swipes</span>
             </div>
           </div>
@@ -2527,7 +2560,7 @@ const Leaderboard = ({ portfolio, user, leaderboardData, userRankData }) => {
             <div key={trader.id || trader.displayName} className="flex items-center gap-2 text-xs text-slate-400">
               <span className="w-5 text-center">#{i + 4}</span>
               <span className="flex-1 truncate">{trader.displayName?.split(' ')[0] || 'Anonymous'}</span>
-              <span className="text-cyan-400/70">{trader.totalSwipes}</span>
+              <span className="text-white/70">{trader.totalSwipes}</span>
             </div>
           ))}
         </div>
@@ -2535,8 +2568,8 @@ const Leaderboard = ({ portfolio, user, leaderboardData, userRankData }) => {
 
       {/* User rank */}
       {user ? (
-        <div className="bg-blue-500/20 rounded-xl p-2 flex items-center gap-3 border border-blue-500/30">
-          <span className="text-sm font-bold text-blue-400">#{userRank || '?'}</span>
+        <div className="bg-white/10 rounded-xl p-2 flex items-center gap-3 border border-white/20">
+          <span className="text-sm font-bold text-white">#{userRank || '?'}</span>
           {user.photoURL ? (
             <img src={user.photoURL} alt="" className="w-5 h-5 rounded-full" />
           ) : (
@@ -2544,12 +2577,12 @@ const Leaderboard = ({ portfolio, user, leaderboardData, userRankData }) => {
           )}
           <span className="text-sm font-medium flex-1">You</span>
           <div className="text-right">
-            <span className="text-cyan-400 text-sm font-bold">{userSwipes}</span>
+            <span className="text-white text-sm font-bold">{userSwipes}</span>
             <span className="text-slate-500 text-[10px] ml-1">swipes</span>
           </div>
         </div>
       ) : (
-        <div className="bg-slate-700/30 rounded-xl p-2 text-center border border-white/5">
+        <div className="bg-black/40 rounded-xl p-2 text-center border border-white/5">
           <span className="text-xs text-slate-400">Sign in to see your rank</span>
         </div>
       )}
@@ -2619,9 +2652,9 @@ const LandingPage = ({ onStart, stats }) => {
           <motion.div
             animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl blur-xl"
+            className="absolute inset-0 bg-gradient-to-br from-white/20 to-white/10 rounded-3xl blur-xl"
           />
-          <div className="relative w-24 h-24 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/30">
+          <div className="relative w-24 h-24 bg-gradient-to-br from-white/20 to-white/10 rounded-3xl flex items-center justify-center shadow-2xl shadow-white/20">
             <motion.span
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 2, repeat: Infinity }}
@@ -2640,7 +2673,7 @@ const LandingPage = ({ onStart, stats }) => {
           className="text-5xl md:text-7xl font-display font-bold text-center mb-4 tracking-tight"
         >
           <span className="text-white">Swipe. Match. </span>
-          <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-white to-white bg-clip-text text-transparent">
             Invest.
           </span>
         </motion.h1>
@@ -2663,19 +2696,19 @@ const LandingPage = ({ onStart, stats }) => {
           transition={{ delay: 0.4 }}
           className="grid grid-cols-2 gap-4 max-w-sm w-full mb-8"
         >
-          <div className="bg-slate-800/50 backdrop-blur-sm p-4 rounded-2xl border border-white/10 text-center">
+          <div className="bg-black/50 backdrop-blur-sm p-4 rounded-2xl border border-white/10 text-center">
             <div className="text-3xl mb-2">🦍</div>
             <p className="text-sm font-medium">Swipe Right = APE</p>
           </div>
-          <div className="bg-slate-800/50 backdrop-blur-sm p-4 rounded-2xl border border-white/10 text-center">
+          <div className="bg-black/50 backdrop-blur-sm p-4 rounded-2xl border border-white/10 text-center">
             <div className="text-3xl mb-2">🚫</div>
             <p className="text-sm font-medium">Swipe Left = RUG</p>
           </div>
-          <div className="bg-slate-800/50 backdrop-blur-sm p-4 rounded-2xl border border-white/10 text-center">
+          <div className="bg-black/50 backdrop-blur-sm p-4 rounded-2xl border border-white/10 text-center">
             <div className="text-3xl mb-2">📊</div>
             <p className="text-sm font-medium">Track Paper PnL</p>
           </div>
-          <div className="bg-slate-800/50 backdrop-blur-sm p-4 rounded-2xl border border-white/10 text-center">
+          <div className="bg-black/50 backdrop-blur-sm p-4 rounded-2xl border border-white/10 text-center">
             <div className="text-3xl mb-2">🎉</div>
             <p className="text-sm font-medium">Match Alerts</p>
           </div>
@@ -2690,15 +2723,15 @@ const LandingPage = ({ onStart, stats }) => {
             className="flex gap-6 mb-8 text-center"
           >
             <div>
-              <p className="text-3xl font-black text-blue-400">{stats.totalSwipes || 0}</p>
+              <p className="text-3xl font-black text-white">{stats.totalSwipes || 0}</p>
               <p className="text-slate-500 text-sm">Total Swipes</p>
             </div>
             <div>
-              <p className="text-3xl font-black text-green-400">{stats.totalApes || 0}</p>
-              <p className="text-slate-500 text-sm">Apes</p>
+              <p className="text-3xl font-mono font-black text-white">{stats.totalApes || 0}</p>
+              <p className="text-white/50 text-sm font-mono">Picks</p>
             </div>
             <div>
-              <p className="text-3xl font-black text-cyan-400">{stats.portfolioValue || '$0'}</p>
+              <p className="text-3xl font-black text-white">{stats.portfolioValue || '$0'}</p>
               <p className="text-slate-500 text-sm">Paper Value</p>
             </div>
           </motion.div>
@@ -2783,13 +2816,13 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
   const losers = positions.filter(p => p.pnl < 0).length;
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-sm border-b border-white/10">
+      <div className="sticky top-0 z-20 bg-black/95 backdrop-blur-sm border-b border-white/10">
         <div className="flex items-center gap-4 p-4">
           <button
             onClick={onBack}
-            className="p-2 hover:bg-slate-800 rounded-xl transition"
+            className="p-2 hover:bg-black/70 rounded-xl transition"
           >
             <span className="text-2xl">←</span>
           </button>
@@ -2801,26 +2834,26 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
 
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-2 p-4 pt-0">
-          <div className="bg-slate-800/60 rounded-xl p-3 text-center">
-            <p className={`text-2xl font-black ${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <div className="bg-black/60 rounded-xl p-3 text-center">
+            <p className={`text-2xl font-black ${totalPnL >= 0 ? 'text-white' : 'text-white/60'}`}>
               {formatPnL(totalPnL)}
             </p>
             <p className="text-slate-500 text-xs">Avg PnL</p>
           </div>
-          <div className="bg-slate-800/60 rounded-xl p-3 text-center">
-            <p className="text-2xl font-black text-green-400">{winners}</p>
+          <div className="bg-black/60 rounded-xl p-3 text-center">
+            <p className="text-2xl font-black text-white">{winners}</p>
             <p className="text-slate-500 text-xs">Winners</p>
           </div>
-          <div className="bg-slate-800/60 rounded-xl p-3 text-center">
-            <p className="text-2xl font-black text-red-400">{losers}</p>
+          <div className="bg-black/60 rounded-xl p-3 text-center">
+            <p className="text-2xl font-black text-white/60">{losers}</p>
             <p className="text-slate-500 text-xs">Losers</p>
           </div>
         </div>
 
         {/* How PnL Works - Info Banner */}
         {positions.length > 0 && (
-          <div className="mx-4 mb-2 px-3 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-            <p className="text-blue-300 text-xs text-center">
+          <div className="mx-4 mb-2 px-3 py-2 bg-white/5 border border-white/20 rounded-xl">
+            <p className="text-white/80 text-xs text-center">
               📊 <span className="font-medium">Paper Trading:</span> Swipe right = Entry price saved • PnL updates every 30 sec
             </p>
           </div>
@@ -2832,11 +2865,11 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
         {positions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <span className="text-6xl mb-4">🦍</span>
-            <h2 className="text-xl font-bold text-slate-400 mb-2">No Apes Yet</h2>
+            <h2 className="text-xl font-mono font-bold text-white/50 mb-2">No Picks Yet</h2>
             <p className="text-slate-500 mb-6">Start swiping right to build your portfolio!</p>
             <button
               onClick={onBack}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 px-6 py-3 rounded-xl font-bold hover:opacity-90 transition"
+              className="bg-gradient-to-r from-white/20 to-white/10 px-6 py-3 rounded-xl font-bold hover:opacity-90 transition"
             >
               Start Swiping
             </button>
@@ -2848,10 +2881,10 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
               layout
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`bg-slate-800/60 rounded-2xl p-4 border ${pos.pnl > 5 ? 'border-green-500/30' : pos.pnl < -5 ? 'border-red-500/30' : 'border-white/5'}`}
+              className={`bg-black/60 rounded-2xl p-4 border ${pos.pnl > 5 ? 'border-white/20' : pos.pnl < -5 ? 'border-white/30/30' : 'border-white/5'}`}
             >
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-slate-700 overflow-hidden flex-shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-black/60 overflow-hidden flex-shrink-0">
                   <img
                     src={pos.image}
                     alt={pos.name}
@@ -2876,7 +2909,7 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
                 </div>
 
                 <div className="text-right">
-                  <p className={`text-xl font-black ${pos.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  <p className={`text-xl font-black ${pos.pnl >= 0 ? 'text-white' : 'text-white/60'}`}>
                     {formatPnL(pos.pnl)}
                   </p>
                   <p className="text-slate-500 text-xs">
@@ -2895,21 +2928,21 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
                   rel="noopener noreferrer"
                   className={`flex-1 py-2 rounded-xl font-medium text-center text-sm hover:opacity-90 transition-colors ${
                     pos.isStock
-                      ? 'bg-gradient-to-r from-green-600 to-green-500'
-                      : 'bg-gradient-to-r from-green-500 to-emerald-500'
+                      ? 'bg-gradient-to-r from-white to-white/90'
+                      : 'bg-gradient-to-r from-white/20 to-white/10'
                   }`}
                 >
                   {pos.isStock ? 'Buy on Robinhood' : 'Buy Real'}
                 </a>
                 <button
                   onClick={() => onShare(pos)}
-                  className="bg-slate-700 px-3 py-2 rounded-xl hover:bg-slate-600 transition-colors"
+                  className="bg-black/60 px-3 py-2 rounded-xl hover:bg-white/20 transition-colors"
                 >
                   🐦
                 </button>
                 <button
                   onClick={() => onRemove(pos.id)}
-                  className="bg-slate-700 px-3 py-2 rounded-xl hover:bg-red-500/50 transition-colors"
+                  className="bg-black/60 px-3 py-2 rounded-xl hover:bg-white/30 transition-colors"
                 >
                   ✕
                 </button>
@@ -2924,38 +2957,38 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
         const hasStocks = positions.some(p => p.isStock);
         const hasCrypto = positions.some(p => !p.isStock);
         return (
-          <div className="sticky bottom-0 p-4 bg-slate-900/95 backdrop-blur-sm border-t border-white/10">
-            <p className="text-center text-slate-500 text-sm mb-3">
-              Ready to ape for real? 💰
+          <div className="sticky bottom-0 p-4 bg-black/95 backdrop-blur-sm border-t border-white/10">
+            <p className="text-center text-white/50 text-sm font-mono mb-3">
+              Ready to invest for real?
             </p>
             <div className="grid grid-cols-3 gap-2">
               {hasCrypto ? (
                 <>
                   <a href={AFFILIATE_LINKS.coinbase} target="_blank" rel="noopener noreferrer"
-                    className="bg-blue-600 py-3 rounded-xl text-center font-bold hover:bg-blue-700 transition text-sm">
+                    className="bg-white text-black py-3 rounded-xl text-center font-bold hover:bg-white/90 text-black transition text-sm">
                     Coinbase
                   </a>
                   <a href={AFFILIATE_LINKS.binance} target="_blank" rel="noopener noreferrer"
-                    className="bg-yellow-500 text-black py-3 rounded-xl text-center font-bold hover:bg-yellow-400 transition text-sm">
+                    className="bg-white/80 text-black text-black py-3 rounded-xl text-center font-bold hover:bg-white/70 text-black transition text-sm">
                     Binance
                   </a>
                   <a href={AFFILIATE_LINKS.bybit} target="_blank" rel="noopener noreferrer"
-                    className="bg-orange-500 py-3 rounded-xl text-center font-bold hover:bg-orange-600 transition text-sm">
+                    className="bg-white/60 text-black py-3 rounded-xl text-center font-bold hover:bg-white/70 text-black transition text-sm">
                     Bybit
                   </a>
                 </>
               ) : (
                 <>
                   <a href={AFFILIATE_LINKS.robinhood} target="_blank" rel="noopener noreferrer"
-                    className="bg-green-500 py-3 rounded-xl text-center font-bold hover:bg-green-400 transition text-sm">
+                    className="bg-white text-black py-3 rounded-xl text-center font-bold hover:bg-white/90 text-black transition text-sm">
                     Robinhood
                   </a>
                   <a href={AFFILIATE_LINKS.webull} target="_blank" rel="noopener noreferrer"
-                    className="bg-orange-500 py-3 rounded-xl text-center font-bold hover:bg-orange-400 transition text-sm">
+                    className="bg-white/60 text-black py-3 rounded-xl text-center font-bold hover:bg-white/50 text-black transition text-sm">
                     Webull
                   </a>
                   <a href={AFFILIATE_LINKS.etoro} target="_blank" rel="noopener noreferrer"
-                    className="bg-emerald-600 py-3 rounded-xl text-center font-bold hover:bg-emerald-500 transition text-sm">
+                    className="bg-white py-3 rounded-xl text-center font-bold hover:bg-white/90 text-black transition text-sm">
                     eToro
                   </a>
                 </>
@@ -2987,7 +3020,7 @@ const PremiumModal = ({ onClose, swipesUsed, assetType }) => {
       onClick={onClose}
     >
       <motion.div
-        className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-3xl p-6 max-w-sm w-full border border-blue-500/30 shadow-2xl"
+        className="bg-gradient-to-b from-black to-black rounded-3xl p-6 max-w-sm w-full border border-white/20 shadow-2xl"
         initial={{ scale: 0.8, y: 50 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.8, y: 50 }}
@@ -2998,7 +3031,7 @@ const PremiumModal = ({ onClose, swipesUsed, assetType }) => {
           <span className="text-6xl">👑</span>
         </div>
 
-        <h2 className="text-2xl font-black text-center bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
+        <h2 className="text-2xl font-black text-center bg-gradient-to-r from-white to-white bg-clip-text text-transparent mb-2">
           You're on Fire!
         </h2>
 
@@ -3007,23 +3040,23 @@ const PremiumModal = ({ onClose, swipesUsed, assetType }) => {
         </p>
 
         {/* Premium features */}
-        <div className="bg-slate-800/50 rounded-2xl p-4 mb-4 border border-white/5">
-          <p className="text-sm font-bold text-blue-400 mb-3">Premium Features:</p>
+        <div className="bg-black/50 rounded-2xl p-4 mb-4 border border-white/5">
+          <p className="text-sm font-bold text-white mb-3">Premium Features:</p>
           <ul className="space-y-2 text-sm text-slate-300">
             <li className="flex items-center gap-2">
-              <span className="text-green-400">✓</span> Unlimited daily swipes
+              <span className="text-white">✓</span> Unlimited daily swipes
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-green-400">✓</span> Advanced filters (market cap, volume)
+              <span className="text-white">✓</span> Advanced filters (market cap, volume)
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-green-400">✓</span> Price alerts & notifications
+              <span className="text-white">✓</span> Price alerts & notifications
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-green-400">✓</span> Export portfolio to CSV
+              <span className="text-white">✓</span> Export portfolio to CSV
             </li>
             <li className="flex items-center gap-2">
-              <span className="text-green-400">✓</span> No ads
+              <span className="text-white">✓</span> No ads
             </li>
           </ul>
         </div>
@@ -3042,7 +3075,7 @@ const PremiumModal = ({ onClose, swipesUsed, assetType }) => {
             localStorage.setItem('swipefolio_premium', 'true');
             onClose();
           }}
-          className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 py-3 rounded-xl font-bold text-lg mb-3 hover:opacity-90 transition"
+          className="w-full bg-gradient-to-r from-white/20 to-white/10 py-3 rounded-xl font-bold text-lg mb-3 hover:opacity-90 transition"
         >
           Upgrade to Premium
         </button>
@@ -3061,22 +3094,22 @@ const PremiumModal = ({ onClose, swipesUsed, assetType }) => {
             {assetType === 'crypto' ? (
               <>
                 <a href={AFFILIATE_LINKS.coinbase} target="_blank" rel="noopener noreferrer"
-                  className="flex-1 bg-blue-600 py-2 rounded-xl text-center text-sm font-bold hover:bg-blue-500 transition-colors">
+                  className="flex-1 bg-white text-black py-2 rounded-xl text-center text-sm font-bold hover:bg-white text-black transition-colors">
                   Coinbase
                 </a>
                 <a href={AFFILIATE_LINKS.binance} target="_blank" rel="noopener noreferrer"
-                  className="flex-1 bg-yellow-500 text-black py-2 rounded-xl text-center text-sm font-bold hover:bg-yellow-400 transition-colors">
+                  className="flex-1 bg-white/80 text-black text-black py-2 rounded-xl text-center text-sm font-bold hover:bg-white/70 text-black transition-colors">
                   Binance
                 </a>
               </>
             ) : (
               <>
                 <a href={AFFILIATE_LINKS.robinhood} target="_blank" rel="noopener noreferrer"
-                  className="flex-1 bg-green-500 py-2 rounded-xl text-center text-sm font-bold hover:bg-green-400 transition-colors">
+                  className="flex-1 bg-white text-black py-2 rounded-xl text-center text-sm font-bold hover:bg-white/90 text-black transition-colors">
                   Robinhood
                 </a>
                 <a href={AFFILIATE_LINKS.webull} target="_blank" rel="noopener noreferrer"
-                  className="flex-1 bg-orange-500 py-2 rounded-xl text-center text-sm font-bold hover:bg-orange-400 transition-colors">
+                  className="flex-1 bg-white/60 text-black py-2 rounded-xl text-center text-sm font-bold hover:bg-white/50 text-black transition-colors">
                   Webull
                 </a>
               </>
@@ -3096,14 +3129,14 @@ const AdBanner = ({ slot = 'bottom' }) => {
   // This is a placeholder - replace with actual AdMob component
   // For React: use @react-native-admob/admob or react-native-google-mobile-ads
   return (
-    <div className="bg-slate-800/50 border border-white/5 rounded-xl p-2 text-center">
+    <div className="bg-black/50 border border-white/5 rounded-xl p-2 text-center">
       <p className="text-slate-600 text-xs">
         {/* AdMob Banner - slot: {slot} */}
         <a
           href={AFFILIATE_LINKS.coinbase}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-400 hover:text-blue-300"
+          className="text-white hover:text-white/80"
         >
           Start trading on Coinbase →
         </a>
@@ -3118,17 +3151,17 @@ const AdBanner = ({ slot = 'bottom' }) => {
 
 const BottomNav = ({ activeTab, onTabChange, portfolioCount, isPremium }) => {
   const tabs = [
-    { id: 'discover', icon: '🔥', label: 'Discover' },
-    { id: 'portfolio', icon: '💼', label: 'Portfolio', badge: portfolioCount },
-    { id: 'community', icon: '🏆', label: 'Community' },
-    { id: 'account', icon: '👤', label: 'Account', premium: isPremium },
+    { id: 'discover', icon: '◉', label: 'Discover' },
+    { id: 'portfolio', icon: '▤', label: 'Portfolio', badge: portfolioCount },
+    { id: 'community', icon: '◈', label: 'Community' },
+    { id: 'account', icon: '◐', label: 'Account', premium: isPremium },
   ];
 
   return (
     <nav
-      className="relative z-20 flex justify-around items-center px-2 py-2 border-t border-white/10 shrink-0"
+      className="relative z-20 flex justify-around items-center px-2 py-2 border-t border-white/20 shrink-0"
       style={{
-        background: 'rgba(15,23,42,0.95)',
+        background: 'rgba(0,0,0,0.9)',
         backdropFilter: 'blur(20px)',
       }}
     >
@@ -3139,29 +3172,29 @@ const BottomNav = ({ activeTab, onTabChange, portfolioCount, isPremium }) => {
           onClick={() => onTabChange(tab.id)}
           className={`flex flex-col items-center gap-0.5 px-4 py-1 rounded-xl transition-all relative ${
             activeTab === tab.id
-              ? 'text-blue-400'
-              : 'text-slate-500 hover:text-slate-300'
+              ? 'text-white'
+              : 'text-white/40 hover:text-white/70'
           }`}
         >
           {activeTab === tab.id && (
             <motion.div
               layoutId="activeTab"
-              className="absolute inset-0 bg-blue-500/10 rounded-xl"
+              className="absolute inset-0 bg-white/10 rounded-xl border border-white/20"
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             />
           )}
-          <span className="text-xl relative">
+          <span className="text-xl relative font-mono">
             {tab.icon}
             {tab.badge > 0 && (
-              <span className="absolute -top-1 -right-2 bg-green-500 text-white text-[10px] font-bold px-1.5 rounded-full">
+              <span className="absolute -top-1 -right-3 bg-white text-black text-[10px] font-mono font-bold px-1.5 rounded-full">
                 {tab.badge}
               </span>
             )}
             {tab.premium && (
-              <span className="absolute -top-1 -right-2 text-yellow-400 text-[10px]">⭐</span>
+              <span className="absolute -top-1 -right-2 text-white text-[10px]">★</span>
             )}
           </span>
-          <span className="text-[10px] font-medium relative">{tab.label}</span>
+          <span className="text-[10px] font-mono font-medium relative">{tab.label}</span>
         </motion.button>
       ))}
     </nav>
@@ -3174,8 +3207,8 @@ const BottomNav = ({ activeTab, onTabChange, portfolioCount, isPremium }) => {
 
 // Investment Style Options
 const INVESTMENT_STYLES = [
-  { id: 'diamond', emoji: '💎', label: 'Diamond Hands', desc: 'HODL forever, never sell' },
-  { id: 'degen', emoji: '🦍', label: 'Degen Ape', desc: 'High risk, high reward' },
+  { id: 'diamond', emoji: '◆', label: 'Long Term', desc: 'Hold positions long-term' },
+  { id: 'degen', emoji: '↗', label: 'High Risk', desc: 'High risk, high reward' },
   { id: 'swing', emoji: '📊', label: 'Swing Trader', desc: 'Ride the waves' },
   { id: 'value', emoji: '🎯', label: 'Value Hunter', desc: 'Undervalued gems only' },
   { id: 'whale', emoji: '🐋', label: 'Whale Watcher', desc: 'Follow the big money' },
@@ -3263,9 +3296,9 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
   return (
     <div className="flex-1 overflow-y-auto p-4">
       {/* Profile Section */}
-      <div className="bg-slate-800/50 rounded-2xl p-4 mb-4 border border-white/5">
+      <div className="bg-black/50 rounded-2xl p-4 mb-4 border border-white/5">
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-3xl overflow-hidden">
+          <div className="w-16 h-16 bg-gradient-to-br from-white/20 to-white/10 rounded-full flex items-center justify-center text-3xl overflow-hidden">
             {user?.photoURL ? (
               <img src={user.photoURL} alt="Profile" className="w-full h-full object-cover" />
             ) : (
@@ -3284,7 +3317,7 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleSignOut}
-            className="w-full bg-slate-700 py-3 rounded-xl font-bold hover:bg-slate-600 transition"
+            className="w-full bg-black/60 py-3 rounded-xl font-bold hover:bg-white/20 transition"
           >
             Sign Out
           </motion.button>
@@ -3293,7 +3326,7 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowSignUp(true)}
-            className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 py-3 rounded-xl font-bold"
+            className="w-full bg-gradient-to-r from-white/20 to-white/10 py-3 rounded-xl font-bold"
           >
             Create Account
           </motion.button>
@@ -3303,8 +3336,8 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
       {/* Premium Status */}
       <div className={`rounded-2xl p-4 mb-4 border ${
         isPremium
-          ? 'bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border-yellow-500/30'
-          : 'bg-slate-800/50 border-white/5'
+          ? 'bg-gradient-to-br from-white/10 to-white/5 border-white/20'
+          : 'bg-black/50 border-white/5'
       }`}>
         <div className="flex items-center justify-between mb-3">
           <div>
@@ -3320,16 +3353,16 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={onUpgrade}
-              className="bg-gradient-to-r from-yellow-500 to-orange-500 px-4 py-2 rounded-xl text-sm font-bold"
+              className="bg-gradient-to-r from-white/80 to-white/60 px-4 py-2 rounded-xl text-sm font-bold"
             >
               Upgrade
             </motion.button>
           )}
         </div>
         {!isPremium && (
-          <div className="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 transition-all"
+              className="h-full bg-gradient-to-r from-white/20 to-white/10 transition-all"
               style={{ width: `${(swipesToday / FREE_DAILY_SWIPES) * 100}%` }}
             />
           </div>
@@ -3337,20 +3370,20 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
       </div>
 
       {/* Stats */}
-      <div className="bg-slate-800/50 rounded-2xl p-4 mb-4 border border-white/5">
+      <div className="bg-black/50 rounded-2xl p-4 mb-4 border border-white/5">
         <h3 className="font-bold mb-3">Your Stats</h3>
         <div className="grid grid-cols-3 gap-3">
           <div className="text-center">
-            <p className="text-2xl font-black text-blue-400">{stats.aped + stats.rugged}</p>
+            <p className="text-2xl font-black text-white">{stats.aped + stats.rugged}</p>
             <p className="text-slate-500 text-xs">Total Swipes</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-black text-green-400">{stats.aped}</p>
-            <p className="text-slate-500 text-xs">Apes</p>
+            <p className="text-2xl font-mono font-black text-white">{stats.aped}</p>
+            <p className="text-white/50 text-xs font-mono">Picks</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-black text-blue-400">{stats.superAped || 0}</p>
-            <p className="text-slate-500 text-xs">Super Apes</p>
+            <p className="text-2xl font-mono font-black text-white">{stats.superAped || 0}</p>
+            <p className="text-white/50 text-xs font-mono">Super Picks</p>
           </div>
         </div>
       </div>
@@ -3364,11 +3397,11 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
 
       {/* Investment Style */}
       {user && (
-        <div className="bg-slate-800/50 rounded-2xl p-4 mb-4 border border-white/5">
+        <div className="bg-black/50 rounded-2xl p-4 mb-4 border border-white/5">
           <h3 className="font-bold mb-3 flex items-center gap-2">
             Investment Style
             {selectedStyle && (
-              <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
+              <span className="text-xs bg-white/10 text-white px-2 py-0.5 rounded-full">
                 {INVESTMENT_STYLES.find(s => s.id === selectedStyle)?.emoji}
               </span>
             )}
@@ -3383,8 +3416,8 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
                 onClick={() => handleStyleSelect(style.id)}
                 className={`p-3 rounded-xl text-left transition-all ${
                   selectedStyle === style.id
-                    ? 'bg-blue-500/20 border-2 border-blue-500'
-                    : 'bg-slate-700/50 border-2 border-transparent hover:border-white/10'
+                    ? 'bg-white/10 border-2 border-white/30'
+                    : 'bg-black/60/50 border-2 border-transparent hover:border-white/10'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
@@ -3400,13 +3433,13 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
 
       {/* Bio Section */}
       {user && (
-        <div className="bg-slate-800/50 rounded-2xl p-4 mb-4 border border-white/5">
+        <div className="bg-black/50 rounded-2xl p-4 mb-4 border border-white/5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold">Bio</h3>
             {!editingBio && (
               <button
                 onClick={() => setEditingBio(true)}
-                className="text-blue-400 text-xs hover:underline"
+                className="text-white text-xs hover:underline"
               >
                 Edit
               </button>
@@ -3418,7 +3451,7 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
                 value={bio}
                 onChange={(e) => setBio(e.target.value.slice(0, 160))}
                 placeholder="Tell others about your investment journey..."
-                className="w-full h-20 bg-slate-700/50 rounded-xl p-3 text-sm border border-white/10 focus:outline-none focus:border-blue-500 resize-none"
+                className="w-full h-20 bg-black/60/50 rounded-xl p-3 text-sm border border-white/10 focus:outline-none focus:border-white/30 resize-none"
                 maxLength={160}
               />
               <div className="flex justify-between items-center">
@@ -3432,7 +3465,7 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
                   </button>
                   <button
                     onClick={handleSaveBio}
-                    className="px-4 py-2 bg-blue-500 rounded-xl text-sm font-medium hover:bg-blue-400 transition-colors"
+                    className="px-4 py-2 bg-white text-black rounded-xl text-sm font-medium hover:bg-white/30 transition-colors"
                   >
                     Save
                   </button>
@@ -3448,7 +3481,7 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
       )}
 
       {/* Settings */}
-      <div className="bg-slate-800/50 rounded-2xl p-4 border border-white/5">
+      <div className="bg-black/50 rounded-2xl p-4 border border-white/5">
         <h3 className="font-bold mb-3">Settings</h3>
         <div className="space-y-3">
           <div className="flex justify-between items-center py-2 border-b border-white/5">
@@ -3458,8 +3491,8 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
             </div>
             {user ? (
               notificationSettings?.notificationsEnabled ? (
-                <span className="text-green-400 text-sm flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                <span className="text-white text-sm flex items-center gap-1">
+                  <span className="w-2 h-2 bg-white/90 text-black rounded-full animate-pulse"></span>
                   Enabled
                 </span>
               ) : (
@@ -3472,7 +3505,7 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
                     setNotifLoading(false);
                   }}
                   disabled={notifLoading}
-                  className="px-4 py-2 bg-blue-500 rounded-xl text-sm font-medium disabled:opacity-50 hover:bg-blue-400 transition-colors"
+                  className="px-4 py-2 bg-white text-black rounded-xl text-sm font-medium disabled:opacity-50 hover:bg-white/30 transition-colors"
                 >
                   {notifLoading ? 'Enabling...' : 'Enable'}
                 </motion.button>
@@ -3483,7 +3516,7 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
           </div>
           <div className="flex justify-between items-center py-2 border-b border-white/5">
             <span className="text-slate-300">Dark Mode</span>
-            <span className="text-green-400">✓ Always</span>
+            <span className="text-white">✓ Always</span>
           </div>
           <div className="flex justify-between items-center py-2">
             <span className="text-slate-300">Version</span>
@@ -3507,13 +3540,13 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={e => e.stopPropagation()}
-              className="bg-slate-900 rounded-2xl p-6 w-full max-w-sm border border-white/10"
+              className="bg-black rounded-2xl p-6 w-full max-w-sm border border-white/10"
             >
               <h2 className="text-2xl font-bold mb-4 text-center">Join Swipefolio</h2>
               <p className="text-slate-400 text-center mb-6">Sign up to sync your portfolio and match with other investors!</p>
 
               {error && (
-                <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-sm text-center">
+                <div className="mb-4 p-3 bg-white/10 border border-white/30/50 rounded-xl text-white/60 text-sm text-center">
                   {error}
                 </div>
               )}
@@ -3525,19 +3558,19 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-800 rounded-xl border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-black/70 rounded-xl border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-white/30"
                   />
                   <input
                     type="password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-800 rounded-xl border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-3 bg-black/70 rounded-xl border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-white/30"
                   />
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 py-3 rounded-xl font-medium disabled:opacity-50"
+                    className="w-full bg-gradient-to-r from-white/20 to-white/10 py-3 rounded-xl font-medium disabled:opacity-50"
                   >
                     {loading ? 'Signing in...' : 'Continue'}
                   </button>
@@ -3561,14 +3594,14 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
                   <button
                     onClick={handleGoogleSignIn}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-3 bg-blue-600 py-3 rounded-xl font-medium hover:bg-blue-500 transition disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-3 bg-white text-black py-3 rounded-xl font-medium hover:bg-white text-black transition disabled:opacity-50"
                   >
                     <span>G</span> Continue with Google
                   </button>
                   <button
                     onClick={() => setShowEmailForm(true)}
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-3 bg-slate-800 py-3 rounded-xl font-medium hover:bg-slate-700 transition border border-white/10 disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-3 bg-black/70 py-3 rounded-xl font-medium hover:bg-black/60 transition border border-white/10 disabled:opacity-50"
                   >
                     <span>✉️</span> Continue with Email
                   </button>
@@ -3654,6 +3687,8 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
   const [selectedChatRoom, setSelectedChatRoom] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [dmPartner, setDmPartner] = useState(null);
   const [dmMessages, setDmMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -3852,6 +3887,41 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
     setNewMessage('');
   };
 
+  // Load older messages for chat pagination
+  const handleLoadOlderMessages = async () => {
+    if (!selectedChatRoom || loadingOlder || chatMessages.length === 0) return;
+
+    setLoadingOlder(true);
+    try {
+      // Get the oldest message timestamp
+      const oldestMessage = chatMessages[0];
+      const oldestTimestamp = oldestMessage?.createdAt;
+
+      if (!oldestTimestamp) {
+        setHasMoreMessages(false);
+        setLoadingOlder(false);
+        return;
+      }
+
+      const { data: olderMessages } = await loadOlderMessages(
+        selectedChatRoom.id,
+        oldestTimestamp,
+        50
+      );
+
+      if (olderMessages.length === 0) {
+        setHasMoreMessages(false);
+      } else {
+        // Prepend older messages to existing messages
+        setChatMessages(prev => [...olderMessages, ...prev]);
+      }
+    } catch (error) {
+      console.error('Failed to load older messages:', error);
+    } finally {
+      setLoadingOlder(false);
+    }
+  };
+
   const handleConnect = async (targetUserId) => {
     if (!user) return;
     await sendMatchRequest(user.uid, targetUserId);
@@ -3906,7 +3976,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
     return (
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <h2 className="text-xl font-bold">Community</h2>
-        <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl p-6 border border-blue-500/30 text-center">
+        <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-2xl p-6 border border-white/20 text-center">
           <div className="text-4xl mb-3">🔐</div>
           <h3 className="font-bold text-lg mb-2">Sign In to Join</h3>
           <p className="text-slate-400 text-sm mb-4">
@@ -3915,10 +3985,10 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
         </div>
 
         {/* Still show daily prediction */}
-        <div className="bg-slate-800/50 rounded-2xl p-4 border border-white/5">
+        <div className="bg-black/50 rounded-2xl p-4 border border-white/5">
           <DailyPrediction coins={coins} onVote={onPredictionVote} userVote={predictionVote} />
         </div>
-        <div className="bg-slate-800/50 rounded-2xl p-4 border border-white/5">
+        <div className="bg-black/50 rounded-2xl p-4 border border-white/5">
           <Leaderboard portfolio={portfolio} user={user} leaderboardData={leaderboardData} userRankData={userRankData} />
         </div>
       </div>
@@ -3947,9 +4017,21 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {/* Load older messages button */}
+          {hasMoreMessages && chatMessages.length >= 20 && (
+            <div className="flex justify-center pb-2">
+              <button
+                onClick={handleLoadOlderMessages}
+                disabled={loadingOlder}
+                className="text-xs text-white hover:text-white/80 disabled:opacity-50"
+              >
+                {loadingOlder ? 'Loading...' : '↑ Load older messages'}
+              </button>
+            </div>
+          )}
           {chatMessages.map((msg) => (
             <div key={msg.id} className={`flex gap-2 ${msg.userId === user.uid ? 'flex-row-reverse' : ''}`}>
-              <div className="w-8 h-8 rounded-full bg-slate-700 flex-shrink-0 overflow-hidden">
+              <div className="w-8 h-8 rounded-full bg-black/60 flex-shrink-0 overflow-hidden">
                 {msg.userPhoto ? (
                   <img src={msg.userPhoto} className="w-full h-full object-cover" alt="" />
                 ) : (
@@ -3960,7 +4042,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
               </div>
               <div className={`max-w-[70%] ${msg.userId === user.uid ? 'text-right' : ''}`}>
                 <p className="text-xs text-slate-400 mb-1">{msg.userDisplayName}</p>
-                <div className={`p-2 rounded-lg ${msg.userId === user.uid ? 'bg-blue-600' : 'bg-slate-700'}`}>
+                <div className={`p-2 rounded-lg ${msg.userId === user.uid ? 'bg-white text-black' : 'bg-black/60'}`}>
                   <p className="text-sm">{msg.message}</p>
                 </div>
               </div>
@@ -3972,7 +4054,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
         {/* Input */}
         <div className="p-4 border-t border-white/10 space-y-2">
           {chatError && (
-            <p className="text-red-400 text-xs">{chatError}</p>
+            <p className="text-white/60 text-xs">{chatError}</p>
           )}
           <div className="flex gap-2">
             <input
@@ -3986,12 +4068,12 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
               placeholder={cooldownTime > 0 ? `Wait ${cooldownTime}s...` : "Type a message..."}
               disabled={cooldownTime > 0}
               maxLength={MAX_MESSAGE_LENGTH}
-              className="flex-1 bg-slate-800 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+              className="flex-1 bg-black/70 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50"
             />
             <button
               onClick={handleSendMessage}
               disabled={cooldownTime > 0}
-              className="px-4 py-2 bg-blue-600 rounded-xl font-medium text-sm hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-white text-black rounded-xl font-medium text-sm hover:bg-white text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {cooldownTime > 0 ? cooldownTime : 'Send'}
             </button>
@@ -4013,7 +4095,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden">
+          <div className="w-8 h-8 rounded-full bg-black/60 overflow-hidden">
             {dmPartner.photoURL ? (
               <img src={dmPartner.photoURL} className="w-full h-full object-cover" alt="" />
             ) : (
@@ -4032,7 +4114,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {dmMessages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.from === user.uid ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[70%] p-3 rounded-lg ${msg.from === user.uid ? 'bg-blue-600' : 'bg-slate-700'}`}>
+              <div className={`max-w-[70%] p-3 rounded-lg ${msg.from === user.uid ? 'bg-white text-black' : 'bg-black/60'}`}>
                 <p className="text-sm">{msg.message}</p>
               </div>
             </div>
@@ -4043,7 +4125,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
         {/* Input */}
         <div className="p-4 border-t border-white/10 space-y-2">
           {chatError && (
-            <p className="text-red-400 text-xs">{chatError}</p>
+            <p className="text-white/60 text-xs">{chatError}</p>
           )}
           <div className="flex gap-2">
             <input
@@ -4057,12 +4139,12 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
               placeholder={cooldownTime > 0 ? `Wait ${cooldownTime}s...` : "Type a message..."}
               disabled={cooldownTime > 0}
               maxLength={MAX_MESSAGE_LENGTH}
-              className="flex-1 bg-slate-800 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+              className="flex-1 bg-black/70 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-50"
             />
             <button
               onClick={handleSendMessage}
               disabled={cooldownTime > 0}
-              className="px-4 py-2 bg-blue-600 rounded-xl font-medium text-sm hover:bg-blue-500 transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-white text-black rounded-xl font-medium text-sm hover:bg-white text-black transition-colors disabled:opacity-50"
             >
               {cooldownTime > 0 ? cooldownTime : 'Send'}
             </button>
@@ -4091,8 +4173,8 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
             onClick={() => setActiveSection(section.id)}
             className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
               activeSection === section.id
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-800 text-slate-400 hover:text-white'
+                ? 'bg-white text-black text-white'
+                : 'bg-black/70 text-slate-400 hover:text-white'
             }`}
           >
             {section.emoji} {section.label}
@@ -4107,15 +4189,15 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
           {loading ? (
             <LoadingSpinner text="Loading matches..." />
           ) : investorMatches.length === 0 ? (
-            <div className="bg-slate-800/50 rounded-2xl p-6 text-center border border-white/5">
+            <div className="bg-black/50 rounded-2xl p-6 text-center border border-white/5">
               <div className="text-4xl mb-3">🦍</div>
               <p className="text-slate-400">Swipe more to find your matches!</p>
               <p className="text-xs text-slate-500 mt-2">APE coins to match with like-minded investors</p>
             </div>
           ) : (
             investorMatches.map((match) => (
-              <div key={match.id} className="bg-slate-800/50 rounded-xl p-4 border border-white/5 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
+              <div key={match.id} className="bg-black/50 rounded-xl p-4 border border-white/5 flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-black/60 overflow-hidden flex-shrink-0">
                   {match.photoURL ? (
                     <img src={match.photoURL} className="w-full h-full object-cover" alt="" />
                   ) : (
@@ -4126,27 +4208,27 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium truncate">{match.displayName}</h4>
-                  <p className="text-xs text-blue-400">{match.commonCoins} coins in common</p>
+                  <p className="text-xs text-white">{match.commonCoins} coins in common</p>
                 </div>
                 <div className="flex gap-2">
                   {followingStatus[match.id] ? (
                     <button
                       onClick={() => handleUnfollow(match.id)}
-                      className="px-4 py-2 bg-slate-600 rounded-xl text-sm font-medium hover:bg-slate-500 transition-colors"
+                      className="px-4 py-2 bg-white/20 rounded-xl text-sm font-medium hover:bg-slate-500 transition-colors"
                     >
                       Following
                     </button>
                   ) : (
                     <button
                       onClick={() => handleFollow(match.id)}
-                      className="px-4 py-2 bg-purple-600 rounded-xl text-sm font-medium hover:bg-purple-500 transition-colors"
+                      className="px-4 py-2 bg-white text-black rounded-xl text-sm font-medium hover:bg-white/90 transition-colors"
                     >
                       Follow
                     </button>
                   )}
                   <button
                     onClick={() => handleConnect(match.id)}
-                    className="px-4 py-2 bg-blue-600 rounded-xl text-sm font-medium hover:bg-blue-500 transition-colors"
+                    className="px-4 py-2 bg-white text-black rounded-xl text-sm font-medium hover:bg-white text-black transition-colors"
                   >
                     Connect
                   </button>
@@ -4162,12 +4244,12 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
         <div className="space-y-4">
           {/* Stats */}
           <div className="flex gap-4">
-            <div className="flex-1 bg-slate-800/50 rounded-xl p-4 border border-white/5 text-center">
-              <p className="text-2xl font-bold text-purple-400">{followingList.length}</p>
+            <div className="flex-1 bg-black/50 rounded-xl p-4 border border-white/5 text-center">
+              <p className="text-2xl font-bold text-white">{followingList.length}</p>
               <p className="text-xs text-slate-400">Following</p>
             </div>
-            <div className="flex-1 bg-slate-800/50 rounded-xl p-4 border border-white/5 text-center">
-              <p className="text-2xl font-bold text-cyan-400">{followersList.length}</p>
+            <div className="flex-1 bg-black/50 rounded-xl p-4 border border-white/5 text-center">
+              <p className="text-2xl font-bold text-white">{followersList.length}</p>
               <p className="text-xs text-slate-400">Followers</p>
             </div>
           </div>
@@ -4180,15 +4262,15 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
             {loading ? (
               <LoadingSpinner text="Loading activity..." />
             ) : activityFeed.length === 0 ? (
-              <div className="bg-slate-800/50 rounded-2xl p-6 text-center border border-white/5">
+              <div className="bg-black/50 rounded-2xl p-6 text-center border border-white/5">
                 <div className="text-4xl mb-3">📡</div>
                 <p className="text-slate-400">No activity yet</p>
                 <p className="text-xs text-slate-500 mt-2">Follow investors to see their swipes here!</p>
               </div>
             ) : (
               activityFeed.slice(0, 20).map((activity, idx) => (
-                <div key={idx} className="bg-slate-800/50 rounded-xl p-3 border border-white/5 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
+                <div key={idx} className="bg-black/50 rounded-xl p-3 border border-white/5 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-black/60 overflow-hidden flex-shrink-0">
                     {activity.userPhotoURL ? (
                       <img src={activity.userPhotoURL} className="w-full h-full object-cover" alt="" />
                     ) : (
@@ -4198,19 +4280,19 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm">
+                    <p className="text-sm font-mono">
                       <span className="font-medium">{activity.userDisplayName}</span>
-                      <span className="text-slate-400">
-                        {activity.swipeDirection === 'right' ? ' APEd ' : ' RUGged '}
+                      <span className="text-white/50">
+                        {activity.swipeDirection === 'right' ? ' picked ' : ' passed '}
                       </span>
-                      <span className="font-medium text-blue-400">${activity.coinSymbol?.toUpperCase()}</span>
+                      <span className="font-medium text-white">${activity.coinSymbol?.toUpperCase()}</span>
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-white/30 font-mono">
                       {activity.swipedAt?.toDate?.()?.toLocaleDateString() || 'Recently'}
                     </p>
                   </div>
-                  <span className="text-2xl">
-                    {activity.swipeDirection === 'right' ? '🦍' : '🚫'}
+                  <span className="text-xl font-mono">
+                    {activity.swipeDirection === 'right' ? '+' : '✕'}
                   </span>
                 </div>
               ))
@@ -4221,13 +4303,13 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-slate-400">People You Follow</h3>
             {followingList.length === 0 ? (
-              <div className="bg-slate-800/50 rounded-xl p-4 text-center border border-white/5">
+              <div className="bg-black/50 rounded-xl p-4 text-center border border-white/5">
                 <p className="text-slate-500 text-sm">Not following anyone yet</p>
               </div>
             ) : (
               followingList.map((person) => (
-                <div key={person.id} className="bg-slate-800/50 rounded-xl p-3 border border-white/5 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
+                <div key={person.id} className="bg-black/50 rounded-xl p-3 border border-white/5 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-black/60 overflow-hidden flex-shrink-0">
                     {person.photoURL ? (
                       <img src={person.photoURL} className="w-full h-full object-cover" alt="" />
                     ) : (
@@ -4241,7 +4323,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                   </div>
                   <button
                     onClick={() => handleUnfollow(person.id)}
-                    className="px-4 py-2 bg-slate-600 rounded-xl text-sm font-medium hover:bg-red-600 transition-colors"
+                    className="px-4 py-2 bg-white/20 rounded-xl text-sm font-medium hover:bg-white/20 transition-colors"
                   >
                     Unfollow
                   </button>
@@ -4254,13 +4336,13 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-slate-400">Your Followers</h3>
             {followersList.length === 0 ? (
-              <div className="bg-slate-800/50 rounded-xl p-4 text-center border border-white/5">
+              <div className="bg-black/50 rounded-xl p-4 text-center border border-white/5">
                 <p className="text-slate-500 text-sm">No followers yet</p>
               </div>
             ) : (
               followersList.map((person) => (
-                <div key={person.id} className="bg-slate-800/50 rounded-xl p-3 border border-white/5 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden flex-shrink-0">
+                <div key={person.id} className="bg-black/50 rounded-xl p-3 border border-white/5 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-black/60 overflow-hidden flex-shrink-0">
                     {person.photoURL ? (
                       <img src={person.photoURL} className="w-full h-full object-cover" alt="" />
                     ) : (
@@ -4275,7 +4357,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                   {!followingStatus[person.id] && (
                     <button
                       onClick={() => handleFollow(person.id)}
-                      className="px-4 py-2 bg-purple-600 rounded-xl text-sm font-medium hover:bg-purple-500 transition-colors"
+                      className="px-4 py-2 bg-white text-black rounded-xl text-sm font-medium hover:bg-white/90 transition-colors"
                     >
                       Follow Back
                     </button>
@@ -4291,7 +4373,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
       {activeSection === 'challenges' && (
         <div className="space-y-4">
           {/* Week indicator */}
-          <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl p-4 border border-yellow-500/30">
+          <div className="bg-gradient-to-r from-white/10 to-white/5 rounded-xl p-4 border border-white/20">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-lg flex items-center gap-2">
@@ -4301,7 +4383,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
               </div>
               <div className="text-right">
                 <p className="text-xs text-slate-400">Resets in</p>
-                <p className="font-mono text-yellow-400">
+                <p className="font-mono text-white/70">
                   {(() => {
                     const now = new Date();
                     const dayOfWeek = now.getDay();
@@ -4315,13 +4397,13 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
 
           {/* User Badges */}
           {userBadges.length > 0 && (
-            <div className="bg-slate-800/50 rounded-xl p-4 border border-white/5">
+            <div className="bg-black/50 rounded-xl p-4 border border-white/5">
               <h4 className="text-sm font-medium text-slate-400 mb-3">Your Badges</h4>
               <div className="flex flex-wrap gap-2">
                 {userBadges.map((badge) => (
                   <div
                     key={badge.id}
-                    className="px-3 py-1.5 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full text-sm border border-purple-500/30"
+                    className="px-3 py-1.5 bg-gradient-to-r from-white/20 to-white/10 rounded-full text-sm border border-white/20"
                     title={badge.description}
                   >
                     {badge.emoji} {badge.title}
@@ -4347,19 +4429,19 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                 Back to Challenges
               </button>
 
-              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-6 border border-purple-500/30">
+              <div className="bg-gradient-to-br from-white/10 to-white/5 rounded-2xl p-6 border border-white/20">
                 <div className="text-center">
                   <span className="text-5xl">{selectedChallenge.emoji}</span>
                   <h3 className="font-bold text-xl mt-3">{selectedChallenge.title}</h3>
                   <p className="text-slate-400 text-sm mt-1">{selectedChallenge.description}</p>
-                  <div className="mt-3 inline-block px-3 py-1 bg-yellow-500/20 rounded-full text-yellow-400 text-sm">
+                  <div className="mt-3 inline-block px-3 py-1 bg-white/10 rounded-full text-white/70 text-sm">
                     Prize: {selectedChallenge.reward}
                   </div>
                 </div>
               </div>
 
               {/* Leaderboard */}
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-white/5">
+              <div className="bg-black/50 rounded-xl p-4 border border-white/5">
                 <h4 className="font-medium mb-4 flex items-center gap-2">
                   <span>📊</span> Leaderboard
                 </h4>
@@ -4371,16 +4453,16 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                       <div
                         key={entry.id}
                         className={`flex items-center gap-3 p-3 rounded-lg ${
-                          entry.rank === 1 ? 'bg-yellow-500/20 border border-yellow-500/30' :
+                          entry.rank === 1 ? 'bg-white/10 border border-white/20' :
                           entry.rank === 2 ? 'bg-slate-400/20 border border-slate-400/30' :
-                          entry.rank === 3 ? 'bg-orange-600/20 border border-orange-600/30' :
-                          'bg-slate-700/50'
+                          entry.rank === 3 ? 'bg-white/70 text-black/20 border border-white/30' :
+                          'bg-black/60/50'
                         }`}
                       >
                         <span className="text-lg font-bold w-8">
                           {entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : `#${entry.rank}`}
                         </span>
-                        <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden">
+                        <div className="w-8 h-8 rounded-full bg-black/60 overflow-hidden">
                           {entry.photoURL ? (
                             <img src={entry.photoURL} className="w-full h-full object-cover" alt="" />
                           ) : (
@@ -4408,7 +4490,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
               {challenges.map((challenge) => (
                 <div
                   key={challenge.id}
-                  className="bg-slate-800/50 rounded-xl p-4 border border-white/5 hover:border-purple-500/30 transition-colors"
+                  className="bg-black/50 rounded-xl p-4 border border-white/5 hover:border-white/20 transition-colors"
                 >
                   <div className="flex items-start gap-4">
                     <span className="text-4xl">{challenge.emoji}</span>
@@ -4419,7 +4501,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                         <span className="text-xs text-slate-500">
                           👥 {challenge.participants || 0} joined
                         </span>
-                        <span className="text-xs text-yellow-400">
+                        <span className="text-xs text-white/70">
                           🎁 {challenge.reward}
                         </span>
                       </div>
@@ -4428,14 +4510,14 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                       {joinedChallenges[challenge.id] ? (
                         <button
                           onClick={() => setSelectedChallenge(challenge)}
-                          className="px-4 py-2 bg-green-600 rounded-xl text-sm font-medium hover:bg-green-500 transition-colors"
+                          className="px-4 py-2 bg-white text-black rounded-xl text-sm font-medium hover:bg-white text-black transition-colors"
                         >
                           View
                         </button>
                       ) : (
                         <button
                           onClick={() => handleJoinChallenge(challenge.id)}
-                          className="px-4 py-2 bg-purple-600 rounded-xl text-sm font-medium hover:bg-purple-500 transition-colors"
+                          className="px-4 py-2 bg-white text-black rounded-xl text-sm font-medium hover:bg-white/90 transition-colors"
                         >
                           Join
                         </button>
@@ -4446,7 +4528,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
               ))}
 
               {challenges.length === 0 && (
-                <div className="bg-slate-800/50 rounded-2xl p-6 text-center border border-white/5">
+                <div className="bg-black/50 rounded-2xl p-6 text-center border border-white/5">
                   <div className="text-4xl mb-3">🏆</div>
                   <p className="text-slate-400">No active challenges</p>
                   <p className="text-xs text-slate-500 mt-2">Check back soon!</p>
@@ -4465,7 +4547,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
             <button
               key={pos.id}
               onClick={() => setSelectedChatRoom({ id: pos.id, symbol: pos.symbol, image: pos.image })}
-              className="w-full bg-slate-800/50 rounded-xl p-4 border border-white/5 flex items-center gap-3 hover:border-blue-500/30 transition-colors text-left"
+              className="w-full bg-black/50 rounded-xl p-4 border border-white/5 flex items-center gap-3 hover:border-white/20 transition-colors text-left"
             >
               <img src={pos.image} className="w-10 h-10 rounded-full" alt={pos.symbol} />
               <div className="flex-1">
@@ -4478,7 +4560,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
             </button>
           ))}
           {portfolio.length === 0 && (
-            <div className="bg-slate-800/50 rounded-2xl p-6 text-center border border-white/5">
+            <div className="bg-black/50 rounded-2xl p-6 text-center border border-white/5">
               <div className="text-4xl mb-3">💬</div>
               <p className="text-slate-400">APE some coins to unlock their chat rooms!</p>
             </div>
@@ -4494,8 +4576,8 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-slate-400">Pending Requests</h3>
               {matchRequests.map((req) => (
-                <div key={req.id} className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl p-4 border border-blue-500/30 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden">
+                <div key={req.id} className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 border border-white/20 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-black/60 overflow-hidden">
                     {req.fromUser?.photoURL ? (
                       <img src={req.fromUser.photoURL} className="w-full h-full object-cover" alt="" />
                     ) : (
@@ -4506,11 +4588,11 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium">{req.fromUser?.displayName}</h4>
-                    <p className="text-xs text-blue-400">Wants to connect</p>
+                    <p className="text-xs text-white">Wants to connect</p>
                   </div>
                   <button
                     onClick={() => handleAcceptRequest(req.from)}
-                    className="px-4 py-2 bg-green-600 rounded-xl text-sm font-medium hover:bg-green-500 transition-colors"
+                    className="px-4 py-2 bg-white text-black rounded-xl text-sm font-medium hover:bg-white text-black transition-colors"
                   >
                     Accept
                   </button>
@@ -4523,7 +4605,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
           <div className="space-y-2">
             <h3 className="text-sm font-medium text-slate-400">Your Connections</h3>
             {connections.length === 0 ? (
-              <div className="bg-slate-800/50 rounded-2xl p-6 text-center border border-white/5">
+              <div className="bg-black/50 rounded-2xl p-6 text-center border border-white/5">
                 <div className="text-4xl mb-3">🤝</div>
                 <p className="text-slate-400">No connections yet</p>
                 <p className="text-xs text-slate-500 mt-2">Connect with investors from the Matches tab</p>
@@ -4533,9 +4615,9 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                 <button
                   key={conn.id}
                   onClick={() => setDmPartner(conn)}
-                  className="w-full bg-slate-800/50 rounded-xl p-4 border border-white/5 flex items-center gap-3 hover:border-blue-500/30 transition-colors text-left"
+                  className="w-full bg-black/50 rounded-xl p-4 border border-white/5 flex items-center gap-3 hover:border-white/20 transition-colors text-left"
                 >
-                  <div className="w-10 h-10 rounded-full bg-slate-700 overflow-hidden">
+                  <div className="w-10 h-10 rounded-full bg-black/60 overflow-hidden">
                     {conn.photoURL ? (
                       <img src={conn.photoURL} className="w-full h-full object-cover" alt="" />
                     ) : (
@@ -4546,9 +4628,9 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium">{conn.displayName}</h4>
-                    <p className="text-xs text-green-400">Connected</p>
+                    <p className="text-xs text-white">Connected</p>
                   </div>
-                  <span className="text-sm text-blue-400">Message</span>
+                  <span className="text-sm text-white">Message</span>
                 </button>
               ))
             )}
@@ -4561,14 +4643,14 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
         <div className="space-y-3">
           <p className="text-slate-400 text-sm">Most APEd coins by the community</p>
           {trendingCoins.length === 0 ? (
-            <div className="bg-slate-800/50 rounded-2xl p-6 text-center border border-white/5">
+            <div className="bg-black/50 rounded-2xl p-6 text-center border border-white/5">
               <div className="text-4xl mb-3">🔥</div>
               <p className="text-slate-400">No trending data yet</p>
               <p className="text-xs text-slate-500 mt-2">Be the first to APE!</p>
             </div>
           ) : (
             trendingCoins.map((coin, i) => (
-              <div key={coin.id} className="bg-slate-800/50 rounded-xl p-4 border border-white/5 flex items-center gap-3">
+              <div key={coin.id} className="bg-black/50 rounded-xl p-4 border border-white/5 flex items-center gap-3">
                 <span className="text-lg font-bold text-slate-500 w-6">#{i + 1}</span>
                 {coin.image && <img src={coin.image} className="w-8 h-8 rounded-full" alt="" />}
                 <div className="flex-1">
@@ -4576,7 +4658,7 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
                   <p className="text-xs text-slate-400">${coin.symbol?.toUpperCase()}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-green-400 font-bold">{coin.apeCount}</p>
+                  <p className="text-white font-bold">{coin.apeCount}</p>
                   <p className="text-xs text-slate-400">APEs</p>
                 </div>
               </div>
@@ -4586,12 +4668,12 @@ const CommunityTab = ({ coins, portfolio, predictionVote, onPredictionVote, user
       )}
 
       {/* Daily Prediction */}
-      <div className="bg-slate-800/50 rounded-2xl p-4 border border-white/5">
+      <div className="bg-black/50 rounded-2xl p-4 border border-white/5">
         <DailyPrediction coins={coins} onVote={onPredictionVote} userVote={predictionVote} />
       </div>
 
       {/* Leaderboard */}
-      <div className="bg-slate-800/50 rounded-2xl p-4 border border-white/5">
+      <div className="bg-black/50 rounded-2xl p-4 border border-white/5">
         <Leaderboard portfolio={portfolio} user={user} leaderboardData={leaderboardData} userRankData={userRankData} />
       </div>
     </div>
@@ -5485,7 +5567,7 @@ export default function Swipefolio() {
   // Loading
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
           <motion.div
             animate={{ rotate: 360 }}
@@ -5587,74 +5669,73 @@ export default function Swipefolio() {
       >
         <div className="flex items-center gap-3">
           <motion.div
-            whileHover={{ scale: 1.05, rotate: 5 }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg"
-            style={{ boxShadow: '0 8px 20px rgba(91,138,255,0.4)' }}
+            className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg"
           >
-            <span className="text-xl">{assetType === 'crypto' ? '🪙' : '📈'}</span>
+            <span className="text-black font-mono font-black text-lg">S</span>
           </motion.div>
-          <span className="text-xl font-display font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent hidden sm:inline">
-            Swipefolio
+          <span className="text-xl font-mono font-black text-white hidden sm:inline tracking-tight">
+            SWIPEFOLIO
           </span>
           {/* Asset Type Toggle */}
-          <div className="flex bg-slate-800 rounded-lg p-1">
+          <div className="flex bg-black/50 rounded-lg p-1 border border-white/10">
             <button
               onClick={() => { setAssetType('crypto'); setSelectedCategory('all'); setCurrentIndex(0); }}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition ${
+              className={`px-3 py-1 rounded-md text-sm font-mono font-medium transition ${
                 assetType === 'crypto'
-                  ? 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-black'
+                  : 'text-white/50 hover:text-white'
               }`}
             >
-              🪙 Crypto
+              Crypto
             </button>
             <button
               onClick={() => { setAssetType('stocks'); setSelectedCategory('all'); setCurrentIndex(0); }}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition ${
+              className={`px-3 py-1 rounded-md text-sm font-mono font-medium transition ${
                 assetType === 'stocks'
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-black'
+                  : 'text-white/50 hover:text-white'
               }`}
             >
-              📈 Stocks
+              Stocks
             </button>
           </div>
           {/* Fear & Greed Index (crypto) or Market Status (stocks) */}
           {assetType === 'crypto' ? (
             <FearGreedIndex value={fearGreed.value} label={fearGreed.label} />
           ) : (
-            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
-              marketStatus === 'open' ? 'bg-green-500/20 text-green-400' :
-              marketStatus === 'premarket' ? 'bg-yellow-500/20 text-yellow-400' :
-              'bg-red-500/20 text-red-400'
+            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-mono ${
+              marketStatus === 'open' ? 'bg-white/10 text-white' :
+              marketStatus === 'premarket' ? 'bg-white/10 text-white/70' :
+              'bg-white/10 text-white/50'
             }`}>
               <span className={`w-2 h-2 rounded-full ${
-                marketStatus === 'open' ? 'bg-green-400 animate-pulse' :
-                marketStatus === 'premarket' ? 'bg-yellow-400' :
-                'bg-red-400'
+                marketStatus === 'open' ? 'bg-white animate-pulse' :
+                marketStatus === 'premarket' ? 'bg-white/70' :
+                'bg-white/30'
               }`} />
-              {marketStatus === 'open' ? 'Market Open' :
-               marketStatus === 'premarket' ? 'Pre-Market' : 'Market Closed'}
+              {marketStatus === 'open' ? 'Open' :
+               marketStatus === 'premarket' ? 'Pre-Market' : 'Closed'}
             </div>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Data source indicator */}
+          {/* Data source indicator - Only show for crypto or if mock data */}
           {dataSource === 'mock' && (
-            <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full animate-pulse">
-              ⚠️ Cached
+            <span className="px-2 py-1 bg-white/10 text-white/50 text-xs font-mono rounded-full animate-pulse border border-white/20">
+              OFFLINE
             </span>
           )}
-          {dataSource === 'live' && (
-            <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">
-              ● Live
+          {dataSource === 'live' && assetType === 'crypto' && (
+            <span className="px-2 py-1 bg-white/10 text-white text-xs font-mono rounded-full border border-white/20">
+              ● LIVE
             </span>
           )}
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className="p-2 bg-slate-800 rounded-xl hover:bg-slate-700 transition"
+            className="p-2 bg-black/50 rounded-xl hover:bg-white/10 transition border border-white/10"
           >
             {soundEnabled ? '🔊' : '🔇'}
           </button>
@@ -5676,17 +5757,14 @@ export default function Swipefolio() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => { setSelectedCategory(cat.id); setCurrentIndex(0); setHistory([]); }}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full whitespace-nowrap text-xs font-medium transition-all"
-            style={selectedCategory === cat.id ? {
-              background: 'linear-gradient(135deg, #5b8aff 0%, #76ddff 100%)',
-              boxShadow: '0 4px 15px rgba(91,138,255,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset',
-            } : {
-              background: 'rgba(30,41,59,0.8)',
-              border: '1px solid rgba(255,255,255,0.08)',
-            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full whitespace-nowrap text-xs font-mono font-medium transition-all border ${
+              selectedCategory === cat.id
+                ? 'bg-white text-black border-white'
+                : 'bg-black/50 text-white/70 border-white/20 hover:border-white/40'
+            }`}
           >
-            <span>{cat.emoji}</span>
-            <span className={selectedCategory === cat.id ? 'text-white' : 'text-slate-300'}>{cat.label}</span>
+            <span className="opacity-70">{cat.emoji}</span>
+            <span>{cat.label}</span>
           </motion.button>
         ))}
       </div>
@@ -5712,13 +5790,13 @@ export default function Swipefolio() {
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => setView('portfolio')}
-                  className="bg-gradient-to-r from-green-500 to-emerald-500 px-8 py-4 rounded-xl font-bold hover:opacity-90 transition shadow-lg shadow-green-500/20"
+                  className="bg-gradient-to-r from-white/20 to-white/10 px-8 py-4 rounded-xl font-bold hover:opacity-90 transition shadow-lg shadow-white/10"
                 >
                   View Portfolio ({portfolio.length})
                 </button>
                 <button
                   onClick={handleReset}
-                  className="bg-slate-800 px-8 py-4 rounded-xl font-bold hover:bg-slate-700 transition"
+                  className="bg-black/70 px-8 py-4 rounded-xl font-bold hover:bg-black/60 transition"
                 >
                   🔀 Shuffle & Restart
                 </button>
@@ -5765,14 +5843,14 @@ export default function Swipefolio() {
       {/* Swipes Counter (for free users) - Compact */}
       {!isPremium && currentIndex < filteredCoins.length && (
         <div className="relative z-10 flex justify-center shrink-0">
-          <div className="bg-slate-800/60 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 flex items-center gap-2">
+          <div className="bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10 flex items-center gap-2">
             <span className="text-xs text-slate-400">
               {swipesToday}/{FREE_DAILY_SWIPES}
             </span>
-            <div className="w-12 h-1 bg-slate-700 rounded-full overflow-hidden">
+            <div className="w-12 h-1 bg-black/60 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
-                  swipesToday >= FREE_DAILY_SWIPES - 5 ? 'bg-orange-500' : 'bg-blue-500'
+                  swipesToday >= FREE_DAILY_SWIPES - 5 ? 'bg-white/60 text-black' : 'bg-white text-black'
                 }`}
                 style={{ width: `${Math.min(100, (swipesToday / FREE_DAILY_SWIPES) * 100)}%` }}
               />
@@ -5796,51 +5874,51 @@ export default function Swipefolio() {
             disabled={history.length === 0}
             className={`w-11 h-11 rounded-full flex items-center justify-center transition text-xl ${
               history.length === 0
-                ? 'bg-slate-800/50 text-slate-700 cursor-not-allowed'
-                : 'bg-slate-800 hover:bg-yellow-500/20 border-2 border-slate-700 hover:border-yellow-500'
+                ? 'bg-black/50 text-slate-700 cursor-not-allowed'
+                : 'bg-black/70 hover:bg-white/10 border-2 border-white/20 hover:border-white'
             }`}
           >
             ↩️
           </motion.button>
 
-          {/* RUG (Pass) */}
+          {/* PASS */}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.85 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={() => handleSwipe('left')}
-            className="relative w-14 h-14 bg-gradient-to-br from-slate-800 to-slate-900 rounded-full flex items-center justify-center border-2 border-red-500/50 hover:border-red-500 shadow-lg text-3xl group"
+            className="relative w-14 h-14 bg-black rounded-full flex items-center justify-center border-2 border-white/30 hover:border-white/60 shadow-lg text-2xl font-mono"
           >
-            <span>🚫</span>
+            <span className="text-white/80">✕</span>
           </motion.button>
 
-          {/* Super APE */}
+          {/* SUPER ADD */}
           <motion.button
             whileHover={{ scale: 1.15, y: -3 }}
             whileTap={{ scale: 0.85 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={() => handleSwipe('right', true)}
-            className="relative w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-full flex items-center justify-center border-2 border-blue-400 shadow-lg text-2xl"
+            className="relative w-12 h-12 bg-white rounded-full flex items-center justify-center border-2 border-white shadow-lg text-xl"
           >
-            ⭐
+            <span className="text-black">★</span>
           </motion.button>
 
-          {/* APE (Like) */}
+          {/* SMASH */}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.85 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={() => handleSwipe('right')}
-            className="relative w-14 h-14 bg-gradient-to-br from-green-600 to-emerald-700 rounded-full flex items-center justify-center border-2 border-green-400 shadow-lg text-3xl"
+            className="relative w-14 h-14 bg-black rounded-full flex items-center justify-center border-2 border-white/60 hover:border-white shadow-lg text-2xl font-mono"
           >
-            🦍
+            <span className="text-white">+</span>
           </motion.button>
 
           {/* Shuffle */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleReset}
-            className="w-11 h-11 bg-slate-800 rounded-full flex items-center justify-center hover:bg-blue-500/20 border-2 border-slate-700 hover:border-blue-500 transition text-xl"
+            className="w-11 h-11 bg-black/70 rounded-full flex items-center justify-center hover:bg-white/10 border-2 border-white/20 hover:border-white/30 transition text-xl"
           >
             🔀
           </motion.button>
