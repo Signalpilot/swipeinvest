@@ -1716,19 +1716,22 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
         transition: { duration: 0.2 }
       }}
     >
-      {/* Card Container - Finex-inspired glassmorphism */}
+      {/* Card Container - Terminal aesthetic */}
       <div
-        className="relative rounded-3xl overflow-hidden border border-white/[0.08]"
+        className="relative rounded-2xl overflow-hidden border border-white/20"
         style={{
-          background: 'linear-gradient(145deg, rgba(30,41,59,0.95) 0%, rgba(15,23,42,0.98) 100%)',
+          background: 'rgba(0,0,0,0.85)',
           backdropFilter: 'blur(24px)',
-          boxShadow: '0 24px 48px -8px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05) inset, 0 -20px 40px -20px rgba(91,138,255,0.15) inset',
+          boxShadow: '0 24px 48px -8px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1) inset',
         }}
       >
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.08] via-transparent to-cyan-500/[0.05] pointer-events-none" />
+        {/* Subtle grid overlay for terminal feel */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+          backgroundSize: '20px 20px',
+        }} />
 
-        {/* APE Stamp */}
+        {/* SMASH Stamp */}
         <motion.div
           className="absolute top-8 left-4 z-30 pointer-events-none"
           style={{ opacity: apeOpacity }}
@@ -1736,17 +1739,17 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
           <motion.div
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
-            className="border-[3px] border-emerald-400 text-emerald-400 px-6 py-3 rounded-2xl font-black text-3xl rotate-[-15deg] backdrop-blur-md"
+            className="border-2 border-white text-white px-6 py-3 rounded-xl font-mono font-black text-2xl rotate-[-15deg]"
             style={{
-              background: 'linear-gradient(135deg, rgba(16,185,129,0.2) 0%, rgba(16,185,129,0.05) 100%)',
-              boxShadow: '0 8px 32px rgba(16,185,129,0.3), 0 0 0 1px rgba(16,185,129,0.1) inset',
+              background: 'rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(8px)',
             }}
           >
-            APE 🦍
+            SMASH +
           </motion.div>
         </motion.div>
 
-        {/* RUG Stamp */}
+        {/* PASS Stamp */}
         <motion.div
           className="absolute top-8 right-4 z-30 pointer-events-none"
           style={{ opacity: rugOpacity }}
@@ -1754,65 +1757,38 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
           <motion.div
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
-            className="border-[3px] border-rose-400 text-rose-400 px-6 py-3 rounded-2xl font-black text-3xl rotate-[15deg] backdrop-blur-md"
+            className="border-2 border-white/50 text-white/70 px-6 py-3 rounded-xl font-mono font-black text-2xl rotate-[15deg]"
             style={{
-              background: 'linear-gradient(135deg, rgba(244,63,94,0.2) 0%, rgba(244,63,94,0.05) 100%)',
-              boxShadow: '0 8px 32px rgba(244,63,94,0.3), 0 0 0 1px rgba(244,63,94,0.1) inset',
+              background: 'rgba(255,255,255,0.05)',
+              backdropFilter: 'blur(8px)',
             }}
           >
-            RUG 🚫
+            PASS ✕
           </motion.div>
         </motion.div>
 
         {/* Coin Header - Compact */}
         <div className="relative p-4 pb-3">
-          {/* Rank badge - refined glassmorphism */}
-          <div
-            className="absolute top-4 right-4 px-3 py-1.5 rounded-full text-sm font-semibold"
-            style={{
-              background: 'rgba(0,0,0,0.3)',
-              backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-            }}
-          >
+          {/* Rank badge - monochrome */}
+          <div className="absolute top-4 right-4 px-3 py-1.5 rounded-lg text-sm font-mono font-semibold bg-white/10 border border-white/20">
             #{coin.market_cap_rank || '?'}
           </div>
 
-          {/* Hot badge - with glow */}
+          {/* Hot badge - monochrome */}
           {coin.price_change_percentage_24h > 15 && (
             <motion.div
-              animate={{ scale: [1, 1.05, 1] }}
+              animate={{ opacity: [0.7, 1, 0.7] }}
               transition={{ duration: 1.5, repeat: Infinity }}
-              className="absolute top-4 left-4 px-3 py-1.5 rounded-full text-xs font-bold"
-              style={{
-                background: 'linear-gradient(135deg, #f97316 0%, #ef4444 100%)',
-                boxShadow: '0 4px 20px rgba(249,115,22,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset',
-              }}
+              className="absolute top-4 left-4 px-3 py-1.5 rounded-lg text-xs font-mono font-bold bg-white text-black"
             >
-              🔥 HOT
+              ↑ HOT
             </motion.div>
           )}
 
           {/* Coin image and name */}
           <div className="flex items-center gap-4 relative">
             <div className="relative group">
-              {/* Animated glow behind image */}
-              <motion.div
-                animate={{ opacity: [0.4, 0.7, 0.4], scale: [0.95, 1.05, 0.95] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="absolute inset-0 rounded-2xl blur-xl -z-10"
-                style={{
-                  background: `radial-gradient(circle, ${isPositive ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)'} 0%, transparent 70%)`,
-                }}
-              />
-              <div
-                className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden"
-                style={{
-                  background: 'linear-gradient(145deg, rgba(51,65,85,0.8) 0%, rgba(30,41,59,0.9) 100%)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.08) inset',
-                }}
-              >
+              <div className="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden bg-white/10 border border-white/20">
                 <img
                   src={coin.image}
                   alt={coin.name}
@@ -1820,15 +1796,15 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
                   draggable={false}
                   onError={(e) => {
                     e.target.style.display = 'none';
-                    e.target.parentElement.innerHTML = `<span class="text-3xl font-black bg-gradient-to-br from-blue-400 to-cyan-400 bg-clip-text text-transparent">${coin.symbol?.toUpperCase().slice(0,3) || '?'}</span>`;
+                    e.target.parentElement.innerHTML = `<span class="text-2xl font-mono font-black text-white">${coin.symbol?.toUpperCase().slice(0,3) || '?'}</span>`;
                   }}
                 />
               </div>
             </div>
 
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-extrabold truncate tracking-tight">{coin.name}</h2>
-              <p className="text-slate-400 font-semibold uppercase tracking-widest text-xs">${coin.symbol}</p>
+              <h2 className="text-xl font-mono font-black truncate tracking-tight">{coin.name}</h2>
+              <p className="text-white/50 font-mono uppercase tracking-widest text-xs">${coin.symbol}</p>
             </div>
           </div>
         </div>
@@ -1837,12 +1813,12 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
         <div className="px-4 pb-1.5">
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-2xl font-black tracking-tight">{formatPrice(coin.current_price)}</p>
-              <div className={`flex items-center gap-1 ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                <span className="text-xs font-bold">
+              <p className="text-2xl font-mono font-black tracking-tight">{formatPrice(coin.current_price)}</p>
+              <div className={`flex items-center gap-1 ${isPositive ? 'text-white' : 'text-white/50'}`}>
+                <span className="text-xs font-mono font-bold">
                   {isPositive ? '▲' : '▼'} {Math.abs(coin.price_change_percentage_24h || 0).toFixed(2)}%
                 </span>
-                <span className="text-slate-500 text-[10px]">24h</span>
+                <span className="text-white/30 text-[10px] font-mono">24h</span>
               </div>
             </div>
 
@@ -1868,13 +1844,13 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
                       e.preventDefault();
                       onTap(coin);
                     }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-500/20 border border-blue-500/30 active:scale-95 transition-transform touch-manipulation"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 border border-white/20 active:scale-95 transition-transform touch-manipulation hover:bg-white/20"
                     style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
-                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
                     </svg>
-                    <span className="text-xs font-medium text-blue-400">Chart</span>
+                    <span className="text-xs font-mono font-medium text-white">Chart</span>
                   </button>
                 </div>
               )}
@@ -1959,7 +1935,7 @@ const SwipeCard = ({ coin, onSwipe, isTop, style, zIndex, onTap, coinStats }) =>
         {/* Swipe hint for top card */}
         {isTop && (
           <div className="pb-3 flex justify-center">
-            <p className="text-slate-600 text-xs font-medium">← Rug • Swipe • Ape →</p>
+            <p className="text-slate-500 text-xs font-mono tracking-wider">← PASS • SWIPE • SMASH →</p>
           </div>
         )}
       </div>
@@ -2242,30 +2218,30 @@ const CoinDetailModal = ({ coin, onClose, onApe, onRug }) => {
         </div>
 
         {/* Action Buttons */}
-        <div className="p-4 border-t border-white/10 flex gap-3">
+        <div className="p-4 border-t border-white/20 flex gap-3">
           <button
             onClick={() => { onRug(); onClose(); }}
-            className="flex-1 bg-red-500/20 hover:bg-red-500/30 border-2 border-red-500 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2"
+            className="flex-1 bg-black hover:bg-white/10 border-2 border-white/30 hover:border-white/50 py-3 rounded-xl font-mono font-bold transition flex items-center justify-center gap-2"
           >
-            <span className="text-xl">🚫</span> RUG
+            <span className="text-xl">✕</span> PASS
           </button>
           <button
             onClick={handleShare}
-            className="bg-blue-500/20 hover:bg-blue-500/30 border-2 border-blue-500 px-4 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2"
+            className="bg-black hover:bg-white/10 border-2 border-white/30 hover:border-white/50 px-4 py-3 rounded-xl font-mono font-bold transition flex items-center justify-center gap-2"
           >
             {shareStatus === 'copied' ? (
-              <><span className="text-xl">✓</span> Copied!</>
+              <><span className="text-xl">✓</span> Copied</>
             ) : shareStatus === 'shared' ? (
-              <><span className="text-xl">✓</span> Shared!</>
+              <><span className="text-xl">✓</span> Shared</>
             ) : (
-              <><span className="text-xl">📤</span> Share</>
+              <><span className="text-xl">↗</span> Share</>
             )}
           </button>
           <button
             onClick={() => { onApe(); onClose(); }}
-            className="flex-1 bg-green-500/20 hover:bg-green-500/30 border-2 border-green-500 py-3 rounded-xl font-bold transition flex items-center justify-center gap-2"
+            className="flex-1 bg-white hover:bg-white/90 text-black border-2 border-white py-3 rounded-xl font-mono font-bold transition flex items-center justify-center gap-2"
           >
-            <span className="text-xl">🦍</span> APE
+            <span className="text-xl">+</span> SMASH
           </button>
         </div>
       </motion.div>
@@ -2751,8 +2727,8 @@ const LandingPage = ({ onStart, stats }) => {
               <p className="text-slate-500 text-sm">Total Swipes</p>
             </div>
             <div>
-              <p className="text-3xl font-black text-green-400">{stats.totalApes || 0}</p>
-              <p className="text-slate-500 text-sm">Apes</p>
+              <p className="text-3xl font-mono font-black text-white">{stats.totalApes || 0}</p>
+              <p className="text-white/50 text-sm font-mono">Picks</p>
             </div>
             <div>
               <p className="text-3xl font-black text-cyan-400">{stats.portfolioValue || '$0'}</p>
@@ -2889,7 +2865,7 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
         {positions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <span className="text-6xl mb-4">🦍</span>
-            <h2 className="text-xl font-bold text-slate-400 mb-2">No Apes Yet</h2>
+            <h2 className="text-xl font-mono font-bold text-white/50 mb-2">No Picks Yet</h2>
             <p className="text-slate-500 mb-6">Start swiping right to build your portfolio!</p>
             <button
               onClick={onBack}
@@ -2982,8 +2958,8 @@ const PortfolioView = ({ portfolio, currentPrices, onBack, onRemove, onShare }) 
         const hasCrypto = positions.some(p => !p.isStock);
         return (
           <div className="sticky bottom-0 p-4 bg-slate-900/95 backdrop-blur-sm border-t border-white/10">
-            <p className="text-center text-slate-500 text-sm mb-3">
-              Ready to ape for real? 💰
+            <p className="text-center text-white/50 text-sm font-mono mb-3">
+              Ready to invest for real?
             </p>
             <div className="grid grid-cols-3 gap-2">
               {hasCrypto ? (
@@ -3175,17 +3151,17 @@ const AdBanner = ({ slot = 'bottom' }) => {
 
 const BottomNav = ({ activeTab, onTabChange, portfolioCount, isPremium }) => {
   const tabs = [
-    { id: 'discover', icon: '🔥', label: 'Discover' },
-    { id: 'portfolio', icon: '💼', label: 'Portfolio', badge: portfolioCount },
-    { id: 'community', icon: '🏆', label: 'Community' },
-    { id: 'account', icon: '👤', label: 'Account', premium: isPremium },
+    { id: 'discover', icon: '◉', label: 'Discover' },
+    { id: 'portfolio', icon: '▤', label: 'Portfolio', badge: portfolioCount },
+    { id: 'community', icon: '◈', label: 'Community' },
+    { id: 'account', icon: '◐', label: 'Account', premium: isPremium },
   ];
 
   return (
     <nav
-      className="relative z-20 flex justify-around items-center px-2 py-2 border-t border-white/10 shrink-0"
+      className="relative z-20 flex justify-around items-center px-2 py-2 border-t border-white/20 shrink-0"
       style={{
-        background: 'rgba(15,23,42,0.95)',
+        background: 'rgba(0,0,0,0.9)',
         backdropFilter: 'blur(20px)',
       }}
     >
@@ -3196,29 +3172,29 @@ const BottomNav = ({ activeTab, onTabChange, portfolioCount, isPremium }) => {
           onClick={() => onTabChange(tab.id)}
           className={`flex flex-col items-center gap-0.5 px-4 py-1 rounded-xl transition-all relative ${
             activeTab === tab.id
-              ? 'text-blue-400'
-              : 'text-slate-500 hover:text-slate-300'
+              ? 'text-white'
+              : 'text-white/40 hover:text-white/70'
           }`}
         >
           {activeTab === tab.id && (
             <motion.div
               layoutId="activeTab"
-              className="absolute inset-0 bg-blue-500/10 rounded-xl"
+              className="absolute inset-0 bg-white/10 rounded-xl border border-white/20"
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             />
           )}
-          <span className="text-xl relative">
+          <span className="text-xl relative font-mono">
             {tab.icon}
             {tab.badge > 0 && (
-              <span className="absolute -top-1 -right-2 bg-green-500 text-white text-[10px] font-bold px-1.5 rounded-full">
+              <span className="absolute -top-1 -right-3 bg-white text-black text-[10px] font-mono font-bold px-1.5 rounded-full">
                 {tab.badge}
               </span>
             )}
             {tab.premium && (
-              <span className="absolute -top-1 -right-2 text-yellow-400 text-[10px]">⭐</span>
+              <span className="absolute -top-1 -right-2 text-white text-[10px]">★</span>
             )}
           </span>
-          <span className="text-[10px] font-medium relative">{tab.label}</span>
+          <span className="text-[10px] font-mono font-medium relative">{tab.label}</span>
         </motion.button>
       ))}
     </nav>
@@ -3231,8 +3207,8 @@ const BottomNav = ({ activeTab, onTabChange, portfolioCount, isPremium }) => {
 
 // Investment Style Options
 const INVESTMENT_STYLES = [
-  { id: 'diamond', emoji: '💎', label: 'Diamond Hands', desc: 'HODL forever, never sell' },
-  { id: 'degen', emoji: '🦍', label: 'Degen Ape', desc: 'High risk, high reward' },
+  { id: 'diamond', emoji: '◆', label: 'Long Term', desc: 'Hold positions long-term' },
+  { id: 'degen', emoji: '↗', label: 'High Risk', desc: 'High risk, high reward' },
   { id: 'swing', emoji: '📊', label: 'Swing Trader', desc: 'Ride the waves' },
   { id: 'value', emoji: '🎯', label: 'Value Hunter', desc: 'Undervalued gems only' },
   { id: 'whale', emoji: '🐋', label: 'Whale Watcher', desc: 'Follow the big money' },
@@ -3402,12 +3378,12 @@ const AccountTab = ({ isPremium, onUpgrade, swipesToday, stats, user, onUserChan
             <p className="text-slate-500 text-xs">Total Swipes</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-black text-green-400">{stats.aped}</p>
-            <p className="text-slate-500 text-xs">Apes</p>
+            <p className="text-2xl font-mono font-black text-white">{stats.aped}</p>
+            <p className="text-white/50 text-xs font-mono">Picks</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-black text-blue-400">{stats.superAped || 0}</p>
-            <p className="text-slate-500 text-xs">Super Apes</p>
+            <p className="text-2xl font-mono font-black text-white">{stats.superAped || 0}</p>
+            <p className="text-white/50 text-xs font-mono">Super Picks</p>
           </div>
         </div>
       </div>
@@ -5693,55 +5669,54 @@ export default function Swipefolio() {
       >
         <div className="flex items-center gap-3">
           <motion.div
-            whileHover={{ scale: 1.05, rotate: 5 }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg"
-            style={{ boxShadow: '0 8px 20px rgba(91,138,255,0.4)' }}
+            className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg"
           >
-            <span className="text-xl">{assetType === 'crypto' ? '🪙' : '📈'}</span>
+            <span className="text-black font-mono font-black text-lg">S</span>
           </motion.div>
-          <span className="text-xl font-display font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent hidden sm:inline">
-            Swipefolio
+          <span className="text-xl font-mono font-black text-white hidden sm:inline tracking-tight">
+            SWIPEFOLIO
           </span>
           {/* Asset Type Toggle */}
-          <div className="flex bg-slate-800 rounded-lg p-1">
+          <div className="flex bg-black/50 rounded-lg p-1 border border-white/10">
             <button
               onClick={() => { setAssetType('crypto'); setSelectedCategory('all'); setCurrentIndex(0); }}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition ${
+              className={`px-3 py-1 rounded-md text-sm font-mono font-medium transition ${
                 assetType === 'crypto'
-                  ? 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-black'
+                  : 'text-white/50 hover:text-white'
               }`}
             >
-              🪙 Crypto
+              Crypto
             </button>
             <button
               onClick={() => { setAssetType('stocks'); setSelectedCategory('all'); setCurrentIndex(0); }}
-              className={`px-3 py-1 rounded-md text-sm font-medium transition ${
+              className={`px-3 py-1 rounded-md text-sm font-mono font-medium transition ${
                 assetType === 'stocks'
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white text-black'
+                  : 'text-white/50 hover:text-white'
               }`}
             >
-              📈 Stocks
+              Stocks
             </button>
           </div>
           {/* Fear & Greed Index (crypto) or Market Status (stocks) */}
           {assetType === 'crypto' ? (
             <FearGreedIndex value={fearGreed.value} label={fearGreed.label} />
           ) : (
-            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${
-              marketStatus === 'open' ? 'bg-green-500/20 text-green-400' :
-              marketStatus === 'premarket' ? 'bg-yellow-500/20 text-yellow-400' :
-              'bg-red-500/20 text-red-400'
+            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-mono ${
+              marketStatus === 'open' ? 'bg-white/10 text-white' :
+              marketStatus === 'premarket' ? 'bg-white/10 text-white/70' :
+              'bg-white/10 text-white/50'
             }`}>
               <span className={`w-2 h-2 rounded-full ${
-                marketStatus === 'open' ? 'bg-green-400 animate-pulse' :
-                marketStatus === 'premarket' ? 'bg-yellow-400' :
-                'bg-red-400'
+                marketStatus === 'open' ? 'bg-white animate-pulse' :
+                marketStatus === 'premarket' ? 'bg-white/70' :
+                'bg-white/30'
               }`} />
-              {marketStatus === 'open' ? 'Market Open' :
-               marketStatus === 'premarket' ? 'Pre-Market' : 'Market Closed'}
+              {marketStatus === 'open' ? 'Open' :
+               marketStatus === 'premarket' ? 'Pre-Market' : 'Closed'}
             </div>
           )}
         </div>
@@ -5749,18 +5724,18 @@ export default function Swipefolio() {
         <div className="flex items-center gap-2">
           {/* Data source indicator - Only show for crypto or if mock data */}
           {dataSource === 'mock' && (
-            <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded-full animate-pulse">
-              ⚠️ Offline
+            <span className="px-2 py-1 bg-white/10 text-white/50 text-xs font-mono rounded-full animate-pulse border border-white/20">
+              OFFLINE
             </span>
           )}
           {dataSource === 'live' && assetType === 'crypto' && (
-            <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">
-              ● Live
+            <span className="px-2 py-1 bg-white/10 text-white text-xs font-mono rounded-full border border-white/20">
+              ● LIVE
             </span>
           )}
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className="p-2 bg-slate-800 rounded-xl hover:bg-slate-700 transition"
+            className="p-2 bg-black/50 rounded-xl hover:bg-white/10 transition border border-white/10"
           >
             {soundEnabled ? '🔊' : '🔇'}
           </button>
@@ -5782,17 +5757,14 @@ export default function Swipefolio() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => { setSelectedCategory(cat.id); setCurrentIndex(0); setHistory([]); }}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full whitespace-nowrap text-xs font-medium transition-all"
-            style={selectedCategory === cat.id ? {
-              background: 'linear-gradient(135deg, #5b8aff 0%, #76ddff 100%)',
-              boxShadow: '0 4px 15px rgba(91,138,255,0.4), 0 0 0 1px rgba(255,255,255,0.1) inset',
-            } : {
-              background: 'rgba(30,41,59,0.8)',
-              border: '1px solid rgba(255,255,255,0.08)',
-            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full whitespace-nowrap text-xs font-mono font-medium transition-all border ${
+              selectedCategory === cat.id
+                ? 'bg-white text-black border-white'
+                : 'bg-black/50 text-white/70 border-white/20 hover:border-white/40'
+            }`}
           >
-            <span>{cat.emoji}</span>
-            <span className={selectedCategory === cat.id ? 'text-white' : 'text-slate-300'}>{cat.label}</span>
+            <span className="opacity-70">{cat.emoji}</span>
+            <span>{cat.label}</span>
           </motion.button>
         ))}
       </div>
@@ -5909,37 +5881,37 @@ export default function Swipefolio() {
             ↩️
           </motion.button>
 
-          {/* RUG (Pass) */}
+          {/* PASS */}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.85 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={() => handleSwipe('left')}
-            className="relative w-14 h-14 bg-gradient-to-br from-slate-800 to-slate-900 rounded-full flex items-center justify-center border-2 border-red-500/50 hover:border-red-500 shadow-lg text-3xl group"
+            className="relative w-14 h-14 bg-black rounded-full flex items-center justify-center border-2 border-white/30 hover:border-white/60 shadow-lg text-2xl font-mono"
           >
-            <span>🚫</span>
+            <span className="text-white/80">✕</span>
           </motion.button>
 
-          {/* Super APE */}
+          {/* SUPER ADD */}
           <motion.button
             whileHover={{ scale: 1.15, y: -3 }}
             whileTap={{ scale: 0.85 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={() => handleSwipe('right', true)}
-            className="relative w-12 h-12 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-full flex items-center justify-center border-2 border-blue-400 shadow-lg text-2xl"
+            className="relative w-12 h-12 bg-white rounded-full flex items-center justify-center border-2 border-white shadow-lg text-xl"
           >
-            ⭐
+            <span className="text-black">★</span>
           </motion.button>
 
-          {/* APE (Like) */}
+          {/* SMASH */}
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.85 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={() => handleSwipe('right')}
-            className="relative w-14 h-14 bg-gradient-to-br from-green-600 to-emerald-700 rounded-full flex items-center justify-center border-2 border-green-400 shadow-lg text-3xl"
+            className="relative w-14 h-14 bg-black rounded-full flex items-center justify-center border-2 border-white/60 hover:border-white shadow-lg text-2xl font-mono"
           >
-            🦍
+            <span className="text-white">+</span>
           </motion.button>
 
           {/* Shuffle */}
